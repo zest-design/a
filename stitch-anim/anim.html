@@ -1,0 +1,620 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Stitch Clip</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #0B1220; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// ---------------------------------------------------------------------------
+// Stitch clip — flat 2D motion graphics, 1920x1080, 24fps, ~20s.
+// render(t) draws one deterministic frame at time t (seconds).
+// ---------------------------------------------------------------------------
+const W = 1920, H = 1080, DURATION = 20;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const COL = {
+  bg: '#0B1220', bg2: '#0F1830', panel: '#121C31', panel2: '#18233B',
+  line: '#26334F', line2: '#33415F',
+  cyan: '#19D3C5', violet: '#7C5CFF', white: '#FFFFFF', gray: '#AEB8CC', gray2: '#6E7A93',
+};
+const FONT = '600 34px "DejaVu Sans", "Liberation Sans", sans-serif';
+const URL_TEXT = 'stitch.withgoogle.com';
+
+// ---------- math / easing ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eIO = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eIn = k => k * k * k;
+const eExpo = k => k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
+const eBack = (k, s = 1.70158) => { const c3 = s + 1; return 1 + c3 * Math.pow(k - 1, 3) + s * Math.pow(k - 1, 2); };
+const eSine = k => -(Math.cos(Math.PI * k) - 1) / 2;
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+
+// ---------- drawing helpers ----------
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur; }
+function noGlow() { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; }
+function blobs(t, cx, cy, s, a = 1) {
+  const list = [
+    [COL.cyan, -0.36, 0.36, 0.55, 0.13, 0.0],
+    [COL.violet, 0.38, -0.30, 0.62, 0.15, 1.7],
+    [COL.violet, -0.10, 0.55, 0.40, 0.06, 3.1],
+  ];
+  for (const [c, ox, oy, r, al, ph] of list) {
+    const x = cx + (ox + 0.03 * Math.sin(t * 0.35 + ph)) * W * s;
+    const y = cy + (oy + 0.03 * Math.cos(t * 0.3 + ph)) * H * s;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * W * s);
+    g.addColorStop(0, hexA(c, al * a)); g.addColorStop(1, hexA(c, 0));
+    ctx.fillStyle = g; ctx.fillRect(cx - W * s, cy - H * s, W * 2 * s, H * 2 * s);
+  }
+}
+function cursor(x, y, s = 1, a = 1) {
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.scale(s * 1.5, s * 1.5);
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(0, 30); ctx.lineTo(7.5, 23); ctx.lineTo(12.5, 34); ctx.lineTo(17, 32);
+  ctx.lineTo(12, 21.5); ctx.lineTo(22, 21.5); ctx.closePath();
+  glow('rgba(0,0,0,0.45)', 10); ctx.fillStyle = COL.white; ctx.fill(); noGlow();
+  ctx.lineJoin = 'round'; ctx.lineWidth = 2; ctx.strokeStyle = COL.bg; ctx.stroke();
+  ctx.restore();
+}
+function ripple(x, y, k, color) {
+  if (k <= 0 || k >= 1) return;
+  ctx.save(); ctx.strokeStyle = hexA(color, (1 - k) * 0.9); ctx.lineWidth = 4 * (1 - k) + 1;
+  ctx.beginPath(); ctx.arc(x, y, 12 + 60 * eOut(k), 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+}
+
+// ---------- camera (world space) ----------
+// The laptop screen lives in world space: 480x270 rect centered at (SX, SY).
+// Screen content is authored at 1920x1080 and drawn scaled by 0.25.
+const SX = 1040, SY = 450, SS = 0.25;
+const SCR_X = SX - 240, SCR_Y = SY - 135;
+const sc = (x, y, k) => [SCR_X + x * SS, SCR_Y + y * SS, 4 * k]; // screen-space key -> world key
+const CAM = [
+  [0.0, 960, 560, 1.0],
+  [0.9, 985, 535, 1.14],
+  [2.1, 1040, 395, 2.45],
+  [3.2, 1040, 405, 3.15],
+  [4.4, ...sc(960, 540, 1.0)],
+  [6.0, ...sc(960, 575, 1.07)],
+  [8.3, ...sc(960, 560, 1.0)],
+  [10.5, ...sc(1010, 575, 1.04)],
+  [12.2, ...sc(960, 540, 1.0)],
+  [15.4, ...sc(960, 520, 1.02)],
+  [17.6, ...sc(900, 470, 1.10)],
+  [19.2, ...sc(960, 520, 1.06)],
+  [20.0, ...sc(960, 520, 1.06)],
+];
+function camAt(t) {
+  const K = CAM.map(k => [k[0], k[1], k[2], Math.log(k[3])]);
+  let i = 0; while (i < K.length - 2 && t > K[i + 1][0]) i++;
+  const a = K[i], b = K[i + 1];
+  const tan = j => {
+    if (j <= 0 || j >= K.length - 1) return [0, 0, 0];
+    const p = K[j - 1], n = K[j + 1], dt = n[0] - p[0];
+    return [1, 2, 3].map(c => (n[c] - p[c]) / dt);
+  };
+  const ma = tan(i), mb = tan(i + 1);
+  const h = b[0] - a[0], s = clamp((t - a[0]) / h), s2 = s * s, s3 = s2 * s;
+  const h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s, h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
+  const out = [1, 2, 3].map((c, j) => h00 * a[c] + h10 * h * ma[j] + h01 * b[c] + h11 * h * mb[j]);
+  let [cx, cy, lz] = out; let z = Math.exp(lz);
+  if (t >= 4.4) { // stay inside the laptop screen once it fills the frame
+    z = Math.max(z, 4);
+    const hw = 960 / z, hh = 540 / z;
+    cx = clamp(cx, SCR_X + hw, SCR_X + 480 - hw);
+    cy = clamp(cy, SCR_Y + hh, SCR_Y + 270 - hh);
+  }
+  return [cx, cy, z];
+}
+
+// ---------- world: room, faceless person, laptop ----------
+function drawRoom(t) {
+  ctx.fillStyle = COL.bg; ctx.fillRect(-2000, -2000, 6000, 6000);
+  blobs(t, 960, 540, 1, 1);
+  // wall decor: soft round window + shelf
+  ctx.save();
+  const g = ctx.createRadialGradient(330, 300, 0, 330, 300, 170);
+  g.addColorStop(0, hexA(COL.violet, 0.22)); g.addColorStop(1, hexA(COL.violet, 0.02));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(330, 300, 150, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = hexA(COL.white, 0.08); ctx.lineWidth = 3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(380, 260, 46, 0, Math.PI * 2); ctx.fillStyle = hexA(COL.cyan, 0.25); ctx.fill();
+  rr(1420, 300, 260, 14, 7); ctx.fillStyle = '#1A2540'; ctx.fill();
+  rr(1450, 236, 40, 64, 8); ctx.fillStyle = hexA(COL.cyan, 0.55); ctx.fill();
+  rr(1500, 252, 34, 48, 8); ctx.fillStyle = hexA(COL.violet, 0.6); ctx.fill();
+  ctx.beginPath(); ctx.arc(1600, 278, 22, 0, Math.PI * 2); ctx.fillStyle = hexA(COL.gray, 0.35); ctx.fill();
+  ctx.restore();
+  // screen light spill
+  const sg = ctx.createRadialGradient(SX, SY, 40, SX, SY, 520);
+  sg.addColorStop(0, hexA(COL.cyan, 0.16)); sg.addColorStop(1, hexA(COL.cyan, 0));
+  ctx.fillStyle = sg; ctx.fillRect(SX - 600, SY - 600, 1200, 1200);
+  // desk
+  rr(150, 628, 1620, 34, 17); ctx.fillStyle = '#1A2642'; ctx.fill();
+  ctx.fillStyle = '#121B30'; ctx.fillRect(210, 660, 1500, 600);
+  ctx.fillStyle = hexA(COL.white, 0.06); ctx.fillRect(170, 630, 1580, 3);
+  // plant
+  ctx.save();
+  const leaf = (x, y, rx, ry, rot, c) => { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill(); };
+  const sway = Math.sin(t * 1.2) * 0.04;
+  leaf(1545, 520, 22, 64, -0.5 + sway, hexA(COL.cyan, 0.85));
+  leaf(1590, 505, 22, 70, 0.15 + sway, hexA(COL.violet, 0.9));
+  leaf(1630, 530, 20, 58, 0.65 + sway, hexA(COL.cyan, 0.7));
+  rr(1540, 560, 110, 70, 18); ctx.fillStyle = '#E6EBF5'; ctx.fill();
+  ctx.fillStyle = hexA(COL.violet, 0.25); ctx.fillRect(1540, 584, 110, 8);
+  ctx.restore();
+  // mug
+  rr(1390, 574, 64, 56, 14); ctx.fillStyle = COL.gray; ctx.fill();
+  ctx.beginPath(); ctx.arc(1456, 600, 15, -Math.PI / 2, Math.PI / 2); ctx.lineWidth = 8; ctx.strokeStyle = COL.gray; ctx.stroke();
+  for (let i = 0; i < 2; i++) { // steam
+    const k = (t * 0.5 + i * 0.5) % 1;
+    ctx.beginPath(); ctx.moveTo(1410 + i * 22, 560 - k * 50);
+    ctx.bezierCurveTo(1400 + i * 22, 545 - k * 50, 1420 + i * 22, 530 - k * 50, 1410 + i * 22, 515 - k * 50);
+    ctx.strokeStyle = hexA(COL.white, 0.25 * Math.sin(k * Math.PI)); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
+  }
+}
+function drawLaptopBack() {
+  // bezel behind the screen content
+  rr(SCR_X - 16, SCR_Y - 16, 480 + 32, 270 + 32, 20);
+  ctx.fillStyle = '#1B2640'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = COL.line2; ctx.stroke();
+}
+function drawLaptopFront() {
+  // hinge + base in soft perspective
+  ctx.fillStyle = '#2A3858'; rr(SX - 60, SCR_Y + 270 + 12, 120, 8, 4); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(SCR_X - 30, SCR_Y + 288); ctx.lineTo(SCR_X + 510, SCR_Y + 288);
+  ctx.lineTo(SCR_X + 560, SCR_Y + 318); ctx.lineTo(SCR_X - 80, SCR_Y + 318); ctx.closePath();
+  ctx.fillStyle = '#24314F'; ctx.fill(); ctx.strokeStyle = COL.line2; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = hexA(COL.white, 0.06);
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 12; i++) {
+    const x = SCR_X + 20 + i * 38 - r * 14, y = SCR_Y + 294 + r * 10;
+    rr(x, y, 30, 6, 3); ctx.fill();
+  }
+}
+function drawPerson(t) {
+  // faceless character seen from behind (over-the-shoulder)
+  const typing = t > 1.4 && t < 3.6 ? Math.abs(Math.sin(t * 22)) * 6 : 0;
+  const breathe = Math.sin(t * 2) * 3;
+  ctx.save();
+  // right arm reaching to the keyboard
+  ctx.lineCap = 'round'; ctx.lineWidth = 50; ctx.strokeStyle = '#5E45D9';
+  ctx.beginPath(); ctx.moveTo(700, 790 + breathe); ctx.quadraticCurveTo(800, 720, 845, 650 - typing); ctx.stroke();
+  ctx.beginPath(); ctx.arc(850, 640 - typing, 22, 0, Math.PI * 2); ctx.fillStyle = '#D5DCEA'; ctx.fill();
+  // torso
+  ctx.beginPath();
+  ctx.moveTo(380, 1100); ctx.lineTo(395, 800 + breathe);
+  ctx.quadraticCurveTo(400, 715 + breathe, 500, 705 + breathe); ctx.lineTo(640, 705 + breathe);
+  ctx.quadraticCurveTo(735, 715 + breathe, 740, 800 + breathe); ctx.lineTo(760, 1100); ctx.closePath();
+  ctx.fillStyle = COL.violet; ctx.fill();
+  ctx.fillStyle = hexA('#000000', 0.12); ctx.fillRect(560, 720, 4, 380);
+  // neck + head (back of head: hair, no face)
+  rr(545, 640 + breathe, 52, 80, 20); ctx.fillStyle = '#C3CCDD'; ctx.fill();
+  ctx.beginPath(); ctx.arc(506, 622 + breathe, 13, 0, Math.PI * 2); ctx.arc(636, 622 + breathe, 13, 0, Math.PI * 2); ctx.fillStyle = '#C3CCDD'; ctx.fill();
+  ctx.beginPath(); ctx.arc(571, 608 + breathe, 66, 0, Math.PI * 2); ctx.fillStyle = '#1D2A4D'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(552, 578 + breathe, 30, 18, -0.5, 0, Math.PI * 2); ctx.fillStyle = hexA(COL.white, 0.07); ctx.fill();
+  ctx.restore();
+}
+
+// ---------- screen content (local 1920x1080) ----------
+const PB = { x: 460, y: 445, w: 1000, h: 230 }; // prompt box base rect
+const FR = { x: 400, y: 140, w: 1120, h: 720 }; // generated design frame
+const ELEMS = (() => {
+  const cw = (FR.w - 48 - 2 * 24) / 3;
+  const list = [
+    { id: 'frame', t: 12.35, x: 0, y: 0, w: FR.w, h: FR.h },
+    { id: 'header', t: 12.75, x: 24, y: 22, w: FR.w - 48, h: 64 },
+    { id: 'hero', t: 13.2, x: 24, y: 110, w: 520, h: 300 },
+    { id: 'heroText', t: 13.6, x: 580, y: 140, w: 470, h: 160 },
+    { id: 'heroBtn', t: 13.95, x: 580, y: 330, w: 360, h: 56 },
+  ];
+  for (let i = 0; i < 3; i++) list.push({ id: 'card' + i, t: 14.35 + i * 0.3, x: 24 + i * (cw + 24), y: 440, w: cw, h: 250 });
+  return list;
+})();
+
+function urlChars() {
+  const r = rng(7); let tt = 1.45; const out = [];
+  for (let i = 0; i < URL_TEXT.length; i++) { out.push(tt); tt += 0.07 + r() * 0.04 + (URL_TEXT[i] === '.' ? 0.06 : 0); }
+  return out;
+}
+const CHAR_T = urlChars();
+const ENTER_T = 3.55;
+
+function drawBrowserChrome(t) {
+  ctx.fillStyle = '#101A2D'; ctx.fillRect(0, 0, W, 110);
+  ctx.fillStyle = COL.line; ctx.fillRect(0, 109, W, 2);
+  [COL.gray2, COL.gray2, COL.gray2].forEach((c, i) => { ctx.beginPath(); ctx.arc(54 + i * 36, 55, 10, 0, Math.PI * 2); ctx.fillStyle = hexA(c, 0.7); ctx.fill(); });
+  // address pill
+  const flash = t > ENTER_T ? 1 - prog(t, ENTER_T, ENTER_T + 0.6) : 0;
+  const focus = prog(t, 1.0, 1.4);
+  rr(200, 27, 1520, 56, 28); ctx.fillStyle = COL.bg; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = focus > 0 ? hexA(COL.cyan, 0.25 + 0.5 * focus * (t < ENTER_T + 0.6 ? 1 : 0.4) + flash * 0.3) : COL.line; ctx.stroke();
+  if (flash > 0) { ctx.save(); glow(COL.cyan, 30 * flash); ctx.strokeStyle = hexA(COL.cyan, flash); ctx.stroke(); ctx.restore(); }
+  // lock glyph
+  ctx.save(); ctx.strokeStyle = COL.gray2; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(240, 49, 7, Math.PI, 0); ctx.stroke(); rr(230, 50, 20, 15, 4); ctx.fillStyle = COL.gray2; ctx.fill(); ctx.restore();
+  // typed URL — each glyph slides up out of a blur (reference-style reveal)
+  ctx.save(); ctx.font = FONT; ctx.textBaseline = 'middle';
+  let x = 272; let caretX = x;
+  for (let i = 0; i < URL_TEXT.length; i++) {
+    const ch = URL_TEXT[i]; const cw = ctx.measureText(ch).width;
+    const k = eExpo(prog(t, CHAR_T[i], CHAR_T[i] + 0.32));
+    if (k > 0) {
+      ctx.globalAlpha = k; ctx.filter = k < 1 ? `blur(${(1 - k) * 8}px)` : 'none';
+      ctx.fillStyle = i < 6 ? COL.white : '#DCE3F0';
+      ctx.fillText(ch, x, 56 + (1 - k) * 22);
+      caretX = x + cw * Math.min(1, k * 1.6);
+    }
+    x += cw;
+  }
+  ctx.filter = 'none'; ctx.globalAlpha = 1;
+  const typingNow = t > 1.2 && t < ENTER_T;
+  if (typingNow && (Math.floor(t * 2.5) % 2 === 0 || (t > CHAR_T[0] && t < CHAR_T[CHAR_T.length - 1] + 0.1))) {
+    ctx.fillStyle = COL.cyan; ctx.fillRect(caretX + 3, 38, 3, 36);
+  }
+  ctx.restore();
+  // loading sweep after "enter"
+  const lp = prog(t, ENTER_T, ENTER_T + 0.55);
+  if (lp > 0 && lp < 1) {
+    ctx.save(); glow(COL.cyan, 16);
+    const gg = ctx.createLinearGradient(0, 0, W * lp, 0); gg.addColorStop(0, hexA(COL.violet, 0.9)); gg.addColorStop(1, COL.cyan);
+    ctx.fillStyle = gg; ctx.globalAlpha = 1 - prog(t, ENTER_T + 0.45, ENTER_T + 0.55) * 0;
+    ctx.fillRect(0, 107, W * eIO(lp), 4); ctx.restore();
+  }
+}
+
+function promptBoxState(t) {
+  // position/scale over the clip
+  let cx = PB.x + PB.w / 2, cy = PB.y + PB.h / 2, s = 1, a = 1;
+  const up = eIO(prog(t, 6.55, 7.25));
+  cy = lerp(cy, 330, up); s = lerp(1, 0.82, up);
+  const dock = eIO(prog(t, 11.45, 12.15));
+  cy = lerp(cy, 968, dock); s = lerp(s, 0.6, dock);
+  const appear = eOut(prog(t, 3.85, 4.55));
+  a *= appear; s *= lerp(0.9, 1, eBack(prog(t, 3.85, 4.55), 1.2));
+  const leave = eIO(prog(t, 16.0, 16.7));
+  cy += leave * 120; a *= 1 - leave;
+  return { cx, cy, s, a };
+}
+
+function drawPromptBox(t) {
+  const st = promptBoxState(t); if (st.a <= 0.001) return;
+  ctx.save(); ctx.globalAlpha = st.a;
+  ctx.translate(st.cx, st.cy); ctx.scale(st.s, st.s); ctx.translate(-PB.w / 2, -PB.h / 2);
+  // pulse when it sends the prompt
+  const send = prog(t, 12.1, 12.6);
+  const working = t > 12.1 && t < 16.0 ? 1 : 0;
+  const breathe = 0.5 + 0.5 * Math.sin(t * 2.6);
+  const glowAmt = 26 + 18 * breathe + 60 * Math.sin(Math.PI * send);
+  rr(0, 0, PB.w, PB.h, 36); ctx.fillStyle = '#111B30';
+  glow(hexA(COL.cyan, 0.55), glowAmt); ctx.fill(); noGlow();
+  const ang = t * (working ? 2.2 : 0.6);
+  const gx = Math.cos(ang) * PB.w / 2, gy = Math.sin(ang) * PB.h / 2;
+  const sg = ctx.createLinearGradient(PB.w / 2 - gx, PB.h / 2 - gy, PB.w / 2 + gx, PB.h / 2 + gy);
+  sg.addColorStop(0, COL.cyan); sg.addColorStop(1, COL.violet);
+  ctx.lineWidth = 3; ctx.strokeStyle = sg; ctx.stroke();
+  if (send > 0 && send < 1) { // expanding ring
+    const k = eOut(send);
+    ctx.save(); ctx.globalAlpha = st.a * (1 - send);
+    rr(-40 * k, -40 * k, PB.w + 80 * k, PB.h + 80 * k, 36 + 40 * k); ctx.strokeStyle = COL.cyan; ctx.lineWidth = 4; ctx.stroke(); ctx.restore();
+  }
+  // descriptive lines (no readable text)
+  const LINES = [[56, 62, 760, 4.75, 5.45], [56, 110, 820, 5.45, 6.05], [56, 158, 520, 6.05, 6.5]];
+  let caret = [56, 62]; let active = false;
+  LINES.forEach(([lx, ly, lw, a0, a1], i) => {
+    const k = eIO(prog(t, a0, a1)); if (k <= 0) return;
+    const w = lw * k;
+    const lg = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+    lg.addColorStop(0, hexA(COL.white, 0.85)); lg.addColorStop(1, hexA(COL.gray, 0.55));
+    rr(lx, ly - 8, Math.max(16, w), 16, 8); ctx.fillStyle = lg; ctx.fill();
+    if (working) { // shimmer sweep while generating
+      const sx = ((t * 700 + i * 180) % 1400) - 200;
+      const sh = ctx.createLinearGradient(sx - 120, 0, sx + 120, 0);
+      sh.addColorStop(0, hexA(COL.cyan, 0)); sh.addColorStop(0.5, hexA(COL.cyan, 0.9)); sh.addColorStop(1, hexA(COL.cyan, 0));
+      ctx.save(); rr(lx, ly - 8, w, 16, 8); ctx.clip(); ctx.fillStyle = sh; ctx.fillRect(lx, ly - 8, w, 16); ctx.restore();
+    }
+    caret = [lx + w + 10, ly]; if (k < 1) active = true;
+  });
+  const showCaret = t > 4.3 && t < 7.0 && (active || Math.floor(t * 2.5) % 2 === 0);
+  if (showCaret) { ctx.fillStyle = COL.cyan; ctx.fillRect(caret[0], caret[1] - 18, 3.5, 36); }
+  ctx.restore();
+}
+
+function drawPhoneIcon(cx, cy, s, a, t, emph) {
+  if (a <= 0.001 || s <= 0.001) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(cx, cy); ctx.scale(s, s);
+  const w = 190, h = 340;
+  glow(hexA(COL.cyan, 0.6), 24 + 20 * emph);
+  rr(-w / 2, -h / 2, w, h, 34); ctx.fillStyle = COL.panel; ctx.fill(); noGlow();
+  ctx.lineWidth = 3; ctx.strokeStyle = COL.cyan; ctx.stroke();
+  rr(-30, -h / 2 + 16, 60, 10, 5); ctx.fillStyle = COL.line2; ctx.fill();
+  rr(-w / 2 + 18, -h / 2 + 44, w - 36, 96, 14); ctx.fillStyle = hexA(COL.cyan, 0.35); ctx.fill();
+  for (let i = 0; i < 3; i++) { rr(-w / 2 + 18, -h / 2 + 156 + i * 30, (w - 36) * [1, 0.75, 0.55][i], 14, 7); ctx.fillStyle = hexA(COL.gray, 0.45); ctx.fill(); }
+  rr(-w / 2 + 18, h / 2 - 66, w - 36, 40, 20); ctx.fillStyle = hexA(COL.cyan, 0.8); ctx.fill();
+  ctx.restore();
+}
+function drawWebIcon(cx, cy, s, a, t, emph) {
+  if (a <= 0.001 || s <= 0.001) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(cx, cy); ctx.scale(s, s);
+  const w = 420, h = 290;
+  glow(hexA(emph > 0 ? COL.cyan : COL.violet, 0.65), 24 + 50 * emph);
+  rr(-w / 2, -h / 2, w, h, 22); ctx.fillStyle = COL.panel; ctx.fill(); noGlow();
+  const sg = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+  sg.addColorStop(0, emph > 0 ? COL.cyan : COL.violet); sg.addColorStop(1, COL.violet);
+  ctx.lineWidth = 3 + 2 * emph; ctx.strokeStyle = sg; ctx.stroke();
+  ctx.fillStyle = COL.line; ctx.fillRect(-w / 2 + 2, -h / 2 + 46, w - 4, 2);
+  for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(-w / 2 + 26 + i * 22, -h / 2 + 23, 6, 0, Math.PI * 2); ctx.fillStyle = hexA(COL.gray, 0.6); ctx.fill(); }
+  rr(-w / 2 + 20, -h / 2 + 66, 180, 120, 14); ctx.fillStyle = hexA(COL.violet, 0.45); ctx.fill();
+  for (let i = 0; i < 3; i++) { rr(-w / 2 + 220, -h / 2 + 72 + i * 28, [170, 140, 110][i], 14, 7); ctx.fillStyle = hexA(COL.gray, 0.45); ctx.fill(); }
+  rr(-w / 2 + 220, -h / 2 + 160, 96, 26, 13); ctx.fillStyle = hexA(COL.cyan, 0.85); ctx.fill();
+  for (let i = 0; i < 3; i++) { rr(-w / 2 + 20 + i * 130, h / 2 - 82, 118, 62, 12); ctx.fillStyle = hexA(COL.white, 0.08); ctx.fill(); }
+  ctx.restore();
+}
+function pulseRing(cx, cy, w, h, r, t, t0, color, a) {
+  for (let i = 0; i < 2; i++) {
+    const k = ((t - t0) / 1.6 + i * 0.5) % 1; if (t < t0) return;
+    ctx.save(); ctx.globalAlpha = a * (1 - k) * 0.6;
+    rr(cx - w / 2 - 30 * k, cy - h / 2 - 30 * k, w + 60 * k, h + 60 * k, r + 30 * k);
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+  }
+}
+
+function drawOptions(t) {
+  if (t < 6.8 || t > 12.3) return;
+  const pulse = k => 1 + 0.03 * Math.sin(t * 3.4 + k);
+  const pick = eIO(prog(t, 10.25, 10.85));
+  const out = eIO(prog(t, 11.35, 12.05));
+  // phone (left)
+  const pk = prog(t, 6.85, 7.4);
+  let ps = eBack(pk, 2.2) * pulse(0) * lerp(1, 0.92, pick);
+  let pa = clamp(pk * 3) * lerp(1, 0.32, pick) * (1 - out);
+  const py = 720 + out * 60;
+  pulseRing(640, py, 190 * ps, 340 * ps, 34, t, 7.3, COL.cyan, pa * (1 - pick));
+  drawPhoneIcon(640, py, ps, pa, t, 0);
+  // web page window (right)
+  const wk = prog(t, 7.9, 8.45);
+  let ws = eBack(wk, 2.2) * pulse(1.3) * lerp(1, 1.08, pick);
+  let wa = clamp(wk * 3);
+  // fly into the prompt box when the design starts
+  const box = promptBoxState(t);
+  const wx = lerp(1280, box.cx, out), wy = lerp(720, box.cy, out);
+  ws *= lerp(1, 0.15, out); wa *= 1 - eIn(out);
+  pulseRing(wx, wy, 420 * ws, 290 * ws, 22, t, 8.35, pick > 0 ? COL.cyan : COL.violet, wa * (1 - out));
+  if (pick > 0) { // soft highlight halo behind the chosen option
+    const hg = ctx.createRadialGradient(wx, wy, 0, wx, wy, 380 * ws);
+    hg.addColorStop(0, hexA(COL.cyan, 0.22 * pick * (1 - out))); hg.addColorStop(1, hexA(COL.cyan, 0));
+    ctx.fillStyle = hg; ctx.fillRect(wx - 500, wy - 500, 1000, 1000);
+  }
+  drawWebIcon(wx, wy, ws, wa, t, pick);
+  // cursor picks the web option
+  const ca = prog(t, 9.5, 9.8) * (1 - prog(t, 11.1, 11.4));
+  const mv = eIO(prog(t, 9.55, 10.2));
+  const cx = lerp(1720, 1330, mv) + eIO(prog(t, 10.9, 11.4)) * 220, cy = lerp(1040, 770, mv) + eIO(prog(t, 10.9, 11.4)) * 200;
+  const press = Math.sin(Math.PI * prog(t, 10.22, 10.42));
+  ripple(1330, 770, prog(t, 10.28, 10.95), COL.cyan);
+  cursor(cx, cy, 1 - 0.12 * press, ca);
+}
+
+// generated design elements
+function elemDraw(e) {
+  const { x, y, w, h } = e;
+  switch (e.id) {
+    case 'frame':
+      rr(x, y, w, h, 26); ctx.fillStyle = COL.panel; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = COL.line; ctx.stroke(); break;
+    case 'header':
+      rr(x, y, w, h, 16); ctx.fillStyle = COL.panel2; ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 36, y + h / 2, 14, 0, Math.PI * 2); ctx.fillStyle = COL.cyan; ctx.fill();
+      rr(x + 62, y + h / 2 - 7, 110, 14, 7); ctx.fillStyle = hexA(COL.white, 0.75); ctx.fill();
+      for (let i = 0; i < 3; i++) { rr(x + w - 430 + i * 96, y + h / 2 - 6, 70, 12, 6); ctx.fillStyle = hexA(COL.gray, 0.5); ctx.fill(); }
+      rr(x + w - 140, y + h / 2 - 18, 120, 36, 18); ctx.fillStyle = COL.violet; ctx.fill(); break;
+    case 'hero': {
+      rr(x, y, w, h, 20);
+      const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, '#5B44D6'); g.addColorStop(1, '#13A79C');
+      ctx.fillStyle = g; ctx.fill();
+      ctx.save(); rr(x, y, w, h, 20); ctx.clip();
+      ctx.beginPath(); ctx.arc(x + w * 0.74, y + h * 0.3, h * 0.11, 0, Math.PI * 2); ctx.fillStyle = hexA(COL.white, 0.85); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w * 0.32, y + h * 0.45); ctx.lineTo(x + w * 0.55, y + h * 0.78);
+      ctx.lineTo(x + w * 0.7, y + h * 0.58); ctx.lineTo(x + w, y + h); ctx.closePath(); ctx.fillStyle = hexA(COL.bg, 0.45); ctx.fill();
+      ctx.restore(); break;
+    }
+    case 'heroText':
+      rr(x, y, 440, 30, 12); ctx.fillStyle = COL.white; ctx.fill();
+      rr(x, y + 46, 340, 30, 12); ctx.fillStyle = COL.white; ctx.fill();
+      rr(x, y + 104, 420, 14, 7); ctx.fillStyle = hexA(COL.gray, 0.6); ctx.fill();
+      rr(x, y + 130, 360, 14, 7); ctx.fillStyle = hexA(COL.gray, 0.6); ctx.fill(); break;
+    case 'heroBtn':
+      rr(x, y, 190, h, 28); ctx.fillStyle = COL.cyan; ctx.fill();
+      rr(x + 210, y, 150, h, 28); ctx.lineWidth = 2.5; ctx.strokeStyle = hexA(COL.white, 0.6); ctx.stroke(); break;
+    default: { // cards
+      rr(x, y, w, h, 18); ctx.fillStyle = COL.panel2; ctx.fill();
+      const i = +e.id.slice(4);
+      rr(x + 14, y + 14, w - 28, 120, 12); ctx.fillStyle = hexA([COL.violet, COL.cyan, COL.violet][i], [0.5, 0.42, 0.32][i]); ctx.fill();
+      rr(x + 14, y + 152, w * 0.62, 16, 8); ctx.fillStyle = hexA(COL.white, 0.8); ctx.fill();
+      rr(x + 14, y + 180, w * 0.8, 12, 6); ctx.fillStyle = hexA(COL.gray, 0.5); ctx.fill();
+      rr(x + 14, y + 206, 96, 28, 14); ctx.fillStyle = hexA(COL.violet, 0.9); ctx.fill();
+    }
+  }
+}
+function heroResize(t) { const k = eIO(prog(t, 17.7, 18.35)); return [24 * k, 16 * k]; }
+function elemRect(e, t) {
+  let { x, y, w, h } = e;
+  if (e.id === 'hero') { const [dw, dh] = heroResize(t); w += dw; h += dh; }
+  return { x: FR.x + x, y: FR.y + y, w, h, id: e.id };
+}
+function drawDesign(t) {
+  for (const e of ELEMS) {
+    const p = prog(t, e.t, e.t + 0.5); if (p <= 0) continue;
+    const r = elemRect(e, t);
+    const k = eBack(p, 1.9);
+    ctx.save(); ctx.globalAlpha = eOut(clamp(p * 2));
+    const ccx = r.x + r.w / 2, ccy = r.y + r.h / 2;
+    ctx.translate(ccx, ccy + (1 - k) * 46); const s = lerp(0.9, 1, k); ctx.scale(s, s); ctx.translate(-ccx, -ccy);
+    elemDraw(r);
+    // snap flash
+    const f = Math.sin(Math.PI * prog(t, e.t + 0.3, e.t + 0.85));
+    if (f > 0 && e.id !== 'frame') { glow(COL.cyan, 22 * f); rr(r.x - 4, r.y - 4, r.w + 8, r.h + 8, 18); ctx.strokeStyle = hexA(COL.cyan, 0.9 * f); ctx.lineWidth = 2.5; ctx.stroke(); noGlow(); }
+    ctx.restore();
+  }
+}
+
+// particles from the prompt box to each element
+const PARTS = (() => {
+  const r = rng(42); const out = [];
+  for (const e of ELEMS) {
+    const n = e.id === 'frame' ? 34 : 18;
+    for (let i = 0; i < n; i++) {
+      const dur = 0.5 + r() * 0.2;
+      out.push({ e, t0: e.t - dur + 0.05 + r() * 0.12 - 0.12, dur, sx: r(), ex: r(), ey: r(), bend: (r() - 0.5) * 520, size: 3 + r() * 4, c: r() < 0.6 ? COL.cyan : COL.violet });
+    }
+  }
+  for (let i = 0; i < 90; i++) { // ambient sparkle stream while working
+    out.push({ amb: true, t0: 12.15 + r() * 3.4, dur: 0.9 + r() * 0.6, sx: r(), dx: (r() - 0.5) * 300, rise: 220 + r() * 300, size: 2 + r() * 3, c: r() < 0.5 ? COL.cyan : COL.violet });
+  }
+  return out;
+})();
+function drawParticles(t) {
+  const box = promptBoxState(t);
+  const bw = PB.w * box.s, bTop = box.cy - PB.h * box.s / 2;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const p of PARTS) {
+    const k = (t - p.t0) / p.dur; if (k <= 0 || k >= 1) continue;
+    for (let tr = 0; tr < 4; tr++) {
+      const kk = clamp(k - tr * 0.04); const ek = eIO(kk);
+      let x, y, a;
+      if (p.amb) {
+        x = box.cx - bw / 2 + p.sx * bw + p.dx * ek; y = bTop - p.rise * ek; a = Math.sin(Math.PI * kk) * 0.7;
+      } else {
+        const r = elemRect(p.e, t);
+        const x0 = box.cx - bw / 2 + 60 + p.sx * (bw - 120), y0 = bTop;
+        const x1 = r.x + p.ex * r.w, y1 = r.y + p.ey * r.h;
+        const cx = (x0 + x1) / 2 + p.bend, cy = Math.min(y0, y1) - 80;
+        x = (1 - ek) * (1 - ek) * x0 + 2 * (1 - ek) * ek * cx + ek * ek * x1;
+        y = (1 - ek) * (1 - ek) * y0 + 2 * (1 - ek) * ek * cy + ek * ek * y1;
+        a = Math.min(1, kk * 5) * (1 - Math.pow(kk, 6));
+      }
+      const sz = p.size * (1 - tr * 0.22);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, sz * 3);
+      g.addColorStop(0, hexA(COL.white, a * (tr ? 0.35 : 0.95))); g.addColorStop(0.35, hexA(p.c, a * 0.7)); g.addColorStop(1, hexA(p.c, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, sz * 3, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// editing UI: selection handles, cursor, edit points
+function handle(x, y, k) {
+  if (k <= 0) return; const s = 16 * eBack(k, 2.5);
+  ctx.save(); rr(x - s / 2, y - s / 2, s, s, 3); ctx.fillStyle = COL.white; glow(hexA(COL.violet, 0.8), 10); ctx.fill(); noGlow();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = COL.violet; ctx.stroke(); ctx.restore();
+}
+function node(x, y, k) {
+  if (k <= 0) return; const r = 7 * eBack(k, 2.5);
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = COL.bg; glow(hexA(COL.cyan, 0.9), 12); ctx.fill(); noGlow();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = COL.cyan; ctx.stroke(); ctx.restore();
+}
+function dashedRect(r, k, color, pad = 6) {
+  if (k <= 0) return;
+  ctx.save(); ctx.globalAlpha = k; ctx.setLineDash([10, 8]); ctx.lineDashOffset = 0;
+  rr(r.x - pad, r.y - pad, r.w + pad * 2, r.h + pad * 2, 14); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+}
+function drawEditing(t) {
+  if (t < 16.2) return;
+  const hero = elemRect(ELEMS[2], t);
+  const sel = prog(t, 17.0, 17.3);
+  // edit points + hover outlines on other elements
+  ELEMS.slice(5).forEach((e, i) => {
+    const r = elemRect(e, t); const k = prog(t, 18.25 + i * 0.12, 18.6 + i * 0.12);
+    dashedRect(r, eOut(k) * 0.7, COL.violet, 6);
+    [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]].forEach(([x, y], j) => node(x, y, prog(t, 18.3 + i * 0.12 + j * 0.04, 18.6 + i * 0.12 + j * 0.04)));
+  });
+  const btn = elemRect(ELEMS[4], t); const bk = prog(t, 18.05, 18.4);
+  dashedRect({ x: btn.x, y: btn.y, w: 190, h: btn.h }, eOut(bk) * 0.8, COL.cyan, 6);
+  [[btn.x - 6, btn.y + btn.h / 2], [btn.x + 196, btn.y + btn.h / 2]].forEach(([x, y], j) => node(x, y, prog(t, 18.1 + j * 0.06, 18.4 + j * 0.06)));
+  const hdr = elemRect(ELEMS[1], t); dashedRect(hdr, eOut(prog(t, 18.6, 18.9)) * 0.45, COL.violet, 6);
+  // selection on the hero image
+  if (sel > 0) {
+    const p = 6; const x = hero.x - p, y = hero.y - p, w = hero.w + p * 2, h = hero.h + p * 2;
+    ctx.save(); ctx.globalAlpha = eOut(sel); rr(x, y, w, h, 4); ctx.strokeStyle = COL.violet; ctx.lineWidth = 3; ctx.stroke(); ctx.restore();
+    const pts = [[x, y], [x + w / 2, y], [x + w, y], [x + w, y + h / 2], [x + w, y + h], [x + w / 2, y + h], [x, y + h], [x, y + h / 2]];
+    pts.forEach(([hx, hy], i) => handle(hx, hy, prog(t, 17.0 + i * 0.03, 17.3 + i * 0.03)));
+    // alignment guide while dragging
+    const dg = Math.sin(Math.PI * prog(t, 17.7, 18.55));
+    if (dg > 0) {
+      ctx.save(); ctx.globalAlpha = dg; ctx.setLineDash([6, 6]); ctx.strokeStyle = COL.cyan; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + w, FR.y + 10); ctx.lineTo(x + w, FR.y + FR.h - 10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(FR.x + 10, y + h); ctx.lineTo(FR.x + FR.w - 10, y + h); ctx.stroke(); ctx.restore();
+    }
+  }
+  // cursor
+  const ca = prog(t, 16.3, 16.6);
+  const m1 = eIO(prog(t, 16.35, 16.95));
+  const tx1 = hero.x + hero.w * 0.45, ty1 = hero.y + hero.h * 0.45;
+  let cx = lerp(1640, tx1, m1), cy = lerp(1000, ty1, m1);
+  const m2 = eIO(prog(t, 17.35, 17.65));
+  const brx = hero.x + hero.w + 6, bry = hero.y + hero.h + 6;
+  cx = lerp(cx, brx, m2); cy = lerp(cy, bry, m2);
+  const idle = eIO(prog(t, 18.5, 19.1));
+  cx += idle * 26; cy += idle * 30;
+  const press = Math.sin(Math.PI * prog(t, 16.95, 17.15)) + (t > 17.65 && t < 18.4 ? 0.8 : 0);
+  ripple(tx1, ty1, prog(t, 17.0, 17.6), COL.violet);
+  cursor(cx, cy, 1 - 0.1 * Math.min(1, press), ca);
+}
+
+function drawScreen(t) {
+  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H);
+  blobs(t, W / 2, H / 2, 1, 1);
+  // faint dot grid
+  ctx.fillStyle = hexA(COL.white, 0.035);
+  for (let gx = 40; gx < W; gx += 60) for (let gy = 150; gy < H; gy += 60) ctx.fillRect(gx, gy, 3, 3);
+  // page fade-in after loading
+  const page = eOut(prog(t, 3.85, 4.5));
+  ctx.save(); ctx.globalAlpha = page;
+  drawDesign(t);
+  drawOptions(t);
+  drawPromptBox(t);
+  drawParticles(t);
+  drawEditing(t);
+  ctx.restore();
+  drawBrowserChrome(t);
+}
+
+// ---------- frame ----------
+function render(t) {
+  t = clamp(t, 0, DURATION);
+  const [cx, cy, z] = camAt(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(z, 0, 0, z, W / 2 - cx * z, H / 2 - cy * z);
+  const worldVis = z < 3.999;
+  if (worldVis) { drawRoom(t); drawLaptopBack(); }
+  ctx.save(); ctx.translate(SCR_X, SCR_Y); ctx.scale(SS, SS);
+  ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+  drawScreen(t);
+  ctx.restore();
+  if (worldVis) { drawLaptopFront(); drawPerson(t); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // subtle vignette
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 1.05);
+  v.addColorStop(0, 'rgba(5,8,16,0)'); v.addColorStop(1, 'rgba(5,8,16,0.45)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+window.render = render; window.DURATION = DURATION;
+
+// live preview when opened in a browser (no ?render)
+if (!location.search.includes('render')) {
+  const fit = () => { const s = Math.min(innerWidth / W, innerHeight / H); cv.style.width = W * s + 'px'; cv.style.height = H * s + 'px'; };
+  fit(); addEventListener('resize', fit);
+  const start = performance.now();
+  (function loop() { render(((performance.now() - start) / 1000) % (DURATION + 1)); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
