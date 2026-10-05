@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Stitch Text Clip</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #1E1E1E; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Minimal explanatory text animation — 1920x1080, 24fps, 10s.
+// render(t) draws one deterministic frame at time t (seconds).
+const W = 1920, H = 1080, DURATION = 10;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const BG = '#1E1E1E', TEXT = '#FFFFFF', OUTLINE = '#9A9A9A', TRACK = '#3A3A3A';
+const FAMILY = '"Liberation Sans", "DejaVu Sans", Arial, sans-serif';
+const font = px => `bold ${px}px ${FAMILY}`;
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eIO = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+
+// Visibility of an element shown from `a` to `b`: fade + small upward slide in, soft fade out.
+const IN = 0.35, OUT = 0.25;
+function vis(t, a, b) {
+  const kin = eOut(prog(t, a, a + IN));
+  const kout = b == null ? 0 : eIO(prog(t, b, b + OUT));
+  return { alpha: kin * (1 - kout), dy: (1 - kin) * 18 };
+}
+
+function box(x, y, w, h, r, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  ctx.lineWidth = 2; ctx.strokeStyle = OUTLINE; ctx.stroke();
+  ctx.restore();
+}
+function wrap(str, px, maxW) {
+  ctx.font = font(px); const words = str.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const test = cur ? cur + ' ' + w : w; if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; } else cur = test; }
+  lines.push(cur); return lines;
+}
+function centered(str, px, cy, alpha, maxW = 1560, lh = 1.25) {
+  if (alpha <= 0) return;
+  const lines = wrap(str, px, maxW);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font(px); ctx.fillStyle = TEXT;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const top = cy - (lines.length - 1) * px * lh / 2;
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + i * px * lh));
+  ctx.restore();
+}
+// typewriter text, left-aligned at (x, cy), with a blinking cursor
+function typed(str, px, x, cy, t, t0, cps, alpha, cursorUntil) {
+  if (alpha <= 0) return;
+  const n = clamp(Math.floor((t - t0) * cps), 0, str.length);
+  const shown = t < t0 ? '' : str.slice(0, n);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font(px); ctx.fillStyle = TEXT;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(shown, x, cy);
+  const typing = t >= t0 && n < str.length;
+  const blinkOn = typing || Math.floor(t / 0.5) % 2 === 0;
+  if (blinkOn && t < cursorUntil) ctx.fillRect(x + ctx.measureText(shown).width + 6, cy - px * 0.55, Math.max(3, px * 0.07), px * 1.1);
+  ctx.restore();
+}
+const textW = (s, px) => { ctx.font = font(px); return ctx.measureText(s).width; };
+
+// ---------------- timeline ----------------
+const T = {
+  s1: 0.0, s2: 1.95, s3: 3.15, s4: 4.55, s5: 5.6, s6: 7.25, s7: 8.6,
+};
+const S1 = 'Para crear la herramienta simplemente tienes que ir a Stitch punto with Google punto com';
+const URL = 'stitch.withgoogle.com';
+const S2 = 'y ahí describir exactamente qué quieres';
+const OPT_A = 'aplicación para móvil', OPT_B = 'página web profesional';
+const S4 = 'qué es lo que realmente necesitas';
+const S5 = 'tú simplemente le das al prompt a Stitch';
+const S6 = 'y Stitch hará todo el trabajo para ti';
+const S7 = 'y te dará un diseño editable y te permitirá';
+
+function render(t) {
+  t = clamp(t, 0, DURATION);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+
+  // 1. heading at top + link box typing the URL
+  {
+    const v = vis(t, T.s1 + 0.05, T.s2 - OUT);
+    centered(S1, 60, 330 + v.dy, v.alpha, 1500);
+    const px = 48, pad = 48, bw = textW(URL, px) + pad * 2 + 30, bh = 104;
+    const kin = eOut(prog(t, 0.35, 0.7)), kout = eIO(prog(t, T.s2 - OUT, T.s2));
+    const a = kin * (1 - kout); const bx = (W - bw) / 2 + (1 - kin) * 0 - kout * 140, by = 560 + (1 - kin) * 30;
+    box(bx, by, bw, bh, bh / 2, a);
+    typed(URL, px, bx + pad, by + bh / 2, t, 0.72, 24, a, T.s2);
+  }
+  // 2. description heading + large empty prompt box with blinking cursor
+  {
+    const v = vis(t, T.s2, T.s3 - OUT);
+    centered(S2, 64, 320 + v.dy, v.alpha);
+    const vb = vis(t, T.s2 + 0.2, T.s3 - OUT);
+    const bw = 1240, bh = 280, bx = (W - bw) / 2, by = 450 + vb.dy;
+    box(bx, by, bw, bh, 28, vb.alpha);
+    typed('', 52, bx + 50, by + 70, t, T.s2 + 0.3, 1, vb.alpha, T.s3);
+  }
+  // 3. two option boxes, one after the other
+  {
+    const px = 50, pad = 52, bh = 120, gap = 70;
+    const wa = textW(OPT_A, px) + pad * 2, wb = textW(OPT_B, px) + pad * 2;
+    const x0 = (W - (wa + wb + gap)) / 2, cy = 540;
+    [[OPT_A, wa, x0, T.s3], [OPT_B, wb, x0 + wa + gap, T.s3 + 0.6]].forEach(([s, w, x, a0]) => {
+      const v = vis(t, a0, T.s4 - OUT);
+      box(x, cy - bh / 2 + v.dy, w, bh, 24, v.alpha);
+      if (v.alpha > 0) { ctx.save(); ctx.globalAlpha = v.alpha; ctx.font = font(px); ctx.fillStyle = TEXT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, x + w / 2, cy + v.dy); ctx.restore(); }
+    });
+  }
+  // 4. centered question
+  {
+    const v = vis(t, T.s4, T.s5 - OUT);
+    centered(S4, 72, 540 + v.dy, v.alpha);
+  }
+  // 5. prompt box typing the phrase
+  {
+    const v = vis(t, T.s5, T.s6 - OUT);
+    const px = 52, pad = 56, bw = textW(S5, px) + pad * 2 + 40, bh = 150, bx = (W - bw) / 2, by = 540 - bh / 2 + v.dy;
+    box(bx, by, bw, bh, 28, v.alpha);
+    typed(S5, px, bx + pad, by + bh / 2, t, T.s5 + 0.2, 46, v.alpha, T.s6);
+  }
+  // 6. text + thin progress line filling
+  {
+    const v = vis(t, T.s6, T.s7 - OUT);
+    centered(S6, 68, 500 + v.dy, v.alpha);
+    if (v.alpha > 0) {
+      const lw = 820, lx = (W - lw) / 2, ly = 600 + v.dy, k = eIO(prog(t, T.s6 + 0.3, T.s7 - 0.3));
+      ctx.save(); ctx.globalAlpha = v.alpha;
+      ctx.fillStyle = TRACK; ctx.fillRect(lx, ly, lw, 4);
+      ctx.fillStyle = TEXT; ctx.fillRect(lx, ly, lw * k, 4);
+      ctx.restore();
+    }
+  }
+  // 7. final text + empty rounded rectangle (holds to the end)
+  {
+    const v = vis(t, T.s7, null);
+    centered(S7, 64, 330 + v.dy, v.alpha);
+    const vb = vis(t, T.s7 + 0.25, null);
+    const bw = 1000, bh = 380;
+    box((W - bw) / 2, 450 + vb.dy, bw, bh, 28, vb.alpha);
+  }
+}
+window.render = render; window.DURATION = DURATION;
+
+if (!location.search.includes('render')) {
+  const fit = () => { const s = Math.min(innerWidth / W, innerHeight / H); cv.style.width = W * s + 'px'; cv.style.height = H * s + 'px'; };
+  fit(); addEventListener('resize', fit);
+  const start = performance.now();
+  (function loop() { render(((performance.now() - start) / 1000) % (DURATION + 1)); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
