@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Stitch Text Clip 2</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #1E1E1E; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Minimal explanatory text animation — 1920x1080, 24fps, 10s.
+// Palette: white text only; red (#E53935) only for graphic elements.
+const W = 1920, H = 1080, DURATION = 10;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const BG = '#1E1E1E', WHITE = '#FFFFFF', RED = '#E53935';
+const FAMILY = '"Liberation Sans", "DejaVu Sans", Arial, sans-serif';
+const font = px => `bold ${px}px ${FAMILY}`;
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eIO = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+
+// fade + small upward slide in, soft fade out
+const IN = 0.35, OUT = 0.25;
+function vis(t, a, b) {
+  const kin = eOut(prog(t, a, a + IN));
+  const kout = b == null ? 0 : eIO(prog(t, b, b + OUT));
+  return { alpha: kin * (1 - kout), dy: (1 - kin) * 18 };
+}
+const textW = (s, px) => { ctx.font = font(px); return ctx.measureText(s).width; };
+
+function outlineBox(x, y, w, h, r, alpha, lw = 2.5) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  ctx.lineWidth = lw; ctx.strokeStyle = RED; ctx.stroke(); ctx.restore();
+}
+function solidBox(x, y, w, h, r, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  ctx.fillStyle = RED; ctx.fill(); ctx.restore();
+}
+function text(str, px, x, y, alpha, align = 'center') {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font(px); ctx.fillStyle = WHITE;
+  ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillText(str, x, y); ctx.restore();
+}
+function wrap(str, px, maxW) {
+  ctx.font = font(px); const words = str.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const test = cur ? cur + ' ' + w : w; if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; } else cur = test; }
+  lines.push(cur); return lines;
+}
+// typewriter text, left-aligned at (x, cy), white blinking cursor
+function typed(str, px, x, cy, t, t0, cps, alpha) {
+  if (alpha <= 0) return;
+  const n = clamp(Math.floor((t - t0) * cps), 0, str.length);
+  const shown = t < t0 ? '' : str.slice(0, n);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font(px); ctx.fillStyle = WHITE;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(shown, x, cy);
+  const typing = t >= t0 && n < str.length;
+  if (typing || Math.floor(t / 0.5) % 2 === 0) ctx.fillRect(x + ctx.measureText(shown).width + 6, cy - px * 0.55, Math.max(3, px * 0.07), px * 1.1);
+  ctx.restore();
+}
+
+// ---------------- timeline ----------------
+const T = { s1: 0.0, s2: 1.6, s3: 4.2, s4: 5.4, s5: 7.0, s6: 8.35 };
+const S1 = 'transformar tus ideas';
+const CHIPS = ['aplicaciones webs', 'PDFs', 'vídeos'];
+const S2B = 'en segundos';
+const S3 = 'y si tú quieres aprender a usar Stitch';
+const S4A = 'de una manera ', S4B = 'mucho más detallada';
+const LABEL = 'PDF';
+const S6 = 'para que tú puedas aprender a usar esta herramienta';
+const S6PX = 66, DOC_W = 320, GAP6 = 90;
+function finalLayout() { // center the document + text group horizontally
+  const lines = wrap(S6, S6PX, 820), tw = Math.max(...lines.map(l => textW(l, S6PX)));
+  const left = (W - (DOC_W + GAP6 + tw)) / 2;
+  return { lines, docCx: left + DOC_W / 2, textX: left + DOC_W + GAP6 };
+}
+
+function render(t) {
+  t = clamp(t, 0, DURATION);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+
+  // 1–2. prompt box typing, then moves up and shrinks
+  {
+    const v = vis(t, T.s1, T.s3 - OUT);
+    const mv = eIO(prog(t, T.s2, T.s2 + 0.5));
+    const px = 72, pad = 64, bw0 = textW(S1, px) + pad * 2 + 40, bh0 = 170;
+    const s = lerp(1, 0.62, mv), cy = lerp(540, 300, mv) + v.dy;
+    ctx.save(); ctx.translate(W / 2, cy); ctx.scale(s, s);
+    outlineBox(-bw0 / 2, -bh0 / 2, bw0, bh0, 32, v.alpha, 2.5 / s);
+    typed(S1, px, -bw0 / 2 + pad, 0, t, 0.35, 26, v.alpha);
+    ctx.restore();
+  }
+  // 2. three solid red chips one after the other + "en segundos"
+  {
+    const px = 50, pad = 44, bh = 104, gap = 40;
+    const ws = CHIPS.map(c => textW(c, px) + pad * 2);
+    let x = (W - (ws.reduce((a, b) => a + b, 0) + gap * 2)) / 2;
+    CHIPS.forEach((c, i) => {
+      const v = vis(t, T.s2 + 0.5 + i * 0.4, T.s3 - OUT);
+      solidBox(x, 540 - bh / 2 + v.dy, ws[i], bh, 22, v.alpha);
+      text(c, px, x + ws[i] / 2, 540 + v.dy, v.alpha);
+      x += ws[i] + gap;
+    });
+    const v = vis(t, T.s2 + 1.85, T.s3 - OUT);
+    text(S2B, 64, W / 2, 720 + v.dy, v.alpha);
+  }
+  // 3. centered question
+  {
+    const v = vis(t, T.s3, T.s4 - OUT);
+    text(S3, 76, W / 2, 540 + v.dy, v.alpha);
+  }
+  // 4. phrase + red underline drawn under "mucho más detallada"
+  {
+    const v = vis(t, T.s4, T.s5 - OUT);
+    const px = 76, full = S4A + S4B, fw = textW(full, px), x0 = (W - fw) / 2;
+    text(full, px, x0, 520 + v.dy, v.alpha, 'left');
+    const ux = x0 + textW(S4A, px), uw = textW(S4B, px);
+    const k = eIO(prog(t, T.s4 + 0.45, T.s4 + 1.05));
+    if (v.alpha > 0 && k > 0) { ctx.save(); ctx.globalAlpha = v.alpha; ctx.fillStyle = RED; ctx.beginPath(); ctx.roundRect(ux, 520 + px * 0.62 + v.dy, uw * k, 7, 3.5); ctx.fill(); ctx.restore(); }
+  }
+  // 5–6. document with red outline and solid red "PDF" label; shifts left when the text arrives
+  {
+    const kin = eOut(prog(t, T.s5, T.s5 + 0.5));
+    const shift = eIO(prog(t, T.s6, T.s6 + 0.55));
+    const dw = DOC_W, dh = 420, fold = 64;
+    const cx = lerp(960, finalLayout().docCx, shift) + (1 - kin) * 90, cy = 540;
+    const a = kin;
+    if (a > 0) {
+      const x = cx - dw / 2, y = cy - dh / 2;
+      ctx.save(); ctx.globalAlpha = a; ctx.lineJoin = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = RED;
+      ctx.beginPath();
+      ctx.moveTo(x + 18, y); ctx.lineTo(x + dw - fold, y); ctx.lineTo(x + dw, y + fold); ctx.lineTo(x + dw, y + dh - 18);
+      ctx.quadraticCurveTo(x + dw, y + dh, x + dw - 18, y + dh); ctx.lineTo(x + 18, y + dh);
+      ctx.quadraticCurveTo(x, y + dh, x, y + dh - 18); ctx.lineTo(x, y + 18); ctx.quadraticCurveTo(x, y, x + 18, y); ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + dw - fold, y); ctx.lineTo(x + dw - fold, y + fold); ctx.lineTo(x + dw, y + fold); ctx.stroke();
+      ctx.restore();
+      // label at the top of the document
+      const lk = eOut(prog(t, T.s5 + 0.3, T.s5 + 0.65));
+      const lw = textW(LABEL, 48) + 64, lh = 80;
+      solidBox(x + 36, y + 60 + (1 - lk) * 14, lw, lh, 18, a * lk);
+      text(LABEL, 48, x + 36 + lw / 2, y + 60 + lh / 2 + (1 - lk) * 14, a * lk);
+    }
+  }
+  // 6. white text beside the document
+  {
+    const v = vis(t, T.s6 + 0.25, null);
+    const px = S6PX, { lines, textX } = finalLayout(), lh = px * 1.25;
+    const top = 540 - (lines.length - 1) * lh / 2;
+    lines.forEach((l, i) => text(l, px, textX, top + i * lh + v.dy, v.alpha, 'left'));
+  }
+}
+window.render = render; window.DURATION = DURATION;
+
+if (!location.search.includes('render')) {
+  const fit = () => { const s = Math.min(innerWidth / W, innerHeight / H); cv.style.width = W * s + 'px'; cv.style.height = H * s + 'px'; };
+  fit(); addEventListener('resize', fit);
+  const start = performance.now();
+  (function loop() { render(((performance.now() - start) / 1000) % (DURATION + 1)); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
