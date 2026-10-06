@@ -199,7 +199,7 @@ const SHOTS = [
 ];
 // chapter cuts get the red stripe wipe; the others a quick blur-out cut
 const WIPES = [11.75, 19.90, 30.40, 46.40, 65.70, 75.05];
-// beats that kick the camera
+// beats that pulse the red glow
 const HITS = [0.95, 2.95, 3.6, 10.25, 12.0, 13.9, 21.6, 36.4, 40.37, 47.5, 54.7, 63.35, 67.8, 70.2, 70.75, 76.2];
 
 // 0.9 "Lo primero que vas a hacer"
@@ -537,10 +537,7 @@ function render(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
   background(t);
   if (window.LAYER === 'bg') return;
-  // camera kick on hits
-  let sx = 0, sy = 0;
-  for (const h of HITS) { const k = prog(t, h, h + 0.22); if (k > 0 && k < 1) { const a = (1 - k) * 9; sx += Math.sin(t * 90 + h) * a; sy += Math.cos(t * 77 + h) * a; } }
-  ctx.save(); ctx.translate(sx, sy);
+  ctx.save();
   const i = shotAt(t), a = SHOTS[i].a, isWipe = WIPES.some(w => Math.abs(w - a) < 1e-6);
   // quick blur-out of the previous shot on regular cuts
   const OUT = 0.16, ko = prog(t, a, a + OUT);

@@ -1,6 +1,7 @@
 // Renders anim.html frame-by-frame with headless Chromium, encodes an MP4 and
 // muxes the narration audio.
 // Usage: node render.mjs <narration.mp4> [out.mp4]
+//        node render.mjs --range 0:800 seg.mp4   (video-only segment, used by render-parallel.sh)
 //        node render.mjs --frames 30,300,900 [--grid]   (PNG stills only; --grid overlays the Instagram grid, --bg renders the background layer only)
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -14,6 +15,8 @@ const args = process.argv.slice(2);
 const stillsIdx = args.indexOf('--frames');
 const stills = stillsIdx >= 0 ? args[stillsIdx + 1].split(',').map(Number) : null;
 const grid = args.includes('--grid');
+const rangeIdx = args.indexOf('--range');
+const rangeArg = rangeIdx >= 0 ? args[rangeIdx + 1] : null;
 const mp4s = args.filter(a => a.endsWith('.mp4'));
 const audio = mp4s[0];
 const out = mp4s[1] || path.join(dir, 'claude_edit_reel_red.mp4');
@@ -33,6 +36,19 @@ const grab = async t => {
 if (stills) {
   const sd = path.join(dir, args.includes('--bg') ? 'stills-bg' : 'stills'); fs.mkdirSync(sd, { recursive: true });
   for (const f of stills) fs.writeFileSync(path.join(sd, `f${String(f).padStart(4, '0')}.png`), await grab(f / FPS));
+} else if (rangeArg) {
+  // video-only segment of frames [a, b) — render-parallel.sh runs several and joins them
+  const [a, b] = rangeArg.split(':').map(Number);
+  const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-r', String(FPS), mp4s[0]],
+    { stdio: ['pipe', 'inherit', 'inherit'] });
+  for (let i = a; i < b; i++) {
+    const buf = await grab(i / FPS);
+    if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
+  }
+  ff.stdin.end();
+  await new Promise(r => ff.on('close', r));
+  console.log('wrote', mp4s[0]);
 } else {
   if (!audio) throw new Error('pass the narration video/audio as the first .mp4 argument');
   const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
