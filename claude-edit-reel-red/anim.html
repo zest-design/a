@@ -519,12 +519,13 @@ function background(t) {
 function stripes(k) {
   if (k <= 0 || k >= 1) return;
   ctx.save(); ctx.translate(CX, H / 2); ctx.rotate(-Math.PI / 4);
-  const bandH = 150, gap = 26, n = 18;
+  // long bars, light stagger: the screen is fully covered for ~0.25s around the cut
+  const bandH = 150, gap = 14, n = 18, L = 5600;
   for (let j = 0; j < n; j++) {
     const y = (j - n / 2) * (bandH + gap);
-    const kk = clamp(k * 1.35 - j * 0.02), x = lerp(-3300, 3300, eIO(kk));
-    ctx.fillStyle = redGrad(x - 1300, x + 1300); rr(x - 1300, y, 2600, bandH, bandH / 2); ctx.fill();
-    ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 6; rr(x - 1240, y + 34, 2480, bandH - 68, (bandH - 68) / 2); ctx.stroke();
+    const kk = clamp(k * 1.15 - j * 0.008), x = lerp(-4600, 4600, kk);
+    ctx.fillStyle = redGrad(x - L / 2, x + L / 2); rr(x - L / 2, y, L, bandH, bandH / 2); ctx.fill();
+    ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 6; rr(x - L / 2 + 60, y + 34, L - 120, bandH - 68, (bandH - 68) / 2); ctx.stroke();
   }
   ctx.restore();
 }
@@ -550,8 +551,8 @@ function render(t) {
   }
   T = t; SHOTS[i].draw();
   ctx.restore();
-  // stripe wipe: covers the cut (0.3s before -> 0.3s after)
-  for (const w of WIPES) stripes(prog(t, w - 0.3, w + 0.3));
+  // stripe wipe: covers the cut (0.35s before -> 0.35s after)
+  for (const w of WIPES) stripes(prog(t, w - 0.35, w + 0.35));
   if (window.GRID) drawGrid();
 }
 // debug overlay of the Instagram grid (only with ?grid; never rendered into the video)
