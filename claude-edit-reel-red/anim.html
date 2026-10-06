@@ -37,7 +37,7 @@ const W = 1080, H = 1920, DURATION = 77.485;
 const OW = WIDE ? 1920 : 1080, OH = WIDE ? 1080 : 1920, VS = WIDE ? 0.66 : 1;
 // 16:9 framing per shot: [scale, content centre y in design space]. Measured from each
 // shot's rendered bounds so it fills the title-safe area (1440x800 inner box), max 1:1.
-const VIEW16 = [[1, 846], [1, 784], [1, 790], [0.777, 845], [1, 821], [1, 902], [1, 794], [1, 706], [1, 940], [0.685, 895], [0.972, 793],
+const VIEW16 = [[1, 846], [1, 784], [1, 790], [0.777, 845], [1, 821], [1, 902], [1, 794], [0.83, 810], [1, 940], [0.685, 895], [0.972, 793],
   [1, 839], [1, 841], [1, 883], [0.945, 825], [1, 784], [1, 779], [0.9, 800], [1, 693], [0.913, 852], [1, 891], [1, 932]];
 const SAFE = { x0: 200, x1: 880, y0: 250, y1: 1530 };
 const CX = 540, SW = WIDE ? 1000 : SAFE.x1 - SAFE.x0, FITW = WIDE ? 2000 : SW - 40;
