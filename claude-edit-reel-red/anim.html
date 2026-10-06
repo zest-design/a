@@ -27,10 +27,22 @@
 //   -> every element and text is centred on x = 540 inside x 200-880, y 250-1530.
 // Background (black, grain, red glow) and the stripe transition wipes are full-bleed.
 // ---------------------------------------------------------------------------
+// Shots are authored in a 1080x1920 design space. With ?wide the page renders 16:9
+// (1920x1080): background and wipes fill the wide frame, each shot is framed by
+// VIEW16 (scale + centre), and the column is wider (SW/FITW). VS only sizes the
+// faint background shape.
+// 16:9 safe area = standard 10% title-safe margins: x 192-1728, y 108-972.
+const WIDE = location.search.includes('wide');
 const W = 1080, H = 1920, DURATION = 77.485;
+const OW = WIDE ? 1920 : 1080, OH = WIDE ? 1080 : 1920, VS = WIDE ? 0.66 : 1;
+// 16:9 framing per shot: [scale, content centre y in design space]. Measured from each
+// shot's rendered bounds so it fills the title-safe area (1440x800 inner box), max 1:1.
+const VIEW16 = [[1, 846], [1, 784], [1, 790], [0.777, 845], [1, 821], [1, 902], [1, 794], [1, 706], [1, 940], [0.685, 895], [0.972, 793],
+  [1, 839], [1, 841], [1, 883], [0.945, 825], [1, 784], [1, 779], [0.9, 800], [1, 693], [0.913, 852], [1, 891], [1, 932]];
 const SAFE = { x0: 200, x1: 880, y0: 250, y1: 1530 };
-const CX = 540, SW = SAFE.x1 - SAFE.x0, FITW = SW - 40;
+const CX = 540, SW = WIDE ? 1000 : SAFE.x1 - SAFE.x0, FITW = WIDE ? 2000 : SW - 40;
 const cv = document.getElementById('c');
+cv.width = OW; cv.height = OH;
 const ctx = cv.getContext('2d');
 
 const C = {
@@ -165,9 +177,10 @@ let T = 0; // current time, set by render()
 // Width never exceeds the final word, so the entrance stays inside the safe column.
 function slam(t0, x, y, fn, d = 0.32) {
   const k = prog(T, t0, t0 + d); if (k <= 0) return;
-  const e = eExpo(k), sy = lerp(1.7, 1, e), sx = lerp(0.9, 1, e);
+  // 16:9 frames are short, so the drop is gentler there to stay inside title-safe
+  const e = eExpo(k), sy = lerp(WIDE ? 1.4 : 1.7, 1, e), sx = lerp(0.9, 1, e), drop = WIDE ? 60 : 110;
   ctx.save(); ctx.globalAlpha *= clamp(k * 4); if (k < 1) ctx.filter = `blur(${((1 - e) * 8).toFixed(2)}px)`;
-  ctx.translate(x, y - (1 - e) * 110); ctx.scale(sx, sy); fn(); ctx.restore();
+  ctx.translate(x, y - (1 - e) * drop); ctx.scale(sx, sy); fn(); ctx.restore();
 }
 // rise: soft entrance from below
 function rise(t0, fn, dist = 50, d = 0.45) {
@@ -220,8 +233,8 @@ function s03() {
   rise(4.7, () => {
     pill('', CX, 650, SW - 70, 40, false);
     const s = 'editor de video', shown = typed(s, 4.95, 18);
-    const w = text(shown, 315, 652, 'P', 40, C.white, 'left');
-    if (shown.length < s.length) caret(315 + w, 652, 46);
+    const tx = CX - (SW - 70) / 2 + 50, w = text(shown, tx, 652, 'P', 40, C.white, 'left');
+    if (shown.length < s.length) caret(tx + w, 652, 46);
     // search glyph
     ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 5; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.arc(CX + SW / 2 - 100, 646, 16, 0, Math.PI * 2); ctx.stroke();
@@ -493,32 +506,32 @@ function glowAt(t) {
   return [lerp(p[0], q[0], i ? k : 1), lerp(p[1], q[1], i ? k : 1)];
 }
 function background(t) {
-  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
-  const [gx, gy] = glowAt(t), x = gx * W, y = gy * H, pulse = 1 + 0.05 * Math.sin(t * 1.3);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, OW, OH);
+  const [gx, gy] = glowAt(t), x = gx * OW, y = gy * OH, pulse = 1 + 0.05 * Math.sin(t * 1.3);
   // hit flashes brighten the glow briefly
   let flash = 0; for (const h of HITS) if (t >= h) flash = Math.max(flash, 1 - prog(t, h, h + 0.35));
   const R = 1150 * pulse;
   let g = ctx.createRadialGradient(x, y, 0, x, y, R);
   g.addColorStop(0, `rgba(240,97,154,${0.55 + 0.25 * flash})`); g.addColorStop(0.18, `rgba(227,38,58,${0.42 + 0.2 * flash})`);
   g.addColorStop(0.5, 'rgba(120,10,24,0.18)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, OW, OH);
   // opposite-corner ember
-  const ox = (1 - gx) * W, oy = (1 - gy) * H;
+  const ox = (1 - gx) * OW, oy = (1 - gy) * OH;
   g = ctx.createRadialGradient(ox, oy, 0, ox, oy, 700); g.addColorStop(0, 'rgba(160,12,30,0.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, OW, OH);
   // faint large rounded shape drifting behind everything
-  ctx.save(); ctx.translate(CX, 900); ctx.rotate(-0.75 + 0.03 * Math.sin(t * 0.4)); ctx.globalAlpha = 0.05;
+  ctx.save(); ctx.translate(OW / 2, OH / 2 - 60 * VS); ctx.scale(VS, VS); ctx.rotate(-0.75 + 0.03 * Math.sin(t * 0.4)); ctx.globalAlpha = 0.05;
   rr(-420, -260, 840, 520, 260); ctx.fillStyle = C.red; ctx.fill(); ctx.restore();
   // film grain
   ctx.save(); ctx.globalAlpha = 0.07; ctx.globalCompositeOperation = 'overlay';
   const f = Math.floor(t * 30), r = rng(f + 11), ox2 = -Math.floor(r() * 256), oy2 = -Math.floor(r() * 256);
-  for (let yy = oy2; yy < H; yy += 256) for (let xx = ox2; xx < W; xx += 256) ctx.drawImage(grain, xx, yy);
+  for (let yy = oy2; yy < OH; yy += 256) for (let xx = ox2; xx < OW; xx += 256) ctx.drawImage(grain, xx, yy);
   ctx.restore();
 }
 // red rounded diagonal stripes sweeping across (reference: Emprendeflix stripe pattern)
 function stripes(k) {
   if (k <= 0 || k >= 1) return;
-  ctx.save(); ctx.translate(CX, H / 2); ctx.rotate(-Math.PI / 4);
+  ctx.save(); ctx.translate(OW / 2, OH / 2); ctx.rotate(-Math.PI / 4);
   // long bars, light stagger: the screen is fully covered for ~0.25s around the cut
   const bandH = 150, gap = 14, n = 18, L = 5600;
   for (let j = 0; j < n; j++) {
@@ -532,7 +545,8 @@ function stripes(k) {
 
 // ---------- frame ----------
 function shotAt(t) { let i = 0; while (i < SHOTS.length - 1 && t >= SHOTS[i + 1].a) i++; return i; }
-function drawShot(i, t) { const prevT = T; T = t; SHOTS[i].draw(); T = prevT; }
+function view(i) { if (!WIDE) return; const [s, cy] = VIEW16[i]; ctx.translate(OW / 2, OH / 2); ctx.scale(s, s); ctx.translate(-CX, -cy); }
+function drawShot(i, t) { const prevT = T; T = t; ctx.save(); view(i); SHOTS[i].draw(); ctx.restore(); T = prevT; }
 function render(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
   background(t);
@@ -543,10 +557,11 @@ function render(t) {
   const OUT = 0.16, ko = prog(t, a, a + OUT);
   if (i > 0 && !isWipe && ko < 1) {
     ctx.save(); ctx.globalAlpha = 1 - ko; ctx.filter = `blur(${(ko * 14).toFixed(1)}px)`;
-    ctx.translate(CX, 890); const s = 1 - 0.06 * ko; ctx.scale(s, s); ctx.translate(-CX, -890);
+    const ex = WIDE ? OW / 2 : CX, ey = WIDE ? OH / 2 : 890;
+    ctx.translate(ex, ey); const s = 1 - 0.06 * ko; ctx.scale(s, s); ctx.translate(-ex, -ey);
     drawShot(i - 1, a - 0.001); ctx.restore();
   }
-  T = t; SHOTS[i].draw();
+  drawShot(i, t);
   ctx.restore();
   // stripe wipe: covers the cut (0.35s before -> 0.35s after)
   for (const w of WIPES) stripes(prog(t, w - 0.35, w + 0.35));
@@ -554,6 +569,7 @@ function render(t) {
 }
 // debug overlay of the Instagram grid (only with ?grid; never rendered into the video)
 function drawGrid() {
+  if (WIDE) { ctx.save(); ctx.strokeStyle = 'rgba(0,160,255,0.8)'; ctx.lineWidth = 3; ctx.strokeRect(192, 108, 1536, 864); ctx.restore(); return; }
   ctx.save(); ctx.fillStyle = 'rgba(255,40,10,0.35)';
   ctx.fillRect(0, 0, W, 115); ctx.fillRect(0, 1544, W, H - 1544); ctx.fillRect(0, 0, 46, H); ctx.fillRect(1033, 0, W - 1033, H);
   ctx.fillRect(313, 132, 449, 84); ctx.fillRect(886, 960, 134, 560);

@@ -2,6 +2,7 @@
 // muxes the narration audio.
 // Usage: node render.mjs <narration.mp4> [out.mp4]
 //        node render.mjs --range 0:800 seg.mp4   (video-only segment, used by render-parallel.sh)
+//        add --wide to any of these for the 16:9 (1920x1080) version
 //        node render.mjs --frames 30,300,900 [--grid]   (PNG stills only; --grid overlays the Instagram grid, --bg renders the background layer only)
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -10,20 +11,22 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const FPS = 30, W = 1080, H = 1920;
+const FPS = 30;
 const args = process.argv.slice(2);
 const stillsIdx = args.indexOf('--frames');
 const stills = stillsIdx >= 0 ? args[stillsIdx + 1].split(',').map(Number) : null;
 const grid = args.includes('--grid');
+const wide = args.includes('--wide'); // 16:9 (1920x1080) instead of 9:16
+const W = wide ? 1920 : 1080, H = wide ? 1080 : 1920;
 const rangeIdx = args.indexOf('--range');
 const rangeArg = rangeIdx >= 0 ? args[rangeIdx + 1] : null;
 const mp4s = args.filter(a => a.endsWith('.mp4'));
 const audio = mp4s[0];
-const out = mp4s[1] || path.join(dir, 'claude_edit_reel_red.mp4');
+const out = mp4s[1] || path.join(dir, wide ? 'claude_edit_reel_red_16x9.mp4' : 'claude_edit_reel_red.mp4');
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
-await page.goto('file://' + path.join(dir, 'anim.html') + '?render' + (grid ? '&grid' : ''));
+await page.goto('file://' + path.join(dir, 'anim.html') + '?render' + (grid ? '&grid' : '') + (wide ? '&wide' : ''));
 await page.evaluate(() => Promise.all(['italic 900 40px BarlowC', 'italic 800 40px BarlowC', '200 40px BarlowC', '300 40px BarlowC', '300 40px Poppins', '400 40px Poppins', '600 40px Poppins'].map(f => document.fonts.load(f))));
 if (args.includes('--bg')) await page.evaluate(() => { window.LAYER = 'bg'; });
 await page.evaluate(() => document.fonts.ready);
