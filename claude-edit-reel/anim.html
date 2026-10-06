@@ -501,13 +501,30 @@ function drawScene(i, t) {
   ctx.fillStyle = s.bg; ctx.fillRect(0, 0, W, H);
   s.draw(t);
 }
-function render(t) {
+// ---------- sync ----------
+// Scenes above are authored on a "design" timeline. SYNC maps real narration
+// time -> design time (piecewise linear) so every cue lands on the spoken word.
+// Pairs are [real seconds, design seconds]; both columns must increase.
+const SYNC = window.SYNC || [[0, 0], [DURATION, DURATION]];
+function mapT(t, from, to) {
+  if (t <= SYNC[0][from]) return t - SYNC[0][from] + SYNC[0][to];
+  for (let j = 1; j < SYNC.length; j++) {
+    const p = SYNC[j - 1], q = SYNC[j];
+    if (t <= q[from]) return lerp(p[to], q[to], (t - p[from]) / (q[from] - p[from]));
+  }
+  const l = SYNC[SYNC.length - 1]; return t - l[from] + l[to];
+}
+const toDesign = t => mapT(t, 0, 1), toReal = d => mapT(d, 1, 0);
+
+function render(rt) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; noShadow();
+  const t = toDesign(rt);
   const i = sceneAt(t);
-  const TR = 0.42, k = prog(t, SCENES[i].a, SCENES[i].a + TR);
+  // transitions run on real time so every cut has the same snappy length
+  const TR = 0.42, k = prog(rt, toReal(SCENES[i].a), toReal(SCENES[i].a) + TR);
   if (i > 0 && k < 1) {
     // transition: new scene grows from a centred rounded card (cut-on-beat feel)
-    drawScene(i - 1, Math.min(t, SCENES[i].a - 0.001));
+    drawScene(i - 1, SCENES[i].a - 0.001);
     const e = eExpo(k), w = lerp(120, W * 1.05, e), h = lerp(120, H * 1.05, e);
     ctx.save(); rr(CX - w / 2, 890 - h / 2, w, h, lerp(60, 0, e)); ctx.clip();
     drawScene(i, t); ctx.restore();
