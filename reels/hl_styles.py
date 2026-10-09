@@ -124,6 +124,9 @@ def png_cutout(guy_rgb, mask_l):
     w, h = int(1080 * PNG_SCALE), int(1920 * PNG_SCALE)
     g = Image.fromarray(guy_rgb).resize((w, h), Image.LANCZOS).convert("RGBA")
     m = mask_l.resize((w, h), Image.BILINEAR).filter(ImageFilter.GaussianBlur(0.8))
+    # soften the straight cut where his shoulder meets the right edge of the source frame
+    fade = np.ones(w, np.float32); n = int(w * 0.09); fade[-n:] = np.linspace(1, 0, n) ** 1.5
+    m = Image.fromarray((np.asarray(m, np.float32) * fade[None, :]).astype(np.uint8))
     g.putalpha(m)
     sh = Image.new("RGBA", (w, h), (0, 0, 0, 0)); sh.putalpha(m.point(lambda v: int(v * 0.55)))
     sh = sh.filter(ImageFilter.GaussianBlur(14))
