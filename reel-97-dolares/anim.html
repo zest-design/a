@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Reel 97 Dólares</title>
+<style>
+  @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-200.woff2') format('woff2'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-300.woff2') format('woff2'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-800i.woff2') format('woff2'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-900i.woff2') format('woff2'); font-weight: 900; font-style: italic; }
+  @font-face { font-family: 'Poppins'; src: url('fonts/Poppins-300.woff2') format('woff2'); font-weight: 300; }
+  @font-face { font-family: 'Poppins'; src: url('fonts/Poppins-400.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Poppins'; src: url('fonts/Poppins-600.woff2') format('woff2'); font-weight: 600; }
+  html, body { margin: 0; padding: 0; background: #060606; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ---------------------------------------------------------------------------
+// "Y hoy entra solo por 97 dólares" — 5s price card, 1080x1920 (9:16), 30fps.
+// Same red/black identity as claude-edit-reel-red: black + grain + drifting red glow,
+// silver condensed-italic headlines, red stripe wipe. The wipe covers both the first
+// and the last frame, so the clip loops seamlessly on Reels/TikTok.
+//
+// Instagram safe grid (900x1600 reference scaled to 1080x1920): every element is
+// centred on x = 540 inside x 200-880, y 250-1530.
+// ---------------------------------------------------------------------------
+const W = 1080, H = 1920, DURATION = 5;
+const OW = W, OH = H;
+const SAFE = { x0: 200, x1: 880, y0: 250, y1: 1530 };
+const CX = 540, SW = SAFE.x1 - SAFE.x0, FITW = SW - 40;
+const cv = document.getElementById('c');
+let ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#060606', white: '#FFFFFF', gray: '#A6A6A6', dim: '#5E5E5E',
+  red: '#E3263A', red2: '#9E0F1F', pink: '#F0619A', orange: '#FF6A2B',
+};
+
+// ---------- math / easing ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eIO = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eExpo = k => k >= 1 ? 1 : 1 - Math.pow(2, -10 * k);
+const eBack = (k, s = 1.8) => { const c3 = s + 1; return 1 + c3 * Math.pow(k - 1, 3) + s * Math.pow(k - 1, 2); };
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+// ---------- type ----------
+// kinds: H = condensed heavy italic, T = condensed thin, P = Poppins
+const FONTS = {
+  H: z => `italic 900 ${z}px BarlowC`, H8: z => `italic 800 ${z}px BarlowC`,
+  T: z => `200 ${z}px BarlowC`, T3: z => `300 ${z}px BarlowC`,
+  P: z => `400 ${z}px Poppins`, PL: z => `300 ${z}px Poppins`, PB: z => `600 ${z}px Poppins`,
+};
+function setFont(kind, z, ls = 0) { ctx.font = FONTS[kind](z); ctx.letterSpacing = ls + 'px'; }
+function measure(s, kind, z, ls = 0) { setFont(kind, z, ls); const w = ctx.measureText(s).width - ls; ctx.letterSpacing = '0px'; return w; }
+function fit(s, kind, maxZ, maxW = FITW, ls = 0) { let z = maxZ; while (z > 12 && measure(s, kind, z, ls) > maxW) z -= 2; return z; }
+// fill: colour string, 'silver' (metallic) or 'fade' (white dissolving downwards)
+function paint(fill, y, z) {
+  if (fill === 'silver') {
+    const g = ctx.createLinearGradient(0, y - z * 0.42, 0, y + z * 0.42);
+    g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.5, '#EDEDED'); g.addColorStop(1, '#9C9C9C'); return g;
+  }
+  if (fill === 'fade') {
+    const g = ctx.createLinearGradient(0, y - z * 0.42, 0, y + z * 0.42);
+    g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.55, 'rgba(255,255,255,0.75)'); g.addColorStop(1, 'rgba(255,255,255,0.08)'); return g;
+  }
+  return fill;
+}
+function text(s, x, y, kind, z, fill = C.white, align = 'center', ls = 0) {
+  if (kind[0] === 'H') z = Math.min(z, fit(s, kind, z, FITW, ls)); // headlines never leave the safe column
+  setFont(kind, z, ls); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  const w = ctx.measureText(s).width - ls;
+  const left = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+  ctx.fillStyle = paint(fill, y, z); ctx.fillText(s, left, y); ctx.letterSpacing = '0px';
+  return w;
+}
+// widely spaced lowercase label, written 's o l o   p o r'; letter spacing does the spreading
+function spaced(s, x, y, z = 34, fill = C.white, kind = 'PL') {
+  const plain = s.split('   ').map(w => w.replace(/ /g, '')).join(' '), ls = z * 0.42;
+  return text(plain, x, y, kind, Math.min(z, fit(plain, kind, z, FITW, ls)), fill, 'center', ls);
+}
+
+// ---------- shapes ----------
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function redGrad(x0, x1) { const g = ctx.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, C.red2); g.addColorStop(1, C.red); return g; }
+function neonGrad(x0, y0, x1, y1) { const g = ctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, C.orange); g.addColorStop(0.5, C.red); g.addColorStop(1, C.pink); return g; }
+function redBox(s, x, y, kind = 'PB', z = 40, padX = 36, padY = 22, ls = 0) {
+  const w = measure(s, kind, z, ls) + padX * 2, h = z + padY * 2;
+  ctx.save(); ctx.shadowColor = 'rgba(227,38,58,0.45)'; ctx.shadowBlur = 30;
+  rr(x - w / 2, y - h / 2, w, h, 14); ctx.fillStyle = redGrad(x - w / 2, x + w / 2); ctx.fill(); ctx.restore();
+  text(s, x, y + 2, kind, z, C.white, 'center', ls); return w;
+}
+function whiteLabel(s, x, y, z = 46) {
+  const w = measure(s, 'PL', z, 4) + 50, h = z * 1.25;
+  ctx.fillStyle = C.white; ctx.fillRect(x - w / 2, y - h / 2, w, h);
+  text(s, x, y + 2, 'PL', z, '#0A0A0A', 'center', 4); return w;
+}
+
+// ---------- animation helpers ----------
+let T = 0; // current time, set by render()
+// slam: drops in from above, stretched vertically, with a motion blur that clears
+function slam(t0, x, y, fn, d = 0.32) {
+  const k = prog(T, t0, t0 + d); if (k <= 0) return;
+  const e = eExpo(k), sy = lerp(1.7, 1, e), sx = lerp(0.9, 1, e), drop = 110;
+  ctx.save(); ctx.globalAlpha *= clamp(k * 4); if (k < 1) ctx.filter = `blur(${((1 - e) * 8).toFixed(2)}px)`;
+  ctx.translate(x, y - (1 - e) * drop); ctx.scale(sx, sy); fn(); ctx.restore();
+}
+function rise(t0, fn, dist = 50, d = 0.45) {
+  const k = prog(T, t0, t0 + d); if (k <= 0) return;
+  const e = eExpo(k);
+  ctx.save(); ctx.globalAlpha *= clamp(k * 2.5); ctx.translate(0, (1 - e) * dist); fn(); ctx.restore();
+}
+function pop(t0, x, y, fn, d = 0.45) {
+  const k = prog(T, t0, t0 + d); if (k <= 0) return;
+  ctx.save(); ctx.globalAlpha *= clamp(k * 3); ctx.translate(x, y); const s = eBack(k); ctx.scale(s, s); fn(); ctx.restore();
+}
+
+// ---------- timeline ----------
+const T_LABEL = 0.22, T_ENTRA = 0.48, T_SOLO = 0.95, T_PRICE = 1.2, T_LAND9 = 1.82, T_LAND7 = 2.0, T_DOL = 2.18;
+const SHINES = [2.75, 4.0];
+const HITS = [T_ENTRA + 0.05, T_LAND7];
+const Y = { label: 450, entra: 640, solo: 830, price: 1115, dol: 1430 };
+
+// ---------- price block: "$97" with slot-machine digits ----------
+// drawn on its own canvas so the metallic shine can be clipped to the glyphs
+const PB_W = 1080, PB_H = 800, pbCv = document.createElement('canvas'); pbCv.width = PB_W; pbCv.height = PB_H;
+const pbCtx = pbCv.getContext('2d');
+const ZD = 520, ZS = 240; // digit / dollar sign sizes
+// one rolling digit column. land = time it locks; spins = how many digits it travels
+function rollDigit(final, x, w, t0, land, spins) {
+  const k = prog(T, t0, land), e = k >= 1 ? 1 : eOut(k);
+  // tiny overshoot right after the lock so it "clicks" into place
+  const settle = T > land ? Math.sin(Math.PI * prog(T, land, land + 0.22)) * -0.06 : 0;
+  const p = final - spins * (1 - e) + settle, step = ZD * 0.95, speed = k < 1 ? spins * (1 - k) * 3 : 0;
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 60, -ZD * 0.43, w + 120, ZD * 0.86); ctx.clip();
+  if (speed > 0.5) ctx.filter = `blur(${Math.min(10, speed * 0.6).toFixed(1)}px)`;
+  const base = Math.floor(p);
+  for (let j = base - 1; j <= base + 2; j++) {
+    const d = ((j % 10) + 10) % 10, dy = (j - p) * step;
+    text(String(d), x + w / 2, -dy, 'H', ZD, 'silver');
+  }
+  ctx.restore();
+}
+function priceBlock() {
+  const main = ctx; ctx = pbCtx;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, PB_W, PB_H); ctx.filter = 'none'; ctx.globalAlpha = 1;
+  const w9 = measure('9', 'H', ZD), w7 = measure('7', 'H', ZD), wd = measure('$', 'T3', ZS), gap = 12;
+  const tot = wd + gap + w9 + w7, x0 = PB_W / 2 - tot / 2;
+  ctx.translate(0, PB_H / 2);
+  // "$" slides in from the left, sitting high like a price tag
+  const kd = eExpo(prog(T, T_PRICE + 0.15, T_PRICE + 0.6));
+  if (kd > 0) { ctx.save(); ctx.globalAlpha = clamp(kd * 2); text('$', x0 + wd / 2 - (1 - kd) * 80, -ZD * 0.2, 'T3', ZS, 'silver'); ctx.restore(); }
+  const dx = x0 + wd + gap;
+  rollDigit(9, dx, w9, T_PRICE, T_LAND9, 19);
+  rollDigit(7, dx + w9, w7, T_PRICE, T_LAND7, 27);
+  // metallic shine sweeping across the glyphs only
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-atop';
+  for (const s0 of SHINES) {
+    const k = prog(T, s0, s0 + 0.7); if (k <= 0 || k >= 1) continue;
+    const sx = lerp(x0 - 300, x0 + tot + 300, eIO(k));
+    const g = ctx.createLinearGradient(sx - 120, 0, sx + 120, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save(); ctx.translate(sx, PB_H / 2); ctx.transform(1, 0, -0.35, 1, 0, 0); ctx.translate(-sx, -PB_H / 2);
+    ctx.fillStyle = g; ctx.fillRect(sx - 120, 0, 240, PB_H); ctx.restore();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx = main;
+}
+// lock-in impact: shock ring + sparks radiating from the price
+function impact(x, y, t0) {
+  const k = prog(T, t0, t0 + 0.65); if (k <= 0 || k >= 1) return;
+  const e = eOut(k);
+  ctx.save(); ctx.lineCap = 'round';
+  ctx.globalAlpha = Math.pow(1 - k, 1.6); ctx.lineWidth = lerp(14, 2, e); ctx.strokeStyle = C.red;
+  ctx.shadowColor = 'rgba(227,38,58,0.9)'; ctx.shadowBlur = 30;
+  ctx.beginPath(); ctx.ellipse(x, y, lerp(200, 500, e), lerp(150, 330, e), 0, 0, Math.PI * 2); ctx.stroke();
+  const r = rng(97);
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + r() * 0.3, d0 = lerp(240, 430, e) * (0.85 + r() * 0.3), len = 70 * (1 - k) + 10;
+    if (Math.sin(a) < -0.8) continue; // keep the sparks off "solo por" above
+    ctx.strokeStyle = i % 3 ? C.red : C.white; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * d0, y + Math.sin(a) * d0 * 0.7);
+    ctx.lineTo(x + Math.cos(a) * (d0 + len), y + Math.sin(a) * (d0 + len) * 0.7); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ---------- the shot ----------
+function shot() {
+  pop(T_LABEL, CX, Y.label, () => whiteLabel('y hoy', 0, 0, 46));
+  slam(T_ENTRA, CX, Y.entra, () => text('ENTRA', 0, 0, 'H', fit('ENTRA', 'H', 270), 'silver'));
+  rise(T_SOLO, () => spaced('s o l o   p o r', CX, Y.solo, 44, C.gray));
+  // price: fades/rises in while the digits spin, then punches on lock
+  const kp = prog(T, T_PRICE, T_PRICE + 0.3);
+  if (kp > 0) {
+    priceBlock();
+    impact(CX, Y.price, T_LAND7);
+    const punch = 1 + 0.08 * Math.sin(Math.PI * prog(T, T_LAND7, T_LAND7 + 0.3));
+    ctx.save(); ctx.globalAlpha *= eOut(kp);
+    ctx.translate(CX, Y.price + (1 - eExpo(kp)) * 60); ctx.scale(punch, punch);
+    ctx.drawImage(pbCv, -PB_W / 2, -PB_H / 2); ctx.restore();
+  }
+  pop(T_DOL, CX, Y.dol, () => redBox('DÓLARES', 0, 0, 'H8', 74, 56, 16, 4));
+}
+
+// ---------- background ----------
+const grain = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const d = g.createImageData(256, 256), r = rng(7);
+  for (let i = 0; i < d.data.length; i += 4) { const v = r() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0); return c;
+})();
+// the glow travels from the top-right corner down under the price as it lands
+function glowAt(t) {
+  const k = eIO(prog(t, 0.2, T_LAND7));
+  return [lerp(1, 0.5, k), lerp(0.05, 1.05, k)];
+}
+function background(t) {
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, OW, OH);
+  const [gx, gy] = glowAt(t), x = gx * OW, y = gy * OH, pulse = 1 + 0.05 * Math.sin(t * 1.3);
+  let flash = 0; for (const h of HITS) if (t >= h) flash = Math.max(flash, 1 - prog(t, h, h + 0.35));
+  const R = 1150 * pulse;
+  let g = ctx.createRadialGradient(x, y, 0, x, y, R);
+  g.addColorStop(0, `rgba(240,97,154,${0.55 + 0.25 * flash})`); g.addColorStop(0.18, `rgba(227,38,58,${0.42 + 0.2 * flash})`);
+  g.addColorStop(0.5, 'rgba(120,10,24,0.18)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, OW, OH);
+  const ox = (1 - gx) * OW, oy = (1 - gy) * OH;
+  g = ctx.createRadialGradient(ox, oy, 0, ox, oy, 700); g.addColorStop(0, 'rgba(160,12,30,0.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, OW, OH);
+  // faint large rounded shape drifting behind everything
+  ctx.save(); ctx.translate(OW / 2, OH / 2 - 60); ctx.rotate(-0.75 + 0.03 * Math.sin(t * 0.4)); ctx.globalAlpha = 0.05;
+  rr(-420, -260, 840, 520, 260); ctx.fillStyle = C.red; ctx.fill(); ctx.restore();
+  // film grain
+  ctx.save(); ctx.globalAlpha = 0.07; ctx.globalCompositeOperation = 'overlay';
+  const f = Math.floor(t * 30), r = rng(f + 11), ox2 = -Math.floor(r() * 256), oy2 = -Math.floor(r() * 256);
+  for (let yy = oy2; yy < OH; yy += 256) for (let xx = ox2; xx < OW; xx += 256) ctx.drawImage(grain, xx, yy);
+  ctx.restore();
+}
+// red rounded diagonal stripes sweeping across
+function stripes(k) {
+  if (k <= 0 || k >= 1) return;
+  ctx.save(); ctx.translate(OW / 2, OH / 2); ctx.rotate(-Math.PI / 4);
+  const bandH = 150, gap = 14, n = 18, L = 5600;
+  for (let j = 0; j < n; j++) {
+    const y = (j - n / 2) * (bandH + gap);
+    const kk = clamp(k * 1.15 - j * 0.008), x = lerp(-4600, 4600, kk);
+    ctx.fillStyle = redGrad(x - L / 2, x + L / 2); rr(x - L / 2, y, L, bandH, bandH / 2); ctx.fill();
+    ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 6; rr(x - L / 2 + 60, y + 34, L - 120, bandH - 68, (bandH - 68) / 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ---------- frame ----------
+function render(t) {
+  T = t;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
+  background(t);
+  // slow push-in keeps the hold alive
+  ctx.save(); const z = lerp(1, 1.045, eIO(prog(t, 0, DURATION))), fy = Math.sin(t * 2.2) * 4 * prog(t, 2.4, 3);
+  ctx.translate(CX, 910); ctx.scale(z, z); ctx.translate(-CX, -910 + fy);
+  shot();
+  ctx.restore();
+  // stripe wipe: the clip opens out of it and closes into it (seamless loop)
+  stripes(prog(t, -0.35, 0.35));
+  stripes(prog(t, DURATION - 0.35, DURATION + 0.35));
+  if (window.GRID) drawGrid();
+}
+function drawGrid() {
+  ctx.save(); ctx.fillStyle = 'rgba(255,40,10,0.35)';
+  ctx.fillRect(0, 0, W, 115); ctx.fillRect(0, 1544, W, H - 1544); ctx.fillRect(0, 0, 46, H); ctx.fillRect(1033, 0, W - 1033, H);
+  ctx.fillRect(313, 132, 449, 84); ctx.fillRect(886, 960, 134, 560);
+  ctx.strokeStyle = 'rgba(0,160,255,0.8)'; ctx.lineWidth = 3; ctx.strokeRect(SAFE.x0, SAFE.y0, SW, SAFE.y1 - SAFE.y0);
+  ctx.restore();
+}
+window.render = render; window.DURATION = DURATION;
+window.GRID = location.search.includes('grid');
+if (!location.search.includes('render')) {
+  document.fonts.ready.then(() => { const t0 = performance.now(); (function loop() { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); })(); });
+}
+</script>
+</body>
+</html>
