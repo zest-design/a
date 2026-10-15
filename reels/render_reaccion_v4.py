@@ -141,13 +141,13 @@ def build_chunks(words, hlp, tmap, cap_y, f_start, f_end):
         c["f1"] = min(nxt, c["f0"] + 30, f_end)
     return merged
 
-CAP_Y_TUT = int(os.environ.get('CAP_Y_TUT', '1700'))
+CAP_Y_TUT = int(os.environ.get('CAP_Y_TUT', '1480'))
 chunks = build_chunks(OPEN_W, ["este vídeo"], out_open, 520, 0, F_R) + \
     build_chunks(TALK_W, ["un millón de personas", "ingresos", "paso a paso"], out_talk, 520, F_T, F_C) + \
     build_chunks(WA_W, ["escena por escena", "fotograma a fotograma", "una idea", "otros animales", "los personajes",
                         "VAIC", "Seedance", "crea las imágenes", "crea los vídeos"], out_wa, CAP_Y_TUT, F_U, F_C) + \
     build_chunks(CTA_W, ["paso a paso", "33", "PDF", "gratis", "300 y 500 dólares", "inteligencia artificial"],
-                 out_cta, 330, F_C, NF)
+                 out_cta, 1450, F_C, NF)
 from hl_styles import plain_caption_pill
 for c in chunks: c["im"] = hl_b(c["txt"]) if c["hl"] else (plain_caption_pill(c["txt"]) if F_U <= c["f0"] < F_C else plain_caption(c["txt"]))
 
