@@ -15,11 +15,13 @@
 
   /* ---------- legendas (cena do rosto) ---------- */
   #cap { display: block; }
-  .capg { position: absolute; left: 90px; right: 90px; top: 1400px; transform: translateY(-50%); text-align: center;
-    font: italic 900 104px/1 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .005em; }
-  .capg span { display: inline-block; margin: 0 .1em; color: #fff; -webkit-text-stroke: 14px #141414; paint-order: stroke fill;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
-  .capg span.on { color: var(--red); }
+  .capg { position: absolute; left: 70px; right: 70px; top: 196px; text-align: center; color: #1F1F1D; }
+  .capg .ln { position: relative; white-space: nowrap; }
+  .capg .l1 { font: 600 52px/1.2 'Inter', sans-serif; letter-spacing: -.012em; }
+  .capg .l2 { font: 800 84px/1.18 'Inter', sans-serif; letter-spacing: -.028em; margin-top: 2px; }
+  .capg .cw { position: relative; display: inline-block; z-index: 1; text-shadow: 0 0 22px rgba(255,255,255,.55); }
+  .capg .cw.on { color: #fff; text-shadow: none; }
+  .capg .hl { position: absolute; z-index: 0; background: #F23A26; border-radius: 12px; }
 
   /* ---------- motion design (fundo claro) ---------- */
   #kin { background: radial-gradient(ellipse at 50% 45%, #F4F4F4 0%, var(--kbg) 55%, #E2E2E2 100%); }
@@ -108,7 +110,7 @@
   .sheet .shdr { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: #1D1A1E; z-index: 2; }
   .sheet .shdr .t { position: absolute; left: 0; right: 0; top: 23px; text-align: center; font: 500 15px 'Inter'; color: var(--ctext); }
   .sheet .shdr .hbtn { top: 11px; background: #29262A; }
-  .sheet .body { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; overflow: hidden; }
+  .sheet .body { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; overflow: hidden; background: #F6F4F0; }
   .sheet .qz { min-height: 100%; }
 </style>
 </head>
@@ -121,8 +123,12 @@
 <script src="quiz/quiz.js"></script>
 <script>
 const W = 1080, H = 1920, FPS = 30;
-const DURATION = 2060 / FPS;           // = duração do áudio original (68.68 s)
-const FACE_END = 107 / FPS;            // corte do rosto para o teto (frame 107)
+// Cortes (frames da gravação original a 30fps): silêncio inicial removido, silêncio entre rosto e teto removido.
+const SRC_IN = 14 / FPS, FACE_END = 107 / FPS, CEIL_START = 128 / FPS, SRC_OUT = 2059 / FPS;
+const FACE_LEN = FACE_END - SRC_IN;
+const DURATION = FACE_LEN + (SRC_OUT - CEIL_START);   // 2024 frames = 67.47 s
+// tempo de saída -> tempo da gravação original (todos os tempos abaixo estão no relógio original)
+const toSrc = t => t < FACE_LEN ? t + SRC_IN : t - FACE_LEN + CEIL_START;
 
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -135,85 +141,95 @@ const el = (html) => { const d = document.createElement('div'); d.innerHTML = ht
 
 // ======================= LEGENDAS =======================
 const CAPS = [
-  { a: 0.36, b: 1.02, w: [['ESTOS', .40], ['SON', .80]] },
-  { a: 1.02, b: 1.98, w: [['5', 1.04], ['CÓDIGOS', 1.36]] },
-  { a: 1.98, b: FACE_END, w: [['SECRETOS', 2.00], ['DE', 2.72], ['CLAUDE', 2.96]] },
+  [['estos', .60], ['son', .89], ['cinco', 1.21], ['códigos', 1.49]],
+  [['secretos', 1.91], ['de', 2.71], ['claude', 3.12]],
 ];
+// frase completa visível o tempo todo; a palavra falada recebe a caixa vermelha (desliza de palavra em palavra)
 function renderCaps(t) {
   const L = $('#cap');
-  const g = CAPS.find(c => t >= c.a && t < c.b);
-  if (!g) { L.innerHTML = ''; return; }
-  if (L.dataset.g !== String(g.a)) { L.innerHTML = `<div class="capg">${g.w.map(w => `<span>${w[0]}</span>`).join(' ')}</div>`; L.dataset.g = g.a; }
-  const box = L.firstElementChild, k = eBack(prog(t, g.a, .16));
-  box.style.transform = `translateY(-50%) scale(${lerp(.78, 1, k)})`;
-  box.style.opacity = clamp(prog(t, g.a, .08) * 1);
-  [...box.children].forEach((s, i) => {
-    const on = t >= g.w[i][1] && (i + 1 >= g.w.length || t < g.w[i + 1][1]);
-    s.classList.toggle('on', on);
-    s.style.opacity = t >= g.w[i][1] - .02 ? 1 : .0;
-  });
+  if (!L.firstElementChild) {
+    L.innerHTML = `<div class="capg">${CAPS.map((ln, k) => `<div class="ln l${k + 1}">${ln.map(w => `<span class="cw">${w[0]}</span>`).join(' ')}<div class="hl"></div></div>`).join('')}</div>`;
+  }
+  const box = L.firstElementChild;
+  box.style.opacity = eOut(prog(t, .47, .12));
+  box.style.transform = `translateY(${(1 - eOut(prog(t, .47, .25))) * 18}px)`;
+  const words = CAPS.flat(), spans = [...box.querySelectorAll('.cw')];
+  let cur = -1; words.forEach((w, i) => { if (t >= w[1] - .03) cur = i; });
+  spans.forEach((s, i) => s.classList.toggle('on', i === cur));
+  box.querySelectorAll('.hl').forEach(h => h.style.display = 'none');
+  if (cur < 0) return;
+  const sp = spans[cur], hl = sp.parentElement.querySelector('.hl');
+  // origem da caixa: palavra anterior na mesma linha (desliza); se mudou de linha, surge com escala
+  const prevI = cur - 1, prev = prevI >= 0 && spans[prevI].parentElement === sp.parentElement ? spans[prevI] : null;
+  const k = eOut(prog(t, words[cur][1] - .03, .12));
+  const x0 = prev ? prev.offsetLeft : sp.offsetLeft + sp.offsetWidth / 2, w0 = prev ? prev.offsetWidth : 0;
+  const x = lerp(x0, sp.offsetLeft, k), w = lerp(w0, sp.offsetWidth, k);
+  const fs = parseFloat(getComputedStyle(sp).fontSize);
+  const pad = fs * .1;
+  Object.assign(hl.style, { display: 'block', left: (x - pad) + 'px', width: (w + 2 * pad) + 'px', top: (sp.offsetTop + fs * .1) + 'px', height: (fs * 1.04) + 'px',
+    borderRadius: (fs * .14) + 'px', opacity: prev ? 1 : k });
 }
 
 // ======================= MOTION DESIGN =======================
 // word: [texto, tempo, opções] — opções: slash, letters, u (sublinhado vermelho), counter
 const BEATS = {
-  ghost: { a: FACE_END, b: 6.0, bar: true, lines: [
-    { size: 96, w: [['EL', 4.24], ['PRIMERO', 4.40], ['ES', 4.80]] },
-    { size: 330, w: [['GHOST', 5.14, { slash: 5.06, letters: true }]] } ] },
-  artifacts: { a: 13.35, b: 14.35, bar: true, lines: [
-    { size: 300, w: [['ARTIFACTS', 13.42, { slash: 13.36, letters: true }]] } ] },
-  ooda: { a: 21.35, b: 22.75, bar: true, lines: [
-    { size: 380, w: [['OODA', 21.98, { slash: 21.52, letters: true }]] } ] },
-  l99: { a: 30.75, b: 32.95, bar: true, lines: [
-    { size: 110, w: [['POR', 30.88], ['ÚLTIMO', 31.12]] },
-    { size: 380, w: [['L99', 32.08, { slash: 32.0, letters: true }]] } ] },
+  ghost: { a: CEIL_START, b: 6.12, bar: true, lines: [
+    { size: 96, w: [['EL', 4.42], ['PRIMERO', 4.56], ['ES', 4.90]] },
+    { size: 330, w: [['GHOST', 5.64, { slash: 5.14, letters: true }]] } ] },
+  artifacts: { a: 13.68, b: 14.36, bar: true, lines: [
+    { size: 300, w: [['ARTIFACTS', 13.78, { slash: 13.74, letters: true }]] } ] },
+  ooda: { a: 21.50, b: 22.78, bar: true, lines: [
+    { size: 380, w: [['OODA', 22.22, { slash: 21.60, letters: true }]] } ] },
+  l99: { a: 30.94, b: 33.04, bar: true, lines: [
+    { size: 110, w: [['POR', 31.04], ['ÚLTIMO', 31.22]] },
+    { size: 380, w: [['L99', 32.20, { slash: 31.72, letters: true }]] } ] },
 };
 const CTA = [
-  { a: 40.05, b: 42.95, lines: [
-    { size: 100, w: [['Y', 40.16], ['SI', 40.32], ['TÚ', 40.48], ['QUIERES', 40.64]] },
-    { size: 150, w: [['APRENDER', 40.96], ['A', 41.28]] },
-    { size: 200, w: [['DOMINAR', 41.44, { u: 1 }]] },
-    { size: 110, w: [['LA', 41.76], ['INTELIGENCIA', 41.92]] },
-    { size: 110, w: [['ARTIFICIAL', 42.32]] } ] },
-  { a: 42.95, b: 46.55, lines: [
-    { size: 110, w: [['Y', 43.04], ['GENERAR', 43.36], ['HASTA', 44.08]] },
-    { size: 360, w: [['$300', 44.40, { counter: 300, u: 1 }]] },
-    { size: 120, w: [['DÓLARES', 45.04], ['CADA', 45.68], ['DÍA', 46.00]] } ] },
-  { a: 46.55, b: 48.95, lines: [
-    { size: 150, w: [['DESDE', 46.64], ['CASA', 47.12]] },
-    { size: 110, w: [['USANDO', 47.60]] },
-    { size: 250, w: [['CLAUDE', 48.08, { u: 1 }]] } ] },
-  { a: 48.95, b: 50.68, box: 50.08, boxIn: 49.62, lines: [
-    { size: 170, w: [['COMENTA', 49.04]] },
-    { size: 130, w: [['AQUÍ', 49.52], ['ABAJO', 49.76]] } ] },
-  { a: 50.68, b: 57.00, video: 51.70, lines: [
-    { size: 110, w: [['TE', 50.72], ['ENVIARÉ', 50.80], ['UN', 51.20], ['VÍDEO', 51.28]] },
-    { size: 200, w: [['DE', 51.52], ['30', 51.60, { u: 1 }], ['MINUTOS', 51.84]] },
-    { size: 110, w: [['DONDE', 52.16], ['TE', 52.40], ['EXPLICO', 52.56]] },
-    { size: 150, w: [['EXACTAMENTE', 53.04]] } ] },
-  { a: 57.00, b: 58.82, box: 58.16, boxIn: 57.66, lines: [
-    { size: 170, w: [['COMENTA', 57.04]] },
-    { size: 130, w: [['AQUÍ', 57.60], ['ABAJO', 57.76]] } ] },
-  { a: 58.82, b: 60.58, lines: [
-    { size: 110, w: [['TE', 58.88], ['ENVIARÉ', 59.04]] },
-    { size: 110, w: [['UN', 59.44], ['VÍDEO', 59.52], ['DE', 59.68]] },
-    { size: 400, w: [['30', 60.12, { u: 1 }]] },
-    { size: 130, w: [['MINUTOS', 60.40]] } ] },
-  { a: 60.58, b: 62.58, lines: [
-    { size: 120, w: [['DONDE', 60.64], ['TE', 60.96]] },
-    { size: 200, w: [['EXPLICO', 61.12]] },
-    { size: 150, w: [['EXACTAMENTE', 61.60, { u: 1 }]] } ] },
-  { a: 62.58, b: 65.45, lines: [
-    { size: 110, w: [['CÓMO', 62.64], ['GENERAR', 62.96], ['HASTA', 63.52]] },
-    { size: 360, w: [['$300', 63.84, { counter: 300 }]] },
-    { size: 140, w: [['CADA', 64.96], ['DÍA', 65.20, { u: 1 }]] } ] },
-  { a: 65.45, b: 66.90, lines: [
-    { size: 120, w: [['USANDO', 65.52]] },
-    { size: 150, w: [['INTELIGENCIA', 65.92]] },
-    { size: 150, w: [['ARTIFICIAL', 66.40, { u: 1 }]] } ] },
-  { a: 66.90, b: 999, box: 67.92, boxIn: 67.48, hold: true, lines: [
-    { size: 170, w: [['COMENTA', 66.96]] },
-    { size: 130, w: [['AQUÍ', 67.36], ['ABAJO', 67.52]] } ] },
+  { a: 40.28, b: 42.88, lines: [
+    { size: 100, w: [['Y', 40.38], ['SI', 40.44], ['TÚ', 40.54], ['QUIERES', 40.68]] },
+    { size: 150, w: [['APRENDER', 41.04], ['A', 41.38]] },
+    { size: 200, w: [['DOMINAR', 41.50, { u: 1 }]] },
+    { size: 110, w: [['LA', 41.80], ['INTELIGENCIA', 41.86]] },
+    { size: 110, w: [['ARTIFICIAL', 42.26]] } ] },
+  { a: 42.88, b: 46.75, lines: [
+    { size: 110, w: [['Y', 42.94], ['GENERAR', 43.58], ['HASTA', 44.16]] },
+    { size: 360, w: [['$300', 44.48, { counter: 300, u: 1 }]] },
+    { size: 120, w: [['DÓLARES', 45.05], ['CADA', 45.63], ['DÍA', 46.05]] } ] },
+  { a: 46.75, b: 48.95, lines: [
+    { size: 150, w: [['DESDE', 46.83], ['CASA', 47.15]] },
+    { size: 110, w: [['USANDO', 47.61]] },
+    { size: 250, w: [['CLAUDE', 48.23, { u: 1 }]] } ] },
+  { a: 48.95, b: 50.68, box: 50.29, boxIn: 49.75, lines: [
+    { size: 170, w: [['COMENTA', 49.03]] },
+    { size: 130, w: [['AQUÍ', 49.57], ['ABAJO', 49.79]] } ] },
+  { a: 50.68, b: 57.22, video: 51.70, lines: [
+    { size: 110, w: [['TE', 50.75], ['ENVIARÉ', 50.83], ['UN', 51.13], ['VÍDEO', 51.21]] },
+    { size: 200, w: [['DE', 51.41], ['30', 51.59, { u: 1 }], ['MINUTOS', 51.95]] },
+    { size: 110, w: [['DONDE', 52.21], ['TE', 52.38], ['EXPLICO', 52.44]] },
+    { size: 150, w: [['EXACTAMENTE', 52.80]] } ] },
+  { a: 57.22, b: 58.98, box: 58.19, boxIn: 57.72, lines: [
+    { size: 170, w: [['COMENTA', 57.32]] },
+    { size: 130, w: [['AQUÍ', 57.64], ['ABAJO', 57.76]] } ] },
+  { a: 58.98, b: 60.64, lines: [
+    { size: 110, w: [['TE', 59.07], ['ENVIARÉ', 59.15]] },
+    { size: 110, w: [['UN', 59.53], ['VÍDEO', 59.67], ['DE', 59.87]] },
+    { size: 400, w: [['30', 60.03, { u: 1 }]] },
+    { size: 130, w: [['MINUTOS', 60.43]] } ] },
+  { a: 60.64, b: 62.66, lines: [
+    { size: 120, w: [['DONDE', 60.69], ['TE', 60.90]] },
+    { size: 200, w: [['EXPLICO', 60.98]] },
+    { size: 150, w: [['EXACTAMENTE', 61.36, { u: 1 }]] } ] },
+  { a: 62.66, b: 65.62, lines: [
+    { size: 110, w: [['CÓMO', 62.74], ['GENERAR', 63.14], ['HASTA', 63.50]] },
+    { size: 360, w: [['$300', 63.77, { counter: 300 }]] },
+    { size: 140, w: [['CADA', 64.99], ['DÍA', 65.35, { u: 1 }]] } ] },
+  { a: 65.62, b: 66.96, lines: [
+    { size: 120, w: [['USANDO', 65.69]] },
+    { size: 150, w: [['INTELIGENCIA', 65.97]] },
+    { size: 150, w: [['ARTIFICIAL', 66.39, { u: 1 }]] } ] },
+  { a: 66.96, b: 999, box: 68.04, boxIn: 67.46, hold: true, lines: [
+    { size: 170, w: [['COMENTA', 67.02]] },
+    { size: 130, w: [['AQUÍ', 67.36], ['ABAJO', 67.50]] } ] },
 ];
 const MAXW = 860;
 
@@ -362,73 +378,75 @@ function asterSVG(rot, pulse) {
   return `<svg width="26" height="26" viewBox="0 0 26 26" stroke="#D97757" stroke-width="2.6" stroke-linecap="round">${rays}</svg>`;
 }
 
+// Tempos internos (relativos ao início da cena) sincronizados com a fala alinhada:
+// digitação durante "ponerlo antes/después de tu pregunta", envio logo após "pregunta", resposta em "recibirás/creará/aplicará/responderá".
 const CHATS = {
   ghost: {
-    a: 6.0, b: 13.35, pos: 'start', time: '18:23',
-    prompt: 'Escribe un post para LinkedIn sobre por qué la mayoría de la gente usa la IA de forma equivocada',
-    keys: ['#123', '/', '#abc', '#shift', 'G', 'h', 'o', 's', 't', ' '], k0: .12, kd: .075, send: 1.02,
-    think: ['Redactando un post provocador con voz auténtica', 1.3, 2.05], stream: [2.05, 7.2],
-    html: `<p>La mayoría de la gente usa la IA como si fuera Google.</p>
+    a: 6.12, b: 13.68, pos: 'start', time: '18:23',
+    prompt: 'Escribe una publicación para LinkedIn sobre por qué la mayoría de la gente usa la IA de forma equivocada',
+    keys: ['#123', '/', '#abc', '#shift', 'G', 'h', 'o', 's', 't', ' '], k0: .12, kd: .075, send: 1.55,
+    think: ['Redactando una publicación provocadora con voz auténtica', 1.75, 2.05], stream: [2.05, 7.4],
+    html: `<p>La mayoría de la gente usa la IA como si fuera un buscador.</p>
 <p>Pregunta corta. Respuesta corta. Siguiente.</p>
 <p>Y luego se quejan de que «la IA es genérica», de que «no sirve para nada serio», de que «el resultado siempre es superficial».</p>
 <p>El problema no es la herramienta. Es el método.</p>
 <p>Quien saca resultados reales de la IA hace tres cosas que el 95 % no hace:</p>
 <p><b>1. Da contexto antes de pedir.</b></p>
-<p>No es «escríbeme un post de ventas». Es «soy consultor B2B, mi cliente ideal es director de una startup, quiero que suene directo y sin humo».</p>
+<p>No es «escríbeme un texto de ventas». Es «soy consultor de empresas, mi cliente ideal dirige una empresa tecnológica y quiero que suene directo y sin rodeos».</p>
 <p><b>2. Itera. No acepta la primera respuesta.</b></p>
-<p>La primera salida es un borrador. La tercera empieza a ser buena. La quinta se publica.</p>
+<p>La primera versión es un borrador. La tercera empieza a ser buena. La quinta se publica.</p>
 <p><b>3. Construye sistemas, no preguntas sueltas.</b></p>
-<p>Un buen prompt no se escribe desde cero cada vez. Se convierte en plantilla. En flujo. En agente.</p>
+<p>Un buen prompt no se escribe desde cero cada vez. Se convierte en plantilla. En proceso. En agente.</p>
 <p>Ahí es donde la IA deja de ser un juguete y empieza a generar dinero.</p>
 <p>La herramienta es la misma para todos. El método es lo que separa al usuario del experto.</p>
 <p>¿Quieres que ajuste el tono (más provocador, más técnico) o que prepare una versión más corta para carrusel?</p>` },
   artifacts: {
-    a: 14.35, b: 21.35, pos: 'end', time: '18:26',
-    prompt: 'Crea un juego de quiz sobre prompt engineering con 10 preguntas, puntuación y ranking final',
-    keys: [' ', '#123', '/', '#abc', '#shift', 'A', 'r', 't', 'i', 'f', 'a', 'c', 't', 's'], k0: .05, kd: .062, send: 1.08,
-    think: ['Creando un quiz interactivo', 1.32, 1.9], stream: [1.9, 2.55], card: true,
-    html: `<p>¡Listo! Aquí tienes tu quiz interactivo: 10 preguntas con cuatro alternativas cada una, puntuación en tiempo real y un ranking final según tu nivel.</p>
-<div class="acard"><div class="ic">${ICON.code}</div><div><b>quiz-prompt-engineering</b><small>Código · HTML</small></div></div>`,
-    quiz: { press: 2.9, open: 3.0, startBtn: 4.35, q1: 4.5, pick: 5.3, answered: 5.42, nextBtn: 6.28, q2: 6.42 } },
+    a: 14.36, b: 21.50, pos: 'end', time: '18:26',
+    prompt: 'Crea un juego de preguntas sobre ingeniería de prompts con 10 preguntas, puntuación y clasificación final',
+    keys: [' ', '#123', '/', '#abc', '#shift', 'A', 'r', 't', 'i', 'f', 'a', 'c', 't', 's'], k0: .05, kd: .062, send: 1.55,
+    think: ['Creando un juego interactivo', 1.72, 2.0], stream: [2.0, 2.45], card: true,
+    html: `<p>¡Listo! Aquí tienes tu trivia interactiva: 10 preguntas con cuatro opciones cada una, puntuación en tiempo real y una clasificación final según tu nivel.</p>
+<div class="acard"><div class="ic">${ICON.code}</div><div><b>trivia-de-prompts</b><small>Código · HTML</small></div></div>`,
+    quiz: { press: 2.75, open: 2.85, startBtn: 3.95, q1: 4.1, pick: 4.9, answered: 5.02, nextBtn: 6.0, q2: 6.12 } },
   ooda: {
-    a: 22.75, b: 30.75, pos: 'start', time: '18:27', caps: true,
-    prompt: 'Mis Reels pasaron de 500 mil a 50 mil vistas tras la última actualización de Instagram. ¿Cómo decido qué hacer?',
-    keys: ['#123', '/', '#abc', '#caps', 'O', 'O', 'D', 'A', '#lower', ' '], k0: .1, kd: .07, send: .98,
-    think: ['Aplicando el ciclo OODA a tu caso', 1.25, 1.95], stream: [1.95, 7.75],
+    a: 22.78, b: 30.94, pos: 'start', time: '18:27', caps: true,
+    prompt: 'Mis Reels pasaron de 500 mil a 50 mil visualizaciones tras la última actualización de Instagram. ¿Cómo decido qué hacer?',
+    keys: ['#123', '/', '#abc', '#caps', 'O', 'O', 'D', 'A', '#lower', ' '], k0: .55, kd: .07, send: 1.75,
+    think: ['Aplicando el ciclo OODA a tu caso', 1.95, 2.35], stream: [2.35, 8.0],
     html: `<p>Vamos a aplicar el ciclo OODA: <b>Observar → Orientar → Decidir → Actuar</b>.</p>
 <p><b>Observar</b> — antes de reaccionar, separa la señal del ruido:</p>
 <ul><li>¿La caída fue en todos los Reels o solo en ciertos formatos o temas?</li>
 <li>¿Fue gradual o de un día para otro?</li>
 <li>¿Qué cayó: el alcance a no seguidores o también la interacción de quien ya te sigue?</li>
-<li>¿Cambiaron los guardados, los compartidos y la retención, o solo el volumen bruto?</li></ul>
+<li>¿Cambiaron los guardados, los compartidos y la retención, o solo el volumen total?</li></ul>
 <p>Sin estos datos, cualquier decisión es una apuesta.</p>
 <p><b>Orientar</b> — dos trampas que debes evitar:</p>
-<ol><li><i>Personalizar lo estructural</i> («el algoritmo me odia») cuando todo tu nicho cayó.</li>
-<li><i>Despersonalizar lo específico</i> («es solo el algoritmo») cuando tu gancho está saturado.</li></ol>
+<ol><li><i>Tomar como personal lo que es general</i> («el algoritmo me odia») cuando todo tu nicho cayó.</li>
+<li><i>Culpar al sistema de lo que es tuyo</i> («es solo el algoritmo») cuando tu gancho está desgastado.</li></ol>
 <p><b>Decidir</b> — tres caminos posibles:</p>
-<ul><li><i>Doblar la apuesta en lo que aún funciona:</i> identifica el 20 % de Reels que mantuvo el alcance.</li>
-<li><i>Probar variables controladas:</i> 3-5 Reels cambiando UNA sola cosa (gancho, duración o formato).</li>
-<li><i>Pivote de distribución:</i> replica en TikTok y Shorts mientras Instagram se estabiliza.</li></ul>
+<ul><li><i>Reforzar lo que aún funciona:</i> identifica el 20 % de Reels que mantuvo el alcance.</li>
+<li><i>Probar variables controladas:</i> de 3 a 5 Reels cambiando UNA sola cosa (gancho, duración o formato).</li>
+<li><i>Diversificar la distribución:</i> publica también en TikTok y YouTube mientras Instagram se estabiliza.</li></ul>
 <p><b>Actuar</b> — antes de ejecutar, define:</p>
-<ul><li>La métrica que vas a vigilar (¿alcance? ¿guardados? ¿clics al perfil?)</li>
-<li>Una ventana corta para decidir (7-14 días, no 2 meses)</li>
-<li>El disparador para volver a Observar y reiniciar el ciclo</li></ul>
-<p>Lo más importante del OODA es el <i>loop</i>: decidir sin volver a observar es solo adivinar más rápido.</p>` },
+<ul><li>La métrica que vas a vigilar (¿alcance? ¿guardados? ¿visitas al perfil?)</li>
+<li>Un plazo corto para decidir (de 7 a 14 días, no 2 meses)</li>
+<li>La señal para volver a Observar y reiniciar el ciclo</li></ul>
+<p>Lo más importante del OODA es que es un ciclo: decidir sin volver a observar es solo adivinar más rápido.</p>` },
   l99: {
-    a: 32.95, b: 40.05, pos: 'end', time: '18:29',
-    prompt: '¿Cómo funciona de verdad el mecanismo de atención en un transformer y por qué es tan costoso computacionalmente?',
-    keys: [' ', '#123', '/', '#abc', '#shift', 'L', '#123', '9', '9'], k0: .08, kd: .075, send: .98,
-    think: ['Analizando la arquitectura a nivel experto', 1.25, 1.95], stream: [1.95, 6.95],
-    html: `<p>El mecanismo de atención es, en esencia, un sistema en el que cada token «mira» a todos los demás tokens de la secuencia y decide cuánto le importa cada uno para construir su nueva representación.</p>
-<p>En la práctica, el transformer proyecta cada token en tres vectores mediante matrices de pesos aprendidas: <b>Query (Q)</b>, <b>Key (K)</b> y <b>Value (V)</b>. El Query es la «pregunta» que hace el token: «¿quién aquí es relevante para mí?». El Key es la «etiqueta» que muestra cada token. Y el Value es el contenido real que se transmite si ese token resulta relevante.</p>
+    a: 33.04, b: 40.28, pos: 'end', time: '18:29',
+    prompt: '¿Cómo funciona de verdad el mecanismo de atención de los modelos de lenguaje y por qué es tan costoso computacionalmente?',
+    keys: [' ', '#123', '/', '#abc', '#shift', 'L', '#123', '9', '9'], k0: .55, kd: .075, send: 1.8,
+    think: ['Analizando la arquitectura a nivel experto', 2.0, 2.5], stream: [2.5, 7.1],
+    html: `<p>El mecanismo de atención es, en esencia, un sistema en el que cada fragmento de texto (token) «mira» a todos los demás de la secuencia y decide cuánto le importa cada uno para construir su nueva representación.</p>
+<p>En la práctica, el modelo convierte cada token en tres vectores mediante matrices de pesos aprendidas: <b>consulta (Q)</b>, <b>clave (K)</b> y <b>valor (V)</b>. La consulta es la «pregunta» que hace el token: «¿quién aquí es relevante para mí?». La clave es la «etiqueta» que muestra cada token. Y el valor es el contenido real que se transmite si ese token resulta relevante.</p>
 <p>El cálculo ocurre en tres pasos:</p>
-<ol><li>Multiplica el Q de un token por el K de todos los demás (producto escalar). Eso genera una puntuación de «afinidad» entre cada par de tokens.</li>
-<li>Aplica softmax a esas puntuaciones para convertirlas en pesos que suman 1.</li>
-<li>Multiplica esos pesos por los Values y los suma. El resultado es la nueva representación del token, cargada con información de toda la secuencia.</li></ol>
-<p>La fórmula resumida: <code>Attention(Q,K,V) = softmax(QKᵀ / √dₖ) · V</code>. El √dₖ del denominador mantiene estables los gradientes.</p>
+<ol><li>Multiplica la consulta de un token por la clave de todos los demás (producto escalar). Eso genera una puntuación de «afinidad» entre cada par de tokens.</li>
+<li>Aplica la función softmax a esas puntuaciones para convertirlas en pesos que suman 1.</li>
+<li>Multiplica esos pesos por los valores y los suma. El resultado es la nueva representación del token, cargada con información de toda la secuencia.</li></ol>
+<p>La fórmula resumida: <code>Atención(Q,K,V) = softmax(QKᵀ / √dₖ) · V</code>. El √dₖ del denominador mantiene estable el entrenamiento.</p>
 <p><b>¿Por qué es tan costoso?</b></p>
-<p>Cada token se compara con todos los demás: con n tokens hay n² comparaciones. Duplicar el contexto cuadruplica el cómputo y la memoria de la matriz de atención. Con 100.000 tokens son 10.000 millones de puntuaciones por capa y por cabeza.</p>
-<p>Por eso existen optimizaciones como FlashAttention, que reorganiza el cálculo por bloques para no materializar la matriz completa en memoria.</p>` },
+<p>Cada token se compara con todos los demás: con n tokens hay n² comparaciones. Duplicar el contexto cuadruplica el cálculo y la memoria de la matriz de atención. Con 100.000 tokens son 10.000 millones de puntuaciones por capa y por cabeza.</p>
+<p>Por eso existen optimizaciones que reorganizan el cálculo por bloques para no guardar la matriz completa en memoria.</p>` },
 };
 
 const KB = {
@@ -470,7 +488,7 @@ function keyboardHTML(st, lt) {
   const left = st.layout === 'num' ? sp('#sym', 44, '#+=') : sp('#shift', 44, st.upper ? ICON.shiftOn : ICON.shift);
   h += `<div class="row" style="top:${top + pitch * 2}px">${left}<div style="width:6px"></div>${rows[2].map(c => key(c, '', st.layout === 'num' ? 39 : 33)).join('')}<div style="width:6px"></div>${sp('#del', 44, ICON.del)}</div>`;
   const modeKey = st.layout === 'num' ? sp('#abc', 44, 'ABC') : sp('#123', 44, '123');
-  h += `<div class="row" style="top:${top + pitch * 3}px">${modeKey}${sp('#emoji', 44, '<span style="font-size:19px">☺</span>')}${key(' ', 'sp', 182, '')}${sp('#ret', 92, ICON.ret)}</div>`;
+  h += `<div class="row" style="top:${top + pitch * 3}px">${modeKey}${sp('#emoji', 44, '<span style="font-size:19px">☺</span>')}${key(' ', 'sp', 182, '')}${sp('#ret', 92, 'intro')}</div>`;
   h += `<div class="bot"><div style="position:absolute;left:24px;top:8px">${ICON.globe}</div><div style="position:absolute;right:26px;top:8px">${ICON.micKb}</div></div>`;
   return h;
 }
@@ -521,7 +539,7 @@ function buildChat(C) {
   C.finalPrompt = C.pos === 'start' ? full + C.prompt : C.prompt + full;
   ph.querySelector('.bubble').textContent = C.finalPrompt;
   if (C.quiz) {
-    ph.appendChild(el(`<div class="sheet"><div class="shdr"><div class="hbtn l">${ICON.close}</div><div class="t">quiz-prompt-engineering</div><div class="hbtn r">${ICON.dots}</div></div>
+    ph.appendChild(el(`<div class="sheet"><div class="shdr"><div class="hbtn l">${ICON.close}</div><div class="t">trivia-de-prompts</div><div class="hbtn r">${ICON.dots}</div></div>
       <div class="body"><div class="qz static"></div></div></div>`));
   }
   C.node = ph;
@@ -666,12 +684,12 @@ function renderChats(t) {
 function sceneAt(t) {
   if (t < FACE_END) return 'face';
   if (Object.values(CHATS).some(c => t >= c.a && t < c.b)) return 'chat';
-  if (t < 40.05) return 'beat';
+  if (t < 40.28) return 'beat';
   return 'cta';
 }
 window.DURATION = DURATION;
-window.render = function (t) {
-  const s = sceneAt(t);
+window.render = function (tOut) {
+  const t = toSrc(tOut), s = sceneAt(t);
   $('#cap').style.display = s === 'face' ? 'block' : 'none';
   $('#kin').style.display = s === 'beat' || s === 'cta' ? 'block' : 'none';
   $('#chat').style.display = s === 'chat' ? 'block' : 'none';
