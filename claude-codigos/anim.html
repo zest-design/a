@@ -15,11 +15,12 @@
 
   /* ---------- legendas (cena do rosto) ---------- */
   #cap { display: block; }
-  .capg { position: absolute; left: 70px; right: 70px; top: 196px; text-align: center; color: #1F1F1D; }
+  .capg { position: absolute; left: 0; right: 0; top: 1365px; text-align: center; color: #1F1F1D; }
+  .capg .plate { display: inline-block; background: rgba(238,238,235,.96); border-radius: 22px; padding: 10px 30px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
   .capg .ln { position: relative; white-space: nowrap; }
   .capg .l1 { font: 600 52px/1.2 'Inter', sans-serif; letter-spacing: -.012em; }
   .capg .l2 { font: 800 84px/1.18 'Inter', sans-serif; letter-spacing: -.028em; margin-top: 2px; }
-  .capg .cw { position: relative; display: inline-block; z-index: 1; text-shadow: 0 0 22px rgba(255,255,255,.55); }
+  .capg .cw { position: relative; display: inline-block; z-index: 1; }
   .capg .cw.on { color: #fff; text-shadow: none; }
   .capg .hl { position: absolute; z-index: 0; background: #F23A26; border-radius: 12px; }
 
@@ -148,26 +149,23 @@ const CAPS = [
 function renderCaps(t) {
   const L = $('#cap');
   if (!L.firstElementChild) {
-    L.innerHTML = `<div class="capg">${CAPS.map((ln, k) => `<div class="ln l${k + 1}">${ln.map(w => `<span class="cw">${w[0]}</span>`).join(' ')}<div class="hl"></div></div>`).join('')}</div>`;
+    L.innerHTML = `<div class="capg"><div class="plate">${CAPS.map((ln, k) => `<div class="ln l${k + 1}">${ln.map(w => `<span class="cw">${w[0]}</span>`).join(' ')}<div class="hl"></div></div>`).join('')}</div></div>`;
   }
   const box = L.firstElementChild;
   box.style.opacity = eOut(prog(t, .47, .12));
   box.style.transform = `translateY(${(1 - eOut(prog(t, .47, .25))) * 18}px)`;
   const words = CAPS.flat(), spans = [...box.querySelectorAll('.cw')];
   let cur = -1; words.forEach((w, i) => { if (t >= w[1] - .03) cur = i; });
-  spans.forEach((s, i) => s.classList.toggle('on', i === cur));
   box.querySelectorAll('.hl').forEach(h => h.style.display = 'none');
   if (cur < 0) return;
   const sp = spans[cur], hl = sp.parentElement.querySelector('.hl');
-  // origem da caixa: palavra anterior na mesma linha (desliza); se mudou de linha, surge com escala
-  const prevI = cur - 1, prev = prevI >= 0 && spans[prevI].parentElement === sp.parentElement ? spans[prevI] : null;
-  const k = eOut(prog(t, words[cur][1] - .03, .12));
-  const x0 = prev ? prev.offsetLeft : sp.offsetLeft + sp.offsetWidth / 2, w0 = prev ? prev.offsetWidth : 0;
-  const x = lerp(x0, sp.offsetLeft, k), w = lerp(w0, sp.offsetWidth, k);
-  const fs = parseFloat(getComputedStyle(sp).fontSize);
-  const pad = fs * .1;
-  Object.assign(hl.style, { display: 'block', left: (x - pad) + 'px', width: (w + 2 * pad) + 'px', top: (sp.offsetTop + fs * .1) + 'px', height: (fs * 1.04) + 'px',
-    borderRadius: (fs * .14) + 'px', opacity: prev ? 1 : k });
+  // caixa vermelha surge direto sobre a palavra falada com um leve "pop" (sem estados intermediários)
+  const k = prog(t, words[cur][1] - .03, .14);
+  spans.forEach((s, i) => s.classList.toggle('on', i === cur));
+  const fs = parseFloat(getComputedStyle(sp).fontSize), pad = fs * .1;
+  Object.assign(hl.style, { display: 'block', left: (sp.offsetLeft - pad) + 'px', width: (sp.offsetWidth + 2 * pad) + 'px',
+    top: (sp.offsetTop + fs * .1) + 'px', height: (fs * 1.04) + 'px', borderRadius: (fs * .14) + 'px', opacity: 1,
+    transform: `scale(${lerp(1.14, 1, eOut(k))})` });
 }
 
 // ======================= MOTION DESIGN =======================
