@@ -132,3 +132,14 @@ def png_cutout(guy_rgb, mask_l):
     sh = sh.filter(ImageFilter.GaussianBlur(14))
     out = Image.new("RGBA", (w, h), (0, 0, 0, 0)); out.alpha_composite(sh, (10, 8)); out.alpha_composite(g)
     return out
+
+def plain_caption_pill(txt):
+    """normal caption over busy/light screen recordings: same white text on a dark translucent pill"""
+    tw = FC.getlength(txt); bb = FC.getbbox(txt); px, py, m = 26, 12, 30
+    bw, bh = int(tw + 2 * px), int(bb[3] - bb[1] + 2 * py)
+    w, h = bw + 2 * m, bh + 2 * m
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    im.alpha_composite(blur_shadow((w, h), (m, m, m + bw, m + bh), 18, 10, 60, (0, 4)))
+    d = ImageDraw.Draw(im); d.rounded_rectangle((m, m, m + bw, m + bh), 18, fill=(16, 16, 18, 175))
+    d.text((w / 2, h / 2 - 2), txt, font=FC, fill=WHITE, anchor="mm")
+    return im
