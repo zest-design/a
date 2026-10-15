@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz de prompt engineering</title>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="stylesheet" href="quiz.css">
+<style>
+  html, body { margin: 0; background: #121013; }
+  #app { max-width: 430px; margin: 0 auto; min-height: 100vh; }
+  .qz-screen { animation: qzIn .35s ease-out; }
+  @keyframes qzIn { from { opacity: 0; transform: translateY(14px); } }
+</style>
+</head>
+<body>
+<div id="app" class="qz"></div>
+<script src="quiz.js"></script>
+<script>
+// Juego interactivo: 10 preguntas, puntuación y ranking final.
+const app = document.getElementById('app');
+let i = 0, score = 0, sel = null;
+const show = html => { app.innerHTML = html; window.scrollTo(0, 0); };
+const start = () => { i = 0; score = 0; sel = null; show(qzQuestionView(0, null, 0)); };
+app.addEventListener('click', e => {
+  const opt = e.target.closest('[data-opt]'), act = e.target.closest('[data-act]')?.dataset.act;
+  if (opt && sel == null) {
+    sel = +opt.dataset.opt;
+    if (sel === QZ_QUESTIONS[i].a) score++;
+    show(qzQuestionView(i, sel, score));
+  } else if (act === 'start' || act === 'restart') start();
+  else if (act === 'next') {
+    sel = null;
+    if (++i < QZ_QUESTIONS.length) show(qzQuestionView(i, null, score)); else show(qzResultView(score));
+  }
+});
+show(qzStartView());
+</script>
+</body>
+</html>

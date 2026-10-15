@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Códigos secretos de Claude</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="quiz/quiz.css">
+<style>
+  :root { --kbg: #EEEEEE; --ink: #1E1E1E; --red: #E53935;
+          --cbg: #1B181C; --cpanel: #252226; --ckey: #47444A; --ckey2: #333035; --ctext: #ECE9ED; --cmute: #8F8A92; --orange: #D9663F; }
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .layer { position: absolute; inset: 0; display: none; }
+  .static *, .static { transition: none !important; animation: none !important; }
+
+  /* ---------- legendas (cena do rosto) ---------- */
+  #cap { display: block; }
+  .capg { position: absolute; left: 90px; right: 90px; top: 1400px; transform: translateY(-50%); text-align: center;
+    font: italic 900 104px/1 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .005em; }
+  .capg span { display: inline-block; margin: 0 .1em; color: #fff; -webkit-text-stroke: 14px #141414; paint-order: stroke fill;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  .capg span.on { color: var(--red); }
+
+  /* ---------- motion design (fundo claro) ---------- */
+  #kin { background: radial-gradient(ellipse at 50% 45%, #F4F4F4 0%, var(--kbg) 55%, #E2E2E2 100%); }
+  .card { position: absolute; left: 0; width: 1080px; top: 880px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; }
+  .kline { white-space: nowrap; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; color: var(--ink);
+    text-transform: uppercase; line-height: .9; letter-spacing: -.005em; text-align: center; }
+  .kw { display: inline-block; position: relative; margin: 0 .085em; transform-origin: 50% 85%; will-change: transform; }
+  .kw .ch { display: inline-block; transform-origin: 50% 90%; }
+  .kw .u { position: absolute; left: .02em; right: .02em; bottom: -.02em; height: .085em; min-height: 9px; background: var(--red); transform-origin: 0 50%; }
+  .slash { display: inline-block; width: .16em; height: .74em; background: var(--red); transform: skewX(-17deg); margin-right: .1em;
+    vertical-align: -.02em; transform-origin: 50% 100%; }
+  .kbar { width: 92px; height: 12px; background: var(--red); margin-bottom: 44px; transform: skewX(-17deg); transform-origin: 0 50%; }
+  .cbox { margin-top: 64px; width: 700px; height: 132px; border: 7px solid var(--red); border-radius: 80px; box-sizing: border-box;
+    display: flex; align-items: center; padding: 0 16px 0 52px; position: relative; }
+  .cbox .txt { flex: 1; font: italic 900 82px/1 'Barlow Condensed', sans-serif; color: var(--ink); letter-spacing: .02em; display: flex; align-items: center; }
+  .cbox .car { width: 6px; height: 70px; background: var(--red); margin-left: 8px; }
+  .cbox .send { width: 88px; height: 88px; border-radius: 50%; background: var(--red); display: grid; place-items: center; }
+  .cbox .arrow { position: absolute; left: 50%; top: -58px; width: 34px; height: 34px; border-right: 8px solid var(--red); border-bottom: 8px solid var(--red);
+    transform: translateX(-50%) rotate(45deg); }
+  .vbar { margin-top: 70px; width: 720px; display: flex; align-items: center; gap: 26px; }
+  .vbar .play { width: 0; height: 0; border-left: 46px solid var(--red); border-top: 28px solid transparent; border-bottom: 28px solid transparent; }
+  .vbar .track { flex: 1; height: 12px; background: rgba(30,30,30,.15); border-radius: 6px; overflow: hidden; }
+  .vbar .fill { height: 100%; background: var(--red); width: 0; }
+  .vbar .tm { font: italic 800 46px/1 'Barlow Condensed', sans-serif; color: var(--ink); }
+
+  /* ---------- tela do Claude (iPhone 393x852pt, zoom 2.2535) ---------- */
+  #chat { background: var(--cbg); }
+  .phone { position: absolute; left: 0; top: 0; width: 393px; height: 852px; zoom: 2.25352; margin-left: 43.13px; overflow: hidden;
+    background: var(--cbg); color: var(--ctext); font-family: 'Inter', sans-serif; }
+  .sbar { position: absolute; left: 0; right: 0; top: 0; height: 56px; z-index: 30; }
+  .sbar .time { position: absolute; left: 37px; top: 27px; transform: translateY(-50%); font: 600 16.5px 'Inter'; letter-spacing: -.01em; display: flex; align-items: center; gap: 4px; }
+  .sbar .island { position: absolute; left: 50%; top: 13px; width: 124px; height: 36px; border-radius: 20px; background: #000; transform: translateX(-50%); }
+  .sbar .icons { position: absolute; right: 30px; top: 27px; transform: translateY(-50%); display: flex; gap: 6px; align-items: center; }
+  .hdr { position: absolute; left: 0; right: 0; top: 56px; height: 52px; z-index: 30; }
+  .fadeTop { position: absolute; left: 0; right: 0; top: 0; height: 132px; z-index: 25; background: linear-gradient(var(--cbg) 0, var(--cbg) 80%, rgba(27,24,28,0)); }
+  .hbtn { position: absolute; top: 4px; width: 42px; height: 42px; border-radius: 50%; background: #262327; display: grid; place-items: center; }
+  .hbtn.l { left: 19px; } .hbtn.r { right: 19px; }
+  .htitle { position: absolute; left: 0; right: 0; top: 6px; text-align: center; }
+  .htitle b { font: 500 15.5px 'Inter'; display: inline-flex; align-items: center; gap: 5px; }
+  .htitle small { display: block; font: 400 11.5px 'Inter'; color: #B9B4BC; margin-top: 2px; }
+  .msgs { position: absolute; left: 0; right: 0; top: 112px; }
+  .bubble { margin: 8px 19px 0 auto; max-width: 300px; width: fit-content; background: #2A272B; border-radius: 18px; padding: 11px 15px;
+    font: 400 14.5px/1.5 'Inter'; color: var(--ctext); }
+  .think { margin: 24px 19px 0; display: flex; align-items: center; gap: 7px; font: 400 12.5px 'Inter'; color: var(--cmute); }
+  .think .lbl { flex: 1; }
+  .resp { margin: 22px 19px 0; font: 400 15.5px/1.6 'Source Serif 4', serif; color: #E6E2E7; }
+  .resp p { margin: 0 0 14px; }
+  .resp ul, .resp ol { margin: 0 0 14px; padding-left: 22px; }
+  .resp li { margin-bottom: 8px; padding-left: 2px; }
+  .resp b { font-weight: 600; color: #F4F1F5; }
+  .resp code { font: 400 12.5px 'JetBrains Mono', monospace; background: #2A272B; padding: 1px 5px; border-radius: 4px; }
+  .resp .p-hidden { visibility: hidden; }
+  .resp .w { visibility: hidden; }
+  .resp .w.v { visibility: visible; }
+  .aster { margin: 4px 0 0 19px; width: 26px; height: 26px; }
+  .acard { margin: 4px 0 16px; display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #3A363C; border-radius: 14px; background: #221F23;
+    font-family: 'Inter'; }
+  .acard .ic { width: 44px; height: 44px; border-radius: 9px; background: #2F2B30; display: grid; place-items: center; font: 500 13px 'JetBrains Mono'; color: #CFCAD2; }
+  .acard b { display: block; font: 500 14.5px 'Inter'; color: var(--ctext); }
+  .acard small { font: 400 12.5px 'Inter'; color: var(--cmute); }
+  .bottomBox { position: absolute; left: 19px; right: 19px; top: 736px; height: 78px; border-radius: 20px; background: #221F23; border: 1px solid #2E2A2F; z-index: 20; }
+  .bottomBox .ph { position: absolute; left: 15px; top: 16px; font: 400 14.5px 'Inter'; color: #8A858D; }
+  .bottomBox .plus { position: absolute; left: 13px; bottom: 9px; }
+  .bottomBox .stop { position: absolute; right: 14px; bottom: 13px; width: 14px; height: 14px; border-radius: 3px; background: #EDEAEE; }
+  .bottomBox .mic { position: absolute; right: 10px; bottom: 7px; }
+  .fadeBottom { position: absolute; left: 0; right: 0; top: 700px; bottom: 0; z-index: 15; background: linear-gradient(rgba(27,24,28,0), var(--cbg) 36px); }
+  .composer { position: absolute; left: 11px; right: 11px; bottom: 319px; min-height: 92px; box-sizing: border-box; padding: 13px 14px 48px 13px; border-radius: 24px; background: var(--cpanel); z-index: 22; }
+  .composer .txt { font: 400 15px/1.32 'Inter'; color: var(--ctext); }
+  .composer .caret { display: inline-block; width: 2px; height: 17px; background: #8AB4FF; vertical-align: -3px; margin: 0 -1px; }
+  .composer .plus { position: absolute; left: 12px; bottom: 9px; }
+  .composer .mic { position: absolute; right: 50px; bottom: 9px; }
+  .composer .send { position: absolute; right: 7px; bottom: 7px; width: 32px; height: 32px; border-radius: 50%; background: var(--orange); display: grid; place-items: center; }
+  .kb { position: absolute; left: 0; right: 0; top: 543px; height: 309px; background: #222024; border-radius: 26px 26px 0 0; z-index: 22; }
+  .kb .sug { position: absolute; left: 0; right: 0; top: 4px; height: 38px; display: flex; align-items: center; }
+  .kb .sug div { flex: 1; text-align: center; font: 400 15.5px 'Inter'; color: #D6D2D9; position: relative; }
+  .kb .sug div + div::before { content: ''; position: absolute; left: 0; top: 2px; bottom: 2px; width: 1px; background: #3A373D; }
+  .kb .row { position: absolute; left: 3px; right: 3px; display: flex; justify-content: center; gap: 6px; }
+  .key { height: 40px; width: 33px; border-radius: 8px; background: var(--ckey); display: grid; place-items: center; font: 400 21px 'Inter'; color: #F2F0F3; position: relative; flex: none; }
+  .key.sp { background: var(--ckey2); font-size: 15.5px; }
+  .key.hl { background: #6A666E; }
+  .key .pop { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 50px; height: 58px; border-radius: 12px; background: #6A666E;
+    display: grid; place-items: center; font: 400 30px 'Inter'; box-shadow: 0 6px 14px rgba(0,0,0,.35); }
+  .kb .bot { position: absolute; left: 0; right: 0; top: 248px; height: 40px; }
+  /* hoja del artefacto */
+  .sheet { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; z-index: 40; background: #151216; border-radius: 22px 22px 0 0; overflow: hidden; }
+  .sheet .shdr { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: #1D1A1E; z-index: 2; }
+  .sheet .shdr .t { position: absolute; left: 0; right: 0; top: 23px; text-align: center; font: 500 15px 'Inter'; color: var(--ctext); }
+  .sheet .shdr .hbtn { top: 11px; background: #29262A; }
+  .sheet .body { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; overflow: hidden; }
+  .sheet .qz { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cap" class="layer"></div>
+  <div id="kin" class="layer"></div>
+  <div id="chat" class="layer"></div>
+</div>
+<script src="quiz/quiz.js"></script>
+<script>
+const W = 1080, H = 1920, FPS = 30;
+const DURATION = 2060 / FPS;           // = duração do áudio original (68.68 s)
+const FACE_END = 107 / FPS;            // corte do rosto para o teto (frame 107)
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, d) => clamp((t - a) / d);
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eIO = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eBack = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const $ = (sel, root = document) => root.querySelector(sel);
+const el = (html) => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; };
+
+// ======================= LEGENDAS =======================
+const CAPS = [
+  { a: 0.36, b: 1.02, w: [['ESTOS', .40], ['SON', .80]] },
+  { a: 1.02, b: 1.98, w: [['5', 1.04], ['CÓDIGOS', 1.36]] },
+  { a: 1.98, b: FACE_END, w: [['SECRETOS', 2.00], ['DE', 2.72], ['CLAUDE', 2.96]] },
+];
+function renderCaps(t) {
+  const L = $('#cap');
+  const g = CAPS.find(c => t >= c.a && t < c.b);
+  if (!g) { L.innerHTML = ''; return; }
+  if (L.dataset.g !== String(g.a)) { L.innerHTML = `<div class="capg">${g.w.map(w => `<span>${w[0]}</span>`).join(' ')}</div>`; L.dataset.g = g.a; }
+  const box = L.firstElementChild, k = eBack(prog(t, g.a, .16));
+  box.style.transform = `translateY(-50%) scale(${lerp(.78, 1, k)})`;
+  box.style.opacity = clamp(prog(t, g.a, .08) * 1);
+  [...box.children].forEach((s, i) => {
+    const on = t >= g.w[i][1] && (i + 1 >= g.w.length || t < g.w[i + 1][1]);
+    s.classList.toggle('on', on);
+    s.style.opacity = t >= g.w[i][1] - .02 ? 1 : .0;
+  });
+}
+
+// ======================= MOTION DESIGN =======================
+// word: [texto, tempo, opções] — opções: slash, letters, u (sublinhado vermelho), counter
+const BEATS = {
+  ghost: { a: FACE_END, b: 6.0, bar: true, lines: [
+    { size: 96, w: [['EL', 4.24], ['PRIMERO', 4.40], ['ES', 4.80]] },
+    { size: 330, w: [['GHOST', 5.14, { slash: 5.06, letters: true }]] } ] },
+  artifacts: { a: 13.35, b: 14.35, bar: true, lines: [
+    { size: 300, w: [['ARTIFACTS', 13.42, { slash: 13.36, letters: true }]] } ] },
+  ooda: { a: 21.35, b: 22.75, bar: true, lines: [
+    { size: 380, w: [['OODA', 21.98, { slash: 21.52, letters: true }]] } ] },
+  l99: { a: 30.75, b: 32.95, bar: true, lines: [
+    { size: 110, w: [['POR', 30.88], ['ÚLTIMO', 31.12]] },
+    { size: 380, w: [['L99', 32.08, { slash: 32.0, letters: true }]] } ] },
+};
+const CTA = [
+  { a: 40.05, b: 42.95, lines: [
+    { size: 100, w: [['Y', 40.16], ['SI', 40.32], ['TÚ', 40.48], ['QUIERES', 40.64]] },
+    { size: 150, w: [['APRENDER', 40.96], ['A', 41.28]] },
+    { size: 200, w: [['DOMINAR', 41.44, { u: 1 }]] },
+    { size: 110, w: [['LA', 41.76], ['INTELIGENCIA', 41.92]] },
+    { size: 110, w: [['ARTIFICIAL', 42.32]] } ] },
+  { a: 42.95, b: 46.55, lines: [
+    { size: 110, w: [['Y', 43.04], ['GENERAR', 43.36], ['HASTA', 44.08]] },
+    { size: 360, w: [['$300', 44.40, { counter: 300, u: 1 }]] },
+    { size: 120, w: [['DÓLARES', 45.04], ['CADA', 45.68], ['DÍA', 46.00]] } ] },
+  { a: 46.55, b: 48.95, lines: [
+    { size: 150, w: [['DESDE', 46.64], ['CASA', 47.12]] },
+    { size: 110, w: [['USANDO', 47.60]] },
+    { size: 250, w: [['CLAUDE', 48.08, { u: 1 }]] } ] },
+  { a: 48.95, b: 50.68, box: 50.08, boxIn: 49.62, lines: [
+    { size: 170, w: [['COMENTA', 49.04]] },
+    { size: 130, w: [['AQUÍ', 49.52], ['ABAJO', 49.76]] } ] },
+  { a: 50.68, b: 57.00, video: 51.70, lines: [
+    { size: 110, w: [['TE', 50.72], ['ENVIARÉ', 50.80], ['UN', 51.20], ['VÍDEO', 51.28]] },
+    { size: 200, w: [['DE', 51.52], ['30', 51.60, { u: 1 }], ['MINUTOS', 51.84]] },
+    { size: 110, w: [['DONDE', 52.16], ['TE', 52.40], ['EXPLICO', 52.56]] },
+    { size: 150, w: [['EXACTAMENTE', 53.04]] } ] },
+  { a: 57.00, b: 58.82, box: 58.16, boxIn: 57.66, lines: [
+    { size: 170, w: [['COMENTA', 57.04]] },
+    { size: 130, w: [['AQUÍ', 57.60], ['ABAJO', 57.76]] } ] },
+  { a: 58.82, b: 60.58, lines: [
+    { size: 110, w: [['TE', 58.88], ['ENVIARÉ', 59.04]] },
+    { size: 110, w: [['UN', 59.44], ['VÍDEO', 59.52], ['DE', 59.68]] },
+    { size: 400, w: [['30', 60.12, { u: 1 }]] },
+    { size: 130, w: [['MINUTOS', 60.40]] } ] },
+  { a: 60.58, b: 62.58, lines: [
+    { size: 120, w: [['DONDE', 60.64], ['TE', 60.96]] },
+    { size: 200, w: [['EXPLICO', 61.12]] },
+    { size: 150, w: [['EXACTAMENTE', 61.60, { u: 1 }]] } ] },
+  { a: 62.58, b: 65.45, lines: [
+    { size: 110, w: [['CÓMO', 62.64], ['GENERAR', 62.96], ['HASTA', 63.52]] },
+    { size: 360, w: [['$300', 63.84, { counter: 300 }]] },
+    { size: 140, w: [['CADA', 64.96], ['DÍA', 65.20, { u: 1 }]] } ] },
+  { a: 65.45, b: 66.90, lines: [
+    { size: 120, w: [['USANDO', 65.52]] },
+    { size: 150, w: [['INTELIGENCIA', 65.92]] },
+    { size: 150, w: [['ARTIFICIAL', 66.40, { u: 1 }]] } ] },
+  { a: 66.90, b: 999, box: 67.92, boxIn: 67.48, hold: true, lines: [
+    { size: 170, w: [['COMENTA', 66.96]] },
+    { size: 130, w: [['AQUÍ', 67.36], ['ABAJO', 67.52]] } ] },
+];
+const MAXW = 860;
+
+function buildCard(c) {
+  if (c.node) return c.node;
+  const card = el('<div class="card"></div>');
+  if (c.bar) card.appendChild(el('<div class="kbar"></div>'));
+  c.wordEls = [];
+  for (const ln of c.lines) {
+    const line = el(`<div class="kline" style="font-size:${ln.size}px"></div>`);
+    for (const [txt, wt, o = {}] of ln.w) {
+      const w = el('<span class="kw"></span>');
+      if (o.slash != null) w.appendChild(el('<span class="slash"></span>'));
+      const body = document.createElement('span'); body.className = 'body';
+      if (o.letters) [...txt].forEach(ch => body.appendChild(el(`<span class="ch">${ch}</span>`)));
+      else body.textContent = txt;
+      w.appendChild(body);
+      if (o.u) w.appendChild(el('<span class="u"></span>'));
+      line.appendChild(w);
+      c.wordEls.push({ w, body, txt, wt, o });
+    }
+    card.appendChild(line);
+  }
+  if (c.box) card.appendChild(el(`<div class="cbox"><div class="arrow"></div><div class="txt"><span class="typed"></span><span class="car"></span></div>
+    <div class="send"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`));
+  if (c.video) card.appendChild(el('<div class="vbar"><div class="play"></div><div class="track"><div class="fill"></div></div><div class="tm">30:00</div></div>'));
+  $('#kin').appendChild(card);
+  // encaixa cada linha na largura segura
+  card.querySelectorAll('.kline').forEach(line => {
+    const wpx = line.scrollWidth, fs = parseFloat(line.style.fontSize);
+    if (wpx > MAXW) line.style.fontSize = (fs * MAXW / wpx) + 'px';
+  });
+  c.node = card;
+  return card;
+}
+
+function wordAnim(t, wt) {
+  const p = prog(t, wt - .02, .24);
+  return { o: clamp(p * 3), y: (1 - eOut(p)) * 0.42, s: lerp(1.22, 1, eBack(p)) };
+}
+
+function renderCard(c, t, hardCutOut) {
+  const card = buildCard(c);
+  card.style.display = 'flex';
+  const life = (t - c.a) / Math.max(.5, Math.min(c.b, DURATION) - c.a);
+  const push = 1 + .035 * clamp(life);
+  // saída: sobe e some (somente entre cartões do CTA)
+  const out = hardCutOut || c.hold ? 0 : eIO(prog(t, c.b - .14, .14));
+  // centraliza verticalmente apenas o que já apareceu (recentra suavemente a cada linha nova)
+  if (!c.parts) c.parts = [...card.children].map((n, i) => {
+    const cs = getComputedStyle(n);
+    const h = n.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+    let at = c.a;
+    if (n.classList.contains('kline')) at = Math.min(...c.wordEls.filter(w => w.w.parentElement === n).map(w => w.o.slash ?? w.wt));
+    else if (n.classList.contains('cbox')) at = c.boxIn;
+    else if (n.classList.contains('vbar')) at = c.video;
+    return { h, at };
+  });
+  let R = 0; for (const p of c.parts) R += p.h * eIO(prog(t, p.at - .04, .3));
+  card.style.transform = `translateY(${-R / 2 - out * 90}px) scale(${push})`;
+  card.style.opacity = 1 - out;
+  const bar = card.querySelector('.kbar');
+  if (bar) bar.style.transform = `skewX(-17deg) scaleX(${eOut(prog(t, c.a + .04, .3))})`;
+  for (const { w, body, txt, wt, o } of c.wordEls) {
+    const fs = parseFloat(w.parentElement.style.fontSize);
+    if (o.letters) {
+      [...body.children].forEach((ch, i) => {
+        const a = wordAnim(t, wt + i * .045);
+        ch.style.opacity = a.o; ch.style.transform = `translateY(${a.y * fs}px) scale(${a.s})`;
+      });
+      w.style.opacity = 1; w.style.transform = '';
+    } else {
+      const a = wordAnim(t, wt);
+      w.style.opacity = a.o; w.style.transform = `translateY(${a.y * fs}px) scale(${a.s})`;
+    }
+    if (o.counter) {
+      const k = eOut(prog(t, wt, .62));
+      body.textContent = '$' + Math.round(o.counter * k);
+    }
+    const sl = w.querySelector('.slash');
+    if (sl) { const k = eBack(prog(t, o.slash, .22)); sl.style.transform = `skewX(-17deg) scaleY(${k})`; sl.style.opacity = clamp(prog(t, o.slash, .05)); }
+    const u = w.querySelector('.u');
+    if (u) u.style.transform = `scaleX(${eOut(prog(t, wt + .16, .3))})`;
+  }
+  const box = card.querySelector('.cbox');
+  if (box) {
+    const k = eBack(prog(t, c.boxIn, .3));
+    box.style.opacity = clamp(prog(t, c.boxIn, .12));
+    box.style.transform = `translateY(${(1 - k) * 60}px) scale(${lerp(.9, 1, k)})`;
+    const n = clamp(Math.floor((t - c.box) / .07) + 1, 0, 6);
+    box.querySelector('.typed').textContent = 'CLAUDE'.slice(0, t < c.box ? 0 : n);
+    const typing = t >= c.box && n < 6;
+    box.querySelector('.car').style.opacity = typing || Math.floor(t / .45) % 2 === 0 ? 1 : 0;
+    box.querySelector('.arrow').style.transform = `translateX(-50%) translateY(${Math.sin(t * 7) * 7}px) rotate(45deg)`;
+    const s = t >= c.box + .5 ? 1 + .12 * Math.sin(clamp(prog(t, c.box + .5, .25)) * Math.PI) : 1;
+    box.querySelector('.send').style.transform = `scale(${s})`;
+  }
+  const vb = card.querySelector('.vbar');
+  if (vb) {
+    const k = eOut(prog(t, c.video, .35));
+    vb.style.opacity = k; vb.style.transform = `translateY(${(1 - k) * 40}px)`;
+    vb.querySelector('.fill').style.width = (clamp((t - c.video) / (c.b - c.video)) * 38) + '%';
+  }
+}
+
+function renderKin(t, list, hardCutOut) {
+  const L = $('#kin');
+  [...L.children].forEach(n => n.style.display = 'none');
+  const c = list.find(c => t >= c.a && t < c.b);
+  if (c) renderCard(c, t, hardCutOut);
+}
+
+// ======================= TELA DO CLAUDE =======================
+const ICON = {
+  chevL: '<svg width="20" height="20" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#ECE9ED" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chevD: '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="#ECE9ED" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  ghost: '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#ECE9ED" stroke-width="1.7" stroke-linejoin="round"><path d="M5 20V11a7 7 0 0 1 14 0v9l-2.3-1.6L14.4 20 12 18.4 9.6 20l-2.3-1.6z"/><circle cx="9.5" cy="11" r="1" fill="#ECE9ED"/><circle cx="14.5" cy="11" r="1" fill="#ECE9ED"/></svg>',
+  newchat: '<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#D9663F"/><path d="M12 7.5v9M7.5 12h9" stroke="#1B181C" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  plus: '<svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="#ECE9ED" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  mic: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9C5CC" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+  up: '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  clock: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8F8A92" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>',
+  chevR: '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="#8F8A92" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  moon: '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#fff"/></svg>',
+  status: '<svg width="19" height="13" viewBox="0 0 19 13"><rect x="0" y="9" width="3.2" height="4" rx="1" fill="#fff"/><rect x="5" y="6.5" width="3.2" height="6.5" rx="1" fill="#fff"/><rect x="10" y="3.5" width="3.2" height="9.5" rx="1" fill="#fff"/><rect x="15" y="0" width="3.2" height="13" rx="1" fill="#fff"/></svg>'
+        + '<svg width="17" height="13" viewBox="0 0 24 18"><path d="M12 17.5 15.2 14a4.6 4.6 0 0 0-6.4 0zM5.5 10.8a9.3 9.3 0 0 1 13 0l2.2-2.4a12.6 12.6 0 0 0-17.4 0zM1 6.2a15.6 15.6 0 0 1 22 0l2-2.3a18.8 18.8 0 0 0-26 0z" fill="#fff"/></svg>'
+        + '<svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.6" fill="none" stroke="#fff" stroke-opacity=".45"/><rect x="2.3" y="2.3" width="15" height="8.4" rx="2" fill="#fff"/><path d="M25 4.4v4.2a2.2 2.2 0 0 0 0-4.2z" fill="#fff" fill-opacity=".45"/></svg>',
+  globe: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D6D2D9" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9S14.6 18.4 12 21c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>',
+  micKb: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D6D2D9" stroke-width="1.7" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+  del: '<svg width="24" height="18" viewBox="0 0 26 18" fill="none" stroke="#F2F0F3" stroke-width="1.7" stroke-linejoin="round"><path d="M8 1h15a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8L1 9z"/><path d="M12 5.5l7 7M19 5.5l-7 7" stroke-linecap="round"/></svg>',
+  shift: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F2F0F3" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 3 12h5v8h8v-8h5z"/></svg>',
+  shiftOn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#F2F0F3" stroke="#F2F0F3" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 3 12h5v8h8v-8h5z"/></svg>',
+  ret: '<svg width="22" height="18" viewBox="0 0 24 20" fill="none" stroke="#F2F0F3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v8a3 3 0 0 1-3 3H4M8 8.5 3.5 13 8 17.5"/></svg>',
+  code: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCAD2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>',
+  close: '<svg width="17" height="17" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#ECE9ED" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  dots: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#ECE9ED"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
+};
+// asterisco do Claude (12 raios irregulares)
+function asterSVG(rot, pulse) {
+  let rays = '';
+  const L = [11, 9.2, 10.6, 8.8, 11.2, 9.6, 10.4, 9, 11, 9.4, 10.2, 9.8];
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2 + rot, l = L[i] * pulse;
+    rays += `<line x1="13" y1="13" x2="${13 + Math.cos(a) * l}" y2="${13 + Math.sin(a) * l}"/>`;
+  }
+  return `<svg width="26" height="26" viewBox="0 0 26 26" stroke="#D97757" stroke-width="2.6" stroke-linecap="round">${rays}</svg>`;
+}
+
+const CHATS = {
+  ghost: {
+    a: 6.0, b: 13.35, pos: 'start', time: '18:23',
+    prompt: 'Escribe un post para LinkedIn sobre por qué la mayoría de la gente usa la IA de forma equivocada',
+    keys: ['#123', '/', '#abc', '#shift', 'G', 'h', 'o', 's', 't', ' '], k0: .12, kd: .075, send: 1.02,
+    think: ['Redactando un post provocador con voz auténtica', 1.3, 2.05], stream: [2.05, 7.2],
+    html: `<p>La mayoría de la gente usa la IA como si fuera Google.</p>
+<p>Pregunta corta. Respuesta corta. Siguiente.</p>
+<p>Y luego se quejan de que «la IA es genérica», de que «no sirve para nada serio», de que «el resultado siempre es superficial».</p>
+<p>El problema no es la herramienta. Es el método.</p>
+<p>Quien saca resultados reales de la IA hace tres cosas que el 95 % no hace:</p>
+<p><b>1. Da contexto antes de pedir.</b></p>
+<p>No es «escríbeme un post de ventas». Es «soy consultor B2B, mi cliente ideal es director de una startup, quiero que suene directo y sin humo».</p>
+<p><b>2. Itera. No acepta la primera respuesta.</b></p>
+<p>La primera salida es un borrador. La tercera empieza a ser buena. La quinta se publica.</p>
+<p><b>3. Construye sistemas, no preguntas sueltas.</b></p>
+<p>Un buen prompt no se escribe desde cero cada vez. Se convierte en plantilla. En flujo. En agente.</p>
+<p>Ahí es donde la IA deja de ser un juguete y empieza a generar dinero.</p>
+<p>La herramienta es la misma para todos. El método es lo que separa al usuario del experto.</p>
+<p>¿Quieres que ajuste el tono (más provocador, más técnico) o que prepare una versión más corta para carrusel?</p>` },
+  artifacts: {
+    a: 14.35, b: 21.35, pos: 'end', time: '18:26',
+    prompt: 'Crea un juego de quiz sobre prompt engineering con 10 preguntas, puntuación y ranking final',
+    keys: [' ', '#123', '/', '#abc', '#shift', 'A', 'r', 't', 'i', 'f', 'a', 'c', 't', 's'], k0: .05, kd: .062, send: 1.08,
+    think: ['Creando un quiz interactivo', 1.32, 1.9], stream: [1.9, 2.55], card: true,
+    html: `<p>¡Listo! Aquí tienes tu quiz interactivo: 10 preguntas con cuatro alternativas cada una, puntuación en tiempo real y un ranking final según tu nivel.</p>
+<div class="acard"><div class="ic">${ICON.code}</div><div><b>quiz-prompt-engineering</b><small>Código · HTML</small></div></div>`,
+    quiz: { press: 2.9, open: 3.0, startBtn: 4.35, q1: 4.5, pick: 5.3, answered: 5.42, nextBtn: 6.28, q2: 6.42 } },
+  ooda: {
+    a: 22.75, b: 30.75, pos: 'start', time: '18:27', caps: true,
+    prompt: 'Mis Reels pasaron de 500 mil a 50 mil vistas tras la última actualización de Instagram. ¿Cómo decido qué hacer?',
+    keys: ['#123', '/', '#abc', '#caps', 'O', 'O', 'D', 'A', '#lower', ' '], k0: .1, kd: .07, send: .98,
+    think: ['Aplicando el ciclo OODA a tu caso', 1.25, 1.95], stream: [1.95, 7.75],
+    html: `<p>Vamos a aplicar el ciclo OODA: <b>Observar → Orientar → Decidir → Actuar</b>.</p>
+<p><b>Observar</b> — antes de reaccionar, separa la señal del ruido:</p>
+<ul><li>¿La caída fue en todos los Reels o solo en ciertos formatos o temas?</li>
+<li>¿Fue gradual o de un día para otro?</li>
+<li>¿Qué cayó: el alcance a no seguidores o también la interacción de quien ya te sigue?</li>
+<li>¿Cambiaron los guardados, los compartidos y la retención, o solo el volumen bruto?</li></ul>
+<p>Sin estos datos, cualquier decisión es una apuesta.</p>
+<p><b>Orientar</b> — dos trampas que debes evitar:</p>
+<ol><li><i>Personalizar lo estructural</i> («el algoritmo me odia») cuando todo tu nicho cayó.</li>
+<li><i>Despersonalizar lo específico</i> («es solo el algoritmo») cuando tu gancho está saturado.</li></ol>
+<p><b>Decidir</b> — tres caminos posibles:</p>
+<ul><li><i>Doblar la apuesta en lo que aún funciona:</i> identifica el 20 % de Reels que mantuvo el alcance.</li>
+<li><i>Probar variables controladas:</i> 3-5 Reels cambiando UNA sola cosa (gancho, duración o formato).</li>
+<li><i>Pivote de distribución:</i> replica en TikTok y Shorts mientras Instagram se estabiliza.</li></ul>
+<p><b>Actuar</b> — antes de ejecutar, define:</p>
+<ul><li>La métrica que vas a vigilar (¿alcance? ¿guardados? ¿clics al perfil?)</li>
+<li>Una ventana corta para decidir (7-14 días, no 2 meses)</li>
+<li>El disparador para volver a Observar y reiniciar el ciclo</li></ul>
+<p>Lo más importante del OODA es el <i>loop</i>: decidir sin volver a observar es solo adivinar más rápido.</p>` },
+  l99: {
+    a: 32.95, b: 40.05, pos: 'end', time: '18:29',
+    prompt: '¿Cómo funciona de verdad el mecanismo de atención en un transformer y por qué es tan costoso computacionalmente?',
+    keys: [' ', '#123', '/', '#abc', '#shift', 'L', '#123', '9', '9'], k0: .08, kd: .075, send: .98,
+    think: ['Analizando la arquitectura a nivel experto', 1.25, 1.95], stream: [1.95, 6.95],
+    html: `<p>El mecanismo de atención es, en esencia, un sistema en el que cada token «mira» a todos los demás tokens de la secuencia y decide cuánto le importa cada uno para construir su nueva representación.</p>
+<p>En la práctica, el transformer proyecta cada token en tres vectores mediante matrices de pesos aprendidas: <b>Query (Q)</b>, <b>Key (K)</b> y <b>Value (V)</b>. El Query es la «pregunta» que hace el token: «¿quién aquí es relevante para mí?». El Key es la «etiqueta» que muestra cada token. Y el Value es el contenido real que se transmite si ese token resulta relevante.</p>
+<p>El cálculo ocurre en tres pasos:</p>
+<ol><li>Multiplica el Q de un token por el K de todos los demás (producto escalar). Eso genera una puntuación de «afinidad» entre cada par de tokens.</li>
+<li>Aplica softmax a esas puntuaciones para convertirlas en pesos que suman 1.</li>
+<li>Multiplica esos pesos por los Values y los suma. El resultado es la nueva representación del token, cargada con información de toda la secuencia.</li></ol>
+<p>La fórmula resumida: <code>Attention(Q,K,V) = softmax(QKᵀ / √dₖ) · V</code>. El √dₖ del denominador mantiene estables los gradientes.</p>
+<p><b>¿Por qué es tan costoso?</b></p>
+<p>Cada token se compara con todos los demás: con n tokens hay n² comparaciones. Duplicar el contexto cuadruplica el cómputo y la memoria de la matriz de atención. Con 100.000 tokens son 10.000 millones de puntuaciones por capa y por cabeza.</p>
+<p>Por eso existen optimizaciones como FlashAttention, que reorganiza el cálculo por bloques para no materializar la matriz completa en memoria.</p>` },
+};
+
+const KB = {
+  abc: [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l','ñ'], ['z','x','c','v','b','n','m']],
+  num: [['1','2','3','4','5','6','7','8','9','0'], ['-','/',':',';','(',')','€','&','@','"'], ['.',',','¿','?','¡','!',"'"]],
+};
+
+// estado do teclado/campo de texto num instante local lt
+function typingState(C, lt) {
+  let layout = C.caps ? 'abc' : 'abc', shift = false, caps = false, typed = '', last = null, lastT = -9;
+  C.keys.forEach((k, i) => {
+    const kt = C.k0 + i * C.kd;
+    if (lt < kt) return;
+    last = k; lastT = kt;
+    if (k === '#123') layout = 'num';
+    else if (k === '#abc') layout = 'abc';
+    else if (k === '#shift') shift = true;
+    else if (k === '#caps') caps = true;
+    else if (k === '#lower') caps = false;
+    else { typed += k; if (!caps) shift = false; }
+  });
+  return { layout, upper: shift || caps, caps, typed, last, lastT };
+}
+
+function keyboardHTML(st, lt) {
+  const rows = KB[st.layout === 'num' ? 'num' : 'abc'];
+  const pressed = st.last != null && lt - st.lastT < .11 ? st.last : null;
+  const lab = ch => st.layout === 'abc' && st.upper ? ch.toUpperCase() : ch;
+  const key = (ch, cls = '', w = null, inner = null) => {
+    const hl = pressed != null && (pressed === ch || pressed.toLowerCase?.() === ch) && !pressed.startsWith('#');
+    const pop = hl && cls === '' ? `<div class="pop">${lab(ch)}</div>` : '';
+    return `<div class="key ${cls} ${hl ? 'hl' : ''}" style="${w ? `width:${w}px` : ''}">${inner ?? lab(ch)}${pop}</div>`;
+  };
+  const sp = (id, w, inner) => `<div class="key sp ${pressed === id ? 'hl' : ''}" style="width:${w}px">${inner}</div>`;
+  const top = 46, pitch = 49;
+  let h = `<div class="sug">${(() => { const cur = st.typed.trim().split(' ').pop(); return cur ? `<div>“${cur}”</div><div></div><div></div>` : '<div>de</div><div>que</div><div>la</div>'; })()}</div>`;
+  h += `<div class="row" style="top:${top}px">${rows[0].map(c => key(c)).join('')}</div>`;
+  h += `<div class="row" style="top:${top + pitch}px">${rows[1].map(c => key(c)).join('')}</div>`;
+  const left = st.layout === 'num' ? sp('#sym', 44, '#+=') : sp('#shift', 44, st.upper ? ICON.shiftOn : ICON.shift);
+  h += `<div class="row" style="top:${top + pitch * 2}px">${left}<div style="width:6px"></div>${rows[2].map(c => key(c, '', st.layout === 'num' ? 39 : 33)).join('')}<div style="width:6px"></div>${sp('#del', 44, ICON.del)}</div>`;
+  const modeKey = st.layout === 'num' ? sp('#abc', 44, 'ABC') : sp('#123', 44, '123');
+  h += `<div class="row" style="top:${top + pitch * 3}px">${modeKey}${sp('#emoji', 44, '<span style="font-size:19px">☺</span>')}${key(' ', 'sp', 182, '')}${sp('#ret', 92, ICON.ret)}</div>`;
+  h += `<div class="bot"><div style="position:absolute;left:24px;top:8px">${ICON.globe}</div><div style="position:absolute;right:26px;top:8px">${ICON.micKb}</div></div>`;
+  return h;
+}
+
+function wrapWords(root) {
+  let idx = 0;
+  const walk = node => {
+    for (const ch of [...node.childNodes]) {
+      if (ch.nodeType === 3) {
+        const parts = ch.textContent.split(/(\s+)/);
+        const frag = document.createDocumentFragment();
+        for (const p of parts) {
+          if (!p) continue;
+          if (/^\s+$/.test(p)) frag.appendChild(document.createTextNode(p));
+          else { const s = document.createElement('span'); s.className = 'w'; s.dataset.i = idx++; s.textContent = p; frag.appendChild(s); }
+        }
+        ch.replaceWith(frag);
+      } else if (ch.nodeType === 1 && !ch.classList.contains('acard')) walk(ch);
+    }
+  };
+  walk(root);
+  return idx;
+}
+
+function buildChat(C) {
+  if (C.node) return C.node;
+  const ph = el(`<div class="phone">
+    <div class="fadeTop"></div>
+    <div class="sbar"><div class="time">${C.time}${ICON.moon}</div><div class="island"></div><div class="icons">${ICON.status}</div></div>
+    <div class="hdr"><div class="hbtn l">${ICON.chevL}</div>
+      <div class="htitle"><b>Opus 5.5 ${ICON.chevD}</b><small>Adaptativo</small></div>
+      <div class="hbtn r"></div></div>
+    <div class="msgs"><div class="bubble"></div>
+      <div class="think">${ICON.clock}<span class="lbl"></span>${ICON.chevR}</div>
+      <div class="resp">${C.html}</div><div class="aster"></div></div>
+    <div class="fadeBottom"></div>
+    <div class="bottomBox"><div class="ph">Responder a Claude</div><div class="plus">${ICON.plus}</div><div class="stop"></div><div class="mic">${ICON.mic}</div></div>
+    <div class="composer"><div class="txt"></div><div class="plus">${ICON.plus}</div><div class="mic">${ICON.mic}</div><div class="send">${ICON.up}</div></div>
+    <div class="kb"></div>
+  </div>`);
+  $('#chat').appendChild(ph);
+  const resp = ph.querySelector('.resp');
+  C.nWords = wrapWords(resp);
+  C.words = [...resp.querySelectorAll('.w')];
+  C.blocks = [...resp.querySelectorAll('p, li, .acard')].map(b => ({ b, first: b.classList.contains('acard') ? C.nWords : +(b.querySelector('.w')?.dataset.i ?? 0) }));
+  // prompt final completo (para a bolha)
+  const full = typingState(C, 99).typed;
+  C.finalPrompt = C.pos === 'start' ? full + C.prompt : C.prompt + full;
+  ph.querySelector('.bubble').textContent = C.finalPrompt;
+  if (C.quiz) {
+    ph.appendChild(el(`<div class="sheet"><div class="shdr"><div class="hbtn l">${ICON.close}</div><div class="t">quiz-prompt-engineering</div><div class="hbtn r">${ICON.dots}</div></div>
+      <div class="body"><div class="qz static"></div></div></div>`));
+  }
+  C.node = ph;
+  return ph;
+}
+
+function wordsAt(C, lt) {
+  const [s0, s1] = C.stream;
+  return Math.floor(clamp((lt - s0) / (s1 - s0)) * C.nWords + (lt >= s0 ? 1 : 0));
+}
+
+function renderChat(C, t) {
+  const ph = buildChat(C);
+  ph.style.display = 'block';
+  const lt = t - C.a, sent = lt >= C.send + .06;
+  // ---- campo de texto + teclado ----
+  const st = typingState(C, lt);
+  const comp = ph.querySelector('.composer'), kb = ph.querySelector('.kb');
+  const kOut = eIO(prog(lt, C.send + .06, .28));
+  kb.style.transform = `translateY(${kOut * 320}px)`;
+  kb.style.display = kOut >= 1 ? 'none' : 'block';
+  if (kOut < 1) kb.innerHTML = keyboardHTML(st, lt);
+  comp.style.display = sent ? 'none' : 'block';
+  if (!sent) {
+    const typing = lt >= C.k0 - .05 && lt < C.k0 + C.keys.length * C.kd + .2;
+    const caretOn = typing || Math.floor(lt / .5) % 2 === 0;
+    const car = `<span class="caret" style="opacity:${caretOn ? 1 : 0}"></span>`;
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    comp.querySelector('.txt').innerHTML = C.pos === 'start' ? esc(st.typed) + car + esc(C.prompt) : esc(C.prompt + st.typed) + car;
+    const pr = lt >= C.send - .02 && lt < C.send + .08;
+    comp.querySelector('.send').style.filter = pr ? 'brightness(.75)' : '';
+    comp.querySelector('.send').style.transform = pr ? 'scale(.9)' : '';
+  }
+  // ---- cabeçalho ----
+  ph.querySelector('.hbtn.r').innerHTML = sent ? ICON.newchat : ICON.ghost;
+  ph.querySelector('.hbtn.r').style.background = sent ? 'transparent' : '';
+  // ---- mensagens ----
+  const msgs = ph.querySelector('.msgs'), bub = ph.querySelector('.bubble');
+  const bk = eOut(prog(lt, C.send + .08, .3));
+  bub.style.opacity = sent ? bk : 0;
+  bub.style.transform = `translateY(${(1 - bk) * 24}px)`;
+  const box = ph.querySelector('.bottomBox');
+  box.style.opacity = eOut(prog(lt, C.send + .15, .25));
+  const [th, t0, t1] = C.think;
+  const think = ph.querySelector('.think');
+  think.style.opacity = eOut(prog(lt, t0, .2));
+  const lbl = think.querySelector('.lbl');
+  lbl.textContent = th;
+  if (lt < t1) { // brilho percorrendo o texto enquanto "pensa"
+    const x = ((lt - t0) / .9 % 1) * 260 - 80;
+    lbl.style.background = `linear-gradient(90deg, #6D6870 ${x - 40}%, #F1EEF2 ${x}%, #6D6870 ${x + 40}%)`;
+    lbl.style.webkitBackgroundClip = 'text'; lbl.style.color = 'transparent';
+  } else { lbl.style.background = 'none'; lbl.style.color = ''; }
+  // ---- streaming ----
+  const n = wordsAt(C, lt);
+  if (C._n !== n) {
+    C.words.forEach((w, i) => w.classList.toggle('v', i < n));
+    C.blocks.forEach(({ b, first }) => b.classList.toggle('p-hidden', first >= n && !(b.classList.contains('acard') && lt >= C.stream[1])));
+    C._n = n;
+  }
+  const streaming = lt >= C.stream[0] && lt < C.stream[1] + .15;
+  box.querySelector('.stop').style.display = streaming || (lt >= t0 && lt < C.stream[0]) ? 'block' : 'none';
+  box.querySelector('.mic').style.display = streaming || (lt >= t0 && lt < C.stream[0]) ? 'none' : 'block';
+  const ast = ph.querySelector('.aster');
+  ast.style.opacity = lt >= t0 ? 1 : 0;
+  ast.innerHTML = lt < C.stream[1] + .1 ? asterSVG(lt * 2.4, .82 + .18 * Math.sin(lt * 9)) : asterSVG(0, 1);
+  // card do artefato
+  const card = ph.querySelector('.acard');
+  if (card) {
+    const ck = eOut(prog(lt, C.stream[1], .3));
+    card.style.opacity = ck; card.style.transform = `translateY(${(1 - ck) * 12}px)`;
+    const pr = C.quiz && lt >= C.quiz.press && lt < C.quiz.open + .1;
+    card.style.background = pr ? '#2E2A30' : '';
+  }
+  // auto-scroll suave e determinístico: mantém a última linha acima da caixa de resposta
+  if (!C.bottoms) {
+    const thinkB = think.offsetTop + think.offsetHeight + 40;
+    C.bottoms = C.words.map(w => w.offsetTop + w.offsetHeight + 50);
+    C.thinkB = thinkB;
+    C.cardB = card ? card.offsetTop + card.offsetHeight + 50 : 0;
+  }
+  const VIEW = 724 - 112;
+  const targetAt = x => {
+    const m = wordsAt(C, x);
+    const b = m <= 0 ? C.thinkB : (card && x >= C.stream[1] ? C.cardB : C.bottoms[Math.min(m, C.nWords) - 1]);
+    return Math.max(0, b - VIEW);
+  };
+  let sc = 0; for (let k = 0; k < 6; k++) sc += targetAt(lt - k * .045); sc /= 6;
+  msgs.style.transform = `translateY(${-sc}px)`;
+  // ---- folha do artefato (quiz) ----
+  if (C.quiz) renderQuiz(C, ph, lt);
+}
+
+function renderQuiz(C, ph, lt) {
+  const Q = C.quiz, sheet = ph.querySelector('.sheet'), qz = sheet.querySelector('.qz');
+  const k = eOut(prog(lt, Q.open, .38));
+  sheet.style.display = lt >= Q.open ? 'block' : 'none';
+  sheet.style.transform = `translateY(${(1 - k) * 800}px)`;
+  let view, vt;
+  if (lt < Q.q1) { view = 'start'; vt = Q.open + .15; }
+  else if (lt < Q.answered) { view = 'q1'; vt = Q.q1; }
+  else if (lt < Q.q2) { view = 'q1a'; vt = Q.answered; }
+  else { view = 'q2'; vt = Q.q2; }
+  if (qz.dataset.v !== view) {
+    qz.innerHTML = view === 'start' ? qzStartView() : view === 'q1' ? qzQuestionView(0, null, 0) : view === 'q1a' ? qzQuestionView(0, 2, 1) : qzQuestionView(1, null, 1);
+    qz.dataset.v = view;
+  }
+  const scr = qz.firstElementChild;
+  // entrada escalonada dos elementos da tela
+  if (view !== 'q1a') [...scr.children].filter(c => !(c.classList.contains('qz-fb') && !c.classList.contains('show')) && !c.classList.contains('hidden')).forEach((c, i) => {
+    const e = eOut(prog(lt, vt + i * .045, .32));
+    c.style.opacity = e; c.style.transform = `translateY(${(1 - e) * 16}px)`;
+  });
+  // feedback e botão após responder
+  if (view === 'q1a') {
+    const fb = scr.querySelector('.qz-fb'), btn = scr.querySelector('.qz-btn');
+    const e = eOut(prog(lt, Q.answered + .08, .3));
+    fb.style.opacity = e; fb.style.transform = `translateY(${(1 - e) * 10}px)`;
+    btn.style.opacity = eOut(prog(lt, Q.answered + .2, .3));
+    btn.classList.toggle('press', lt >= Q.nextBtn && lt < Q.nextBtn + .12);
+    scr.querySelectorAll('.qz-opt.dim').forEach(o => o.style.opacity = lerp(1, .35, e));
+    const pts = scr.querySelector('.qz-pts');
+    pts.style.transform = `scale(${1 + .25 * Math.sin(clamp(prog(lt, Q.answered, .3)) * Math.PI)})`; pts.style.transformOrigin = '100% 50%';
+  }
+  if (view === 'start') scr.querySelector('.qz-btn').classList.toggle('press', lt >= Q.startBtn && lt < Q.startBtn + .13);
+  if (view === 'q1') scr.querySelectorAll('.qz-opt')[2].classList.toggle('press', lt >= Q.pick);
+  // rolagem interna para mostrar o botão "siguiente"
+  const body = sheet.querySelector('.body');
+  if (view === 'q1a') {
+    const need = Math.max(0, qz.scrollHeight - body.clientHeight + 6);
+    body.scrollTop = need * eIO(prog(lt, Q.answered + .15, .5));
+  } else body.scrollTop = 0;
+}
+
+function renderChats(t) {
+  [...$('#chat').children].forEach(n => n.style.display = 'none');
+  const C = Object.values(CHATS).find(c => t >= c.a && t < c.b);
+  if (C) renderChat(C, t);
+}
+
+// ======================= TIMELINE =======================
+function sceneAt(t) {
+  if (t < FACE_END) return 'face';
+  if (Object.values(CHATS).some(c => t >= c.a && t < c.b)) return 'chat';
+  if (t < 40.05) return 'beat';
+  return 'cta';
+}
+window.DURATION = DURATION;
+window.render = function (t) {
+  const s = sceneAt(t);
+  $('#cap').style.display = s === 'face' ? 'block' : 'none';
+  $('#kin').style.display = s === 'beat' || s === 'cta' ? 'block' : 'none';
+  $('#chat').style.display = s === 'chat' ? 'block' : 'none';
+  if (s === 'face') renderCaps(t);
+  if (s === 'beat') renderKin(t, Object.values(BEATS), true);
+  if (s === 'cta') renderKin(t, CTA, false);
+  if (s === 'chat') renderChats(t);
+};
+window.ready = document.fonts.ready.then(() => {
+  // pré-constrói tudo para medições estáveis
+  $('#kin').style.display = 'block'; // precisa estar visível para medir larguras
+  Object.values(BEATS).forEach(c => { buildCard(c); c.node.style.display = 'none'; });
+  CTA.forEach(c => { buildCard(c); c.node.style.display = 'none'; });
+  $('#kin').style.display = 'none';
+  Object.values(CHATS).forEach(c => { buildChat(c); c.node.style.display = 'none'; });
+  return true;
+});
+if (!location.search.includes('render')) {
+  // pré-visualização no navegador: toca em tempo real
+  $('#stage').style.background = '#555';
+  window.ready.then(() => { const t0 = performance.now(); const loop = () => { window.render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); });
+}
+</script>
+</body>
+</html>
