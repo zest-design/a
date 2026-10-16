@@ -219,6 +219,7 @@ def reader(src, f0, n):
     return nxt
 
 # ---------------- tutorial: screen recordings synced to the narration --------------
+BLUR_NAME = os.environ.get("BLUR_NAME", "0") == "1"   # the account name stays visible (user request)
 EDIT, RES = f"{P2}/rec.mp4", f"{P2}/final_cut.mp4"   # result with 4.4-5.6 s and 17.2-18.2 s removed
 SW, SH = 720, 1564
 RES_FROM = 60.70                       # "Y este es el resultado" -> the finished video
@@ -326,7 +327,7 @@ def render():
             sf = scr[src].at(t); fr = None
             if need:
                 if src == "f": canvas = Image.fromarray(sf).resize((W, H), Image.LANCZOS).convert("RGBA")
-                else: canvas = screen_frame(blur_name(sf) if t < 10.6 else sf)
+                else: canvas = screen_frame(blur_name(sf) if (BLUR_NAME and t < 10.6) else sf)
         else:
             fr = cta()
         if not need: continue
