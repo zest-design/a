@@ -666,7 +666,7 @@ INTRO_L = []
 for l1, l2, l3, end in PH:
     big_txt = " ".join(hw(i) for k, i, _ in l2)
     fb = fit_big2(big_txt)
-    items = layout2(l1, HS2, 410) + layout2(l2, fb, 532 if l1[2:3] and l1[2][0] == "t" else 486) + (layout2(l3, HS2, 674) if l3 else [])
+    items = layout2(l1, HS2, 446) + layout2(l2, fb, 568 if l1[2:3] and l1[2][0] == "t" else 522) + (layout2(l3, HS2, 710) if l3 else [])
     f0 = fo(INTROW[l1[0][1] if l1[0][0] == "w" else 2][1])
     INTRO_L.append(dict(items=items, f0=f0, end=end))
 for k, L in enumerate(INTRO_L):
