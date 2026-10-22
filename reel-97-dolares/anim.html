@@ -153,7 +153,9 @@ function priceBlock() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, PB_W, PB_H); ctx.filter = 'none'; ctx.globalAlpha = 1;
   const digits = [...PRICE], ws = digits.map(d => measure(d, 'H', ZD)), wd = measure('$', 'T3', ZS), gap = 12;
   const tot = wd + gap + ws.reduce((a, b) => a + b, 0), x0 = PB_W / 2 - tot / 2;
-  ctx.translate(0, PB_H / 2);
+  // longer prices (e.g. 147) shrink to stay inside the safe column; two digits keep full size
+  const fitK = Math.min(1, FITW / tot);
+  ctx.translate(PB_W / 2, PB_H / 2); ctx.scale(fitK, fitK); ctx.translate(-PB_W / 2, 0);
   // "$" slides in from the left, sitting high like a price tag
   const kd = eExpo(prog(T, T_PRICE + 0.15, T_PRICE + 0.6));
   if (kd > 0) { ctx.save(); ctx.globalAlpha = clamp(kd * 2); text('$', x0 + wd / 2 - (1 - kd) * 80, -ZD * 0.2, 'T3', ZS, 'silver'); ctx.restore(); }
