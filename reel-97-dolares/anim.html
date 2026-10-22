@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Reel 97 Dólares</title>
+<title>Reel Price Card</title>
 <style>
   @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-200.woff2') format('woff2'); font-weight: 200; font-style: normal; }
   @font-face { font-family: 'BarlowC'; src: url('fonts/BarlowCondensed-300.woff2') format('woff2'); font-weight: 300; font-style: normal; }
@@ -19,7 +19,8 @@
 <canvas id="c" width="1080" height="1920"></canvas>
 <script>
 // ---------------------------------------------------------------------------
-// "Y hoy entra solo por 97 dólares" — 5s price card, 1080x1920 (9:16), 30fps.
+// "Y hoy entra solo por <PRICE> dólares" — 5s price card, 1080x1920 (9:16), 30fps.
+// The price comes from ?price=47 (default 97); render.mjs passes it with --price.
 // Same red/black identity as claude-edit-reel-red: black + grain + drifting red glow,
 // silver condensed-italic headlines, red stripe wipe. The wipe covers both the first
 // and the last frame, so the clip loops seamlessly on Reels/TikTok.
@@ -28,6 +29,7 @@
 // centred on x = 540 inside x 200-880, y 250-1530.
 // ---------------------------------------------------------------------------
 const W = 1080, H = 1920, DURATION = 5;
+const PRICE = (new URLSearchParams(location.search).get('price') || '97').replace(/\D/g, '') || '97';
 const OW = W, OH = H;
 const SAFE = { x0: 200, x1: 880, y0: 250, y1: 1530 };
 const CX = 540, SW = SAFE.x1 - SAFE.x0, FITW = SW - 40;
@@ -126,7 +128,7 @@ const SHINES = [2.75, 4.0];
 const HITS = [T_ENTRA + 0.05, T_LAND7];
 const Y = { label: 450, entra: 640, solo: 830, price: 1115, dol: 1430 };
 
-// ---------- price block: "$97" with slot-machine digits ----------
+// ---------- price block: "$" + PRICE with slot-machine digits ----------
 // drawn on its own canvas so the metallic shine can be clipped to the glyphs
 const PB_W = 1080, PB_H = 800, pbCv = document.createElement('canvas'); pbCv.width = PB_W; pbCv.height = PB_H;
 const pbCtx = pbCv.getContext('2d');
@@ -149,15 +151,18 @@ function rollDigit(final, x, w, t0, land, spins) {
 function priceBlock() {
   const main = ctx; ctx = pbCtx;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, PB_W, PB_H); ctx.filter = 'none'; ctx.globalAlpha = 1;
-  const w9 = measure('9', 'H', ZD), w7 = measure('7', 'H', ZD), wd = measure('$', 'T3', ZS), gap = 12;
-  const tot = wd + gap + w9 + w7, x0 = PB_W / 2 - tot / 2;
+  const digits = [...PRICE], ws = digits.map(d => measure(d, 'H', ZD)), wd = measure('$', 'T3', ZS), gap = 12;
+  const tot = wd + gap + ws.reduce((a, b) => a + b, 0), x0 = PB_W / 2 - tot / 2;
   ctx.translate(0, PB_H / 2);
   // "$" slides in from the left, sitting high like a price tag
   const kd = eExpo(prog(T, T_PRICE + 0.15, T_PRICE + 0.6));
   if (kd > 0) { ctx.save(); ctx.globalAlpha = clamp(kd * 2); text('$', x0 + wd / 2 - (1 - kd) * 80, -ZD * 0.2, 'T3', ZS, 'silver'); ctx.restore(); }
-  const dx = x0 + wd + gap;
-  rollDigit(9, dx, w9, T_PRICE, T_LAND9, 19);
-  rollDigit(7, dx + w9, w7, T_PRICE, T_LAND7, 27);
+  // digits lock left to right: the first at T_LAND9, the last at T_LAND7
+  let dx = x0 + wd + gap;
+  digits.forEach((d, i) => {
+    const q = digits.length > 1 ? i / (digits.length - 1) : 1;
+    rollDigit(+d, dx, ws[i], T_PRICE, lerp(T_LAND9, T_LAND7, q), 19 + 8 * i); dx += ws[i];
+  });
   // metallic shine sweeping across the glyphs only
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-atop';
   for (const s0 of SHINES) {

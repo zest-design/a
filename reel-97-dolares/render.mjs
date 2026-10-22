@@ -1,6 +1,6 @@
 // Renders anim.html frame-by-frame with headless Chromium and encodes an MP4
 // (with a silent stereo track so editors and Reels accept it like any other clip).
-// Usage: node render.mjs [out.mp4]
+// Usage: node render.mjs [--price 47] [out.mp4]   (default price 97 -> reel_97_dolares.mp4)
 //        node render.mjs --frames 30,60,90 [--grid]   (PNG stills only; --grid overlays the Instagram grid)
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -14,11 +14,13 @@ const args = process.argv.slice(2);
 const stillsIdx = args.indexOf('--frames');
 const stills = stillsIdx >= 0 ? args[stillsIdx + 1].split(',').map(Number) : null;
 const grid = args.includes('--grid');
-const out = args.find(a => a.endsWith('.mp4')) || path.join(dir, 'reel_97_dolares.mp4');
+const priceIdx = args.indexOf('--price');
+const price = priceIdx >= 0 ? args[priceIdx + 1] : '97';
+const out = args.find(a => a.endsWith('.mp4')) || path.join(dir, `reel_${price}_dolares.mp4`);
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
-await page.goto('file://' + path.join(dir, 'anim.html') + '?render' + (grid ? '&grid' : ''));
+await page.goto('file://' + path.join(dir, 'anim.html') + '?render&price=' + price + (grid ? '&grid' : ''));
 await page.evaluate(() => Promise.all(['italic 900 40px BarlowC', 'italic 800 40px BarlowC', '200 40px BarlowC', '300 40px BarlowC', '300 40px Poppins', '400 40px Poppins', '600 40px Poppins'].map(f => document.fonts.load(f))));
 await page.evaluate(() => document.fonts.ready);
 const duration = await page.evaluate(() => window.DURATION);
