@@ -189,8 +189,11 @@ function caret(x, y, h, col = C.white) { if (Math.floor(T * 2.2) % 2) return; ct
 
 // ---------- shots ----------
 // Text only, exactly as written: "Solo mientras este contador sigue en pantalla entras por solo 97 dólares."
+// (the price is a parameter, see PRICE)
 const SHOTS = [{ a: 0.00, draw: pA }, { a: 3.25, draw: pB }, { a: 6.20, draw: pC }];
 const WIPES = [3.25];
+// price shown in the clip; ?price=47 renders another value (default 97)
+const PRICE = new URLSearchParams(location.search).get('price') || '97';
 const HITS = [0.4, 0.8, 4.05, 6.65, 6.95];
 const GLOW = [[1, 0.05], [0, 1], [1, 1]];
 
@@ -201,17 +204,17 @@ function pA() {
   slam(0.8, CX, 990, () => text('CONTADOR', 0, 0, 'H', 240, 'fade'));
   rise(1.5, () => text('sigue en pantalla', CX, 1200, 'T', 104, C.white, 'center', 4));
 }
-// B · "entras por solo 97 dólares"
+// B · "entras por solo <PRICE> dólares"
 function pB() {
   pop(3.45, CX, 620, () => whiteLabel('entras por', 0, 0, 48));
   rise(3.75, () => text('solo', CX, 780, 'T', 124, C.white, 'center', 6));
-  slam(4.05, CX, 1000, () => text('97', 0, 0, 'H', 400, 'silver'));
+  slam(4.05, CX, 1000, () => text(PRICE, 0, 0, 'H', 400, 'silver'));
   rise(4.6, () => spaced('d ó l a r e s', CX, 1230, 42, C.gray));
 }
 // C · closing lockup of the whole offer
 function pC() {
   rise(6.4, () => text('entras por solo', CX, 700, 'T', 104, C.white, 'center', 4));
-  slam(6.65, CX, 930, () => text('97', 0, 0, 'H', 360, 'silver'));
+  slam(6.65, CX, 930, () => text(PRICE, 0, 0, 'H', 360, 'silver'));
   slam(6.95, CX, 1195, () => text('DÓLARES', 0, 0, 'H', 200, 'fade'));
 }
 
