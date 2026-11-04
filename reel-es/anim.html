@@ -975,6 +975,19 @@ window.checkSafe = () => {
 };
 if (location.search.includes('guides')) ZONES.forEach(z => css($('div', 'guide', stage), { left: z.x0 + 'px', top: z.y0 + 'px', width: (z.x1 - z.x0) + 'px', height: (z.y1 - z.y0) + 'px' }));
 render(+(new URLSearchParams(location.search).get('t') || 0) * SLOW);
+// ---------- cover image mode (?cover): headline + the 9 styles, 9:16 ----------
+if (location.search.includes('cover')) {
+  screenEl.style.display = 'none';
+  css(ptitle, { top: '330px', fontSize: '74px' });
+  ptWords.forEach(w => css(w, { opacity: 1, transform: 'none' })); css(ptEm, { opacity: 1, transform: 'none' });
+  const CW = 222, CH = 278, CG = 13, cx0 = 540 - (3 * CW + 2 * CG) / 2, cy0 = 560;
+  GRID_ORDER.forEach((k, i) => {
+    const t = rel($('div', 'tile', stage)); css(t, { left: (cx0 + (i % 3) * (CW + CG)) + 'px', top: (cy0 + Math.floor(i / 3) * (CH + CG)) + 'px', width: CW + 'px', height: CH + 'px', borderRadius: '16px', boxShadow: '0 12px 30px rgba(0,0,0,.45)' });
+    const p = MAKERS[k](); t.appendChild(p.root); p.update(6);
+    css(p.root, { transform: `translateY(${-200 * CW / W}px) scale(${CW / W})` });
+  });
+  window.render = () => {};
+}
 window.READY = true;
 </script>
 </body>
