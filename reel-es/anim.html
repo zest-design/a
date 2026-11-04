@@ -9,7 +9,12 @@
 * { box-sizing: border-box; }
 html, body { margin:0; padding:0; background:#000; overflow:hidden; }
 body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
-#stage { position:relative; width:1080px; height:1920px; overflow:hidden; background:var(--bg); }
+#stage { position:relative; width:1080px; height:1920px; overflow:hidden; background:#0B0A0A; }
+/* persistent headline + framed screen */
+.ptitle { position:absolute; left:0; top:232px; width:1080px; text-align:center; font-size:60px; font-weight:800; letter-spacing:-.04em; line-height:1.08; color:#fff; z-index:50; }
+.ptitle em { font-style:normal; color:var(--or); display:inline-block; }
+.screen { position:absolute; left:75px; top:390px; width:930px; height:1477px; overflow:hidden; border-radius:44px; background:var(--bg); box-shadow: 0 0 0 1.5px #262422; }
+.inner { position:absolute; left:0; width:1080px; height:1920px; transform-origin:0 0; }
 .abs { position:absolute; }
 .mono { font-family: 'JetBrains Mono', monospace; }
 .anton { font-family: Anton, Impact, sans-serif; font-weight:400; }
@@ -208,8 +213,13 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 <div id="stage"></div>
 <script>
 'use strict';
-const W = 1080, H = 1920, DURATION = 22.6;
+const W = 1080, H = 1920, DURATION = 23.4; // internal timeline
+const SLOW = 1.4;                            // playback is 40% slower than the internal timeline
+const SCR_S = 930 / 1080, SCR_TOP = 390;     // inner stage y 216 lands at ~400
 const stage = document.getElementById('stage');
+const screenEl = document.createElement('div'); screenEl.className = 'screen'; stage.appendChild(screenEl);
+const inner = document.createElement('div'); inner.className = 'inner'; screenEl.appendChild(inner);
+inner.style.top = (400 - 216 * SCR_S - SCR_TOP) + 'px'; inner.style.transform = `scale(${SCR_S})`;
 
 // ---------- helpers ----------
 const $ = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
@@ -680,8 +690,7 @@ const TILE_S = TW / W;
 function Grid() {
   const r = poster('grid');
   const title = rel($('div', 'center gr-title', r));
-  const lines = [['Esto', 'antes', 'tomaba', 'días.'], ['Ahora,', 'un', 'solo', 'prompt.']];
-  title.innerHTML = lines.map((ln, li) => ln.map(w => `<span class="word">${li === 1 && w !== 'Ahora,' ? '<em>' + w + '</em>' : w} </span>`).join('')).join('<br>');
+  title.innerHTML = ['9', 'estilos', 'de', 'animación'].map(w => `<span class="word">${w} </span>`).join('') + '<br><span class="word" style="font-size:40px;font-weight:700;color:#E07A4F;letter-spacing:-.01em">hechos con Claude Code</span>';
   const tw = [...title.querySelectorAll('.word')];
   const cta1 = rel($('div', 'center cta1', r, ''));
   const ctaTxt = 'Comenta “ANIMAR”';
@@ -725,7 +734,12 @@ function Grid() {
 MAKERS.grid = Grid;
 
 // ---------- chat ----------
-const chat = $('div', '', stage); chat.id = 'chat';
+const ptitle = $('div', 'ptitle', stage, 'Esto antes tomaba días.<br><em>Ahora, un solo prompt.</em>'); rel(ptitle); ptitle.classList.add('center');
+const ptWords = []; // split first line into words for the intro
+ptitle.innerHTML = ['Esto', 'antes', 'tomaba', 'días.'].map(w => `<span class="word">${w} </span>`).join('') + '<br><em>Ahora, un solo prompt.</em>';
+ptWords.push(...ptitle.querySelectorAll('.word'));
+const ptEm = ptitle.querySelector('em');
+const chat = $('div', '', inner); chat.id = 'chat';
 const hMenu = $('div', 'hbtn', chat, ICON.menu); hMenu.style.left = '54px';
 $('div', 'toggle', chat, '<span>Chat</span><span class="on">Código</span>');
 const hEdit = $('div', 'hbtn', chat, ICON.edit); hEdit.style.left = '950px';
@@ -787,7 +801,7 @@ SC.forEach((s, i) => {
   s.full = s.greet ? 19.0 : s.content + (first ? .5 : .36);
   s.end = i < SC.length - 1 ? SC[i + 1].t0 : DURATION + 1;
   s.cardP = MAKERS[s.kind](); card.appendChild(s.cardP.root);
-  s.fullF = $('div', 'frame', stage); s.fullP = MAKERS[s.kind](); s.fullF.appendChild(s.fullP.root);
+  s.fullF = $('div', 'frame', inner); s.fullP = MAKERS[s.kind](); s.fullF.appendChild(s.fullP.root);
   s.fullF.style.zIndex = 10 + i;
 });
 const CARD = { x: 96, y: 640, w: 428, h: 761 };
@@ -889,14 +903,20 @@ function setFull(s, t, prevVisible) {
   css(s.fullP.root, { transform: `scale(${w / W})` });
 }
 
-function render(t) {
+function render(tReal) {
+  const t = tReal / SLOW;
+  // persistent headline: intro, then a small pulse on the orange line each time a prompt is sent
+  ptWords.forEach((w, i) => { const k = eback(P(t, .05 + i * .07, .45 + i * .07)); css(w, { opacity: C(k * 2), transform: `translateY(${(1 - k) * 36}px)` }); });
+  const ek = eo(P(t, .35, .8));
+  let pulse = 0; SC.forEach(s => { pulse = Math.max(pulse, Math.sin(Math.PI * P(t, s.send, s.send + .35))); });
+  css(ptEm, { opacity: ek, transform: `translateY(${(1 - ek) * 30}px) scale(${1 + pulse * .045})` });
   let cur = 0;
   SC.forEach((s, i) => { if (t >= s.t0) cur = i; });
   setChat(SC[cur], t);
   SC.forEach(s => setFull(s, t));
 }
-window.inTransition = t => SC.some(s => (t >= s.full - .02 && t <= s.full + FULL_D + .12) || (t >= s.end - .02 && t <= s.end + EXIT_D + .02) || (t >= s.send - .05 && t <= s.send + .45));
-window.render = render; window.DURATION = DURATION;
+window.inTransition = tr => { const t = tr / SLOW; return SC.some(s => (t >= s.full - .02 && t <= s.full + FULL_D + .12) || (t >= s.end - .02 && t <= s.end + EXIT_D + .02) || (t >= s.send - .05 && t <= s.send + .45)); };
+window.render = render; window.DURATION = DURATION * SLOW;
 
 // ---------- safe-zone check ----------
 const ZONES = [
@@ -937,7 +957,7 @@ window.checkSafe = () => {
   return out;
 };
 if (location.search.includes('guides')) ZONES.forEach(z => css($('div', 'guide', stage), { left: z.x0 + 'px', top: z.y0 + 'px', width: (z.x1 - z.x0) + 'px', height: (z.y1 - z.y0) + 'px' }));
-render(+(new URLSearchParams(location.search).get('t') || 0));
+render(+(new URLSearchParams(location.search).get('t') || 0) * SLOW);
 </script>
 </body>
 </html>

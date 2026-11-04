@@ -1,6 +1,6 @@
 // Renders anim.html frame by frame (1080x1920, 30fps) and muxes the original audio.
 // Usage:
-//   node render.mjs                       -> reel_es.mp4
+//   node render.mjs                       -> reel_es.mp4 (silent; add --audio track.m4a to mux)
 //   node render.mjs --stills 1.5,4.2      -> stills/t1.50.png ...  (add --guides to draw the red zones)
 //   node render.mjs --check               -> reports relevant elements touching the red zones
 import { createRequire } from 'node:module';
@@ -17,7 +17,7 @@ const opt = n => { const i = args.indexOf(n); return i >= 0 ? (args[i + 1] ?? tr
 const stills = opt('--stills');
 const check = args.includes('--check');
 const guides = args.includes('--guides');
-const audio = opt('--audio') || path.join(dir, 'audio.m4a');
+const audio = opt('--audio'); // optional: pass --audio file.m4a to mux a track
 const out = args.find(a => a.endsWith('.mp4')) || path.join(dir, 'reel_es.mp4');
 
 const browser = await chromium.launch();
@@ -53,7 +53,7 @@ if (stills) {
   }
   ff.stdin.end();
   await new Promise(r => ff.on('close', r));
-  if (fs.existsSync(audio)) {
+  if (audio && fs.existsSync(audio)) {
     await new Promise(r => spawn('ffmpeg', ['-y', '-v', 'error', '-i', tmp, '-i', audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', out], { stdio: 'inherit' }).on('close', r));
     fs.unlinkSync(tmp);
   } else fs.renameSync(tmp, out);
