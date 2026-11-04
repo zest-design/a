@@ -32,16 +32,16 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 .card { position:absolute; left:96px; top:640px; width:428px; height:761px; border-radius:26px; overflow:hidden; background:#1C1B1A; }
 .dots { position:absolute; inset:0; background-image: radial-gradient(circle, rgba(255,255,255,.16) 1.6px, transparent 2.2px); background-size: 12px 12px; }
 .shine { position:absolute; inset:0; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.10) 50%, transparent 70%); }
-.composer { position:absolute; left:144px; width:792px; border-radius:32px; background:var(--panel); border:1.5px solid var(--line); }
+.composer { position:absolute; left:30px; width:1020px; border-radius:32px; background:var(--panel); border:1.5px solid var(--line); }
 .c-chip { position:absolute; left:26px; top:22px; width:200px; height:140px; border-radius:16px; background:#2C2A28; padding:16px 18px; font-size:21px; line-height:1.25; color:#cfcac4; }
 .c-x { position:absolute; right:-10px; top:-10px; width:30px; height:30px; border-radius:15px; background:#ECE9E4; color:#111; font-size:20px; line-height:30px; text-align:center; font-weight:700; }
 .c-text { position:absolute; left:30px; font-size:38px; color:#fff; white-space:nowrap; }
 .caret { display:inline-block; width:3px; height:40px; background:var(--or); vertical-align:-6px; margin-left:3px; }
 .c-tools { position:absolute; left:28px; right:24px; bottom:18px; height:62px; }
 .sendb { position:absolute; right:0; top:0; width:62px; height:62px; border-radius:16px; background:var(--or); display:flex; align-items:center; justify-content:center; }
-.popup { position:absolute; left:144px; width:792px; height:118px; border-radius:24px; background:#232120; border:1.5px solid var(--line); padding:20px 30px; }
-.popup b { display:block; font-size:34px; font-weight:500; color:#fff; }
-.popup i { display:block; font-style:normal; font-size:23px; color:var(--mute); margin-top:6px; }
+.popup { position:absolute; left:30px; width:1020px; height:118px; border-radius:24px; background:#232120; border:1.5px solid var(--line); padding:20px 30px; }
+.popup b { display:table; font-size:34px; font-weight:500; color:#fff; }
+.popup i { display:table; font-style:normal; font-size:23px; color:var(--mute); margin-top:6px; }
 .kbd { position:absolute; left:0; top:1310px; width:1080px; height:610px; background:#0E0E0E; }
 .key { position:absolute; height:96px; border-radius:14px; background:#3A3A3C; color:#fff; font-size:44px; display:flex; align-items:center; justify-content:center; }
 .key.dark { background:#262628; font-size:30px; }
@@ -49,7 +49,7 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 .sugg { position:absolute; left:0; top:0; width:1080px; height:84px; display:flex; align-items:center; font-size:32px; color:#d8d8d8; }
 .sugg div { flex:1; text-align:center; border-right:2px solid #2a2a2a; }
 .sugg div:last-child { border:0; }
-.bbar { position:absolute; left:144px; top:1424px; width:792px; height:100px; border-radius:50px; background:#1D1C1B; border:1.5px solid var(--line); display:flex; align-items:center; padding:0 22px 0 34px; font-size:34px; color:#77736d; gap:22px; }
+.bbar { position:absolute; left:30px; top:1424px; width:1020px; height:100px; border-radius:50px; background:#1D1C1B; border:1.5px solid var(--line); display:flex; align-items:center; padding:0 22px 0 34px; font-size:34px; color:#77736d; gap:22px; }
 .greet { position:absolute; left:0; width:1080px; text-align:center; }
 
 /* ---------- frames ---------- */
@@ -750,13 +750,13 @@ const mLine = rel($('div', 'm-line', chat, `<span class="sp">${SPARK(46)}</span>
 const mSp = mLine.querySelector('.sp'), mTx = mLine.querySelector('.tx');
 const card = rel($('div', 'card', chat));
 const cardDots = $('div', 'dots', card), cardShine = $('div', 'shine', card);
-const popup = rel($('div', 'popup', chat, '<b></b><i></i>'));
-const comp = rel($('div', 'composer', chat));
-const cChip = $('div', 'c-chip', comp);
-const cText = $('div', 'c-text', comp);
+const popup = $('div', 'popup', chat, '<b></b><i></i>'); rel(popup.children[0]); rel(popup.children[1]);
+const comp = $('div', 'composer', chat);
+const cChip = rel($('div', 'c-chip', comp));
+const cText = rel($('div', 'c-text', comp));
 const cTools = $('div', 'c-tools', comp, `<span style="position:absolute;left:0;top:14px">${ICON.plus}</span><span style="position:absolute;left:60px;top:14px">${ICON.sliders}</span><span style="position:absolute;right:92px;top:13px">${ICON.mic}</span>`);
 const sendB = $('div', 'sendb', cTools, ICON.up('#fff'));
-const bbar = rel($('div', 'bbar', chat, `${ICON.plus}<span>Responder a Claude…</span><span style="margin-left:auto">${ICON.mic}</span><span style="width:62px;height:62px;border-radius:31px;background:#2A2826;display:flex;align-items:center;justify-content:center">${ICON.up('#ccc')}</span>`));
+const bbar = $('div', 'bbar', chat, `${ICON.plus}<span data-rel="1">Responder a Claude…</span><span style="margin-left:auto">${ICON.mic}</span><span style="width:62px;height:62px;border-radius:31px;background:#2A2826;display:flex;align-items:center;justify-content:center">${ICON.up('#ccc')}</span>`);
 // keyboard (Spanish layout)
 const kbd = $('div', 'kbd', chat);
 const sugg = $('div', 'sugg', kbd, '<div class="s0"></div><div></div><div></div>');
