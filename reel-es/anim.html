@@ -243,6 +243,13 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 .sv-s { top:590px; font-size:26px; letter-spacing:.3em; color:#7d7366; }
 .p-post { background:#0F1216; }
 
+.fm-lab { transform-origin:50% 100%; }
+.fm-cap { top:1268px; font-size:38px; font-weight:700; color:#3A2E1F; letter-spacing:-.01em; }
+.fm-bar { position:absolute; left:170px; top:1340px; width:740px; height:80px; display:flex; gap:16px; }
+.fm-seg { flex:1; position:relative; }
+.fm-seg .tr { position:absolute; left:0; top:0; width:100%; height:10px; border-radius:5px; background:rgba(58,46,31,.15); overflow:hidden; }
+.fm-seg .tr i { position:absolute; left:0; top:0; height:100%; width:0; background:#2E8B57; border-radius:5px; }
+.fm-seg span { position:absolute; left:0; top:26px; font-size:26px; font-weight:800; color:#3A2E1F; white-space:nowrap; }
 /* restyled globe: light paper look */
 .p-globe { background: radial-gradient(90% 60% at 50% 50%, #FBF7F0 0%, #F1EADF 60%, #E6DDCF 100%); }
 .p-globe .gl-glow { background: radial-gradient(ellipse at 50% 92%, rgba(80,60,30,.18) 0%, transparent 55%); }
@@ -291,9 +298,10 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 </head>
 <body>
 <div id="stage"></div>
-<script>
-'use strict';
-const W = 1080, H = 1920, DURATION = 23.4; // internal timeline
+<script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+<script type="module">
+import { laptop3D, farm3D, FARM_STEPS } from './three-scenes.js';
+const W = 1080, H = 1920, DURATION = 25.0; // internal timeline
 const SLOW = 1.4;                            // playback is 40% slower than the internal timeline
 const SCR_S = 930 / 1080, SCR_TOP = 390;     // inner stage y 216 lands at ~400
 const stage = document.getElementById('stage');
@@ -502,38 +510,15 @@ function Day() {
 
 function Laptop() {
   const r = poster('laptop');
-  $('div', 'lglow', r);
+  const cv = $('canvas', '', r); cv.width = W; cv.height = H; css(cv, { position: 'absolute', left: 0, top: 0 });
+  const ctx = cv.getContext('2d');
   const cap = rel($('div', 'center lp-cap', r, 'Ritmo<small>Lanzamiento el lunes</small>'));
-  const sc = $('div', 'l3d', r);
-  const grp = $('div', 'lgroup', sc);
-  const base = rel($('div', 'lbase', grp, '<div class="lkeys"></div><div class="lpad"></div><div class="ledge"></div>'));
-  const lid = $('div', 'llid', grp);
-  const scr = $('div', 'lscr', lid);
-  $('div', 'lback', lid);
-  const site = $('div', 'site', scr, `
-    <div class="nv"><b style="color:#B7F34A;font-size:14px">● Ritmo</b><span>Producto</span><span>Precios</span><span>Equipos</span><span>Blog</span><span style="margin-left:auto">Entrar</span></div>
-    <h2>Organiza tu semana<br>en minutos.</h2>
-    <p>Arrastra tus tareas y Ritmo organiza el resto.</p>
-    <div class="bt">Empieza gratis</div>
-    <div class="wk">${[[20, 70, '#C9DAFF'], [110, 120, '#FFD9C2'], [250, 60, '#CFEFD9'], [330, 100, '#C9DAFF'], [450, 60, '#E8D5FF']].map(a => `<i style="left:${a[0]}px;width:${a[1]}px;background:${a[2]}"></i>`).join('')}</div>`);
-  const h2 = site.querySelector('h2'), sp = site.querySelector('p'), bt = site.querySelector('.bt'), wk = site.querySelector('.wk');
   return { root: r, update(lt) {
-    const ek = eo(P(lt, 0, .5));
-    const rz = L(-16, -6, eio(P(lt, 0, 2.6)));
-    const zoom = L(.86, 1, eo(P(lt, 0, 1.8)));
-    css(grp, { transform: `translateY(${(1 - ek) * 120}px) scale(${zoom}) rotateX(58deg) rotateZ(${rz}deg)` });
-    sc.style.opacity = ek;
-    const ok = eback(P(lt, .25, 1.35), 1.1);
-    lid.style.transform = `rotateX(${L(-179.5, -78, ok)}deg)`;
-    const sk = eo(P(lt, .9, 1.3));
-    site.style.opacity = sk;
-    [h2, sp, bt, wk].forEach((e, i) => { const k = eo(P(lt, 1.0 + i * .12, 1.4 + i * .12)); css(e, { opacity: k, transform: `translateY(${(1 - k) * 14}px)` }); });
-    const ck = eo(P(lt, 1.15, 1.5));
+    ctx.drawImage(laptop3D(lt).canvas, 0, 0);
+    const ck = eo(P(lt, 1.3, 1.7));
     css(cap, { opacity: ck, transform: `translateY(${(1 - ck) * 24}px)` });
   } };
 }
-
-// ---- /antes-despues · Barbería Norte (old 2000s site vs new dark site) ----
 function Barber() {
   const r = poster('barber');
   const title = rel($('div', 'center bk-title', r));
@@ -584,96 +569,33 @@ function Barber() {
 function Farm() {
   const r = poster('farm');
   const title = rel($('div', 'center iso-title', r, 'Del campo a tu mesa'));
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('width', W); svg.setAttribute('height', H);
-  css(svg, { position: 'absolute', left: 0, top: 0 }); r.appendChild(svg);
-  const CX = 505, CY = 990;
-  const pr = (X, Y, Z = 0) => [CX + (X - Y) * .866, CY + (X + Y) * .5 - Z];
-  const pts = a => a.map(p => pr(...p).join(',')).join(' ');
-  const mk = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
-  const g = (p = svg) => mk('g', {}, p);
-  const S = 210, T = 40;
-  const slab = g();
-  mk('polygon', { points: pts([[S, -S, 0], [S, S, 0], [S, S, -T], [S, -S, -T]]), fill: '#8A6A4A' }, slab);
-  mk('polygon', { points: pts([[-S, S, 0], [S, S, 0], [S, S, -T], [-S, S, -T]]), fill: '#6E5238' }, slab);
-  mk('polygon', { points: pts([[-S, -S, 0], [S, -S, 0], [S, S, 0], [-S, S, 0]]), fill: '#CFE8B8' }, slab);
-  // crop field rows (back-left quadrant)
-  const field = g(slab);
-  for (let i = 0; i < 6; i++) { const y0 = -190 + i * 22; mk('polygon', { points: pts([[-195, y0, 0], [-80, y0, 0], [-80, y0 + 12, 0], [-195, y0 + 12, 0]]), fill: i % 2 ? '#7DBB4E' : '#9BCF63' }, field); }
-  const box = (x0, y0, x1, y1, h, top, left, right, parent) => {
-    const G = g(parent);
-    mk('polygon', { points: pts([[x1, y0, 0], [x1, y1, 0], [x1, y1, h], [x1, y0, h]]), fill: right }, G);
-    mk('polygon', { points: pts([[x0, y1, 0], [x1, y1, 0], [x1, y1, h], [x0, y1, h]]), fill: left }, G);
-    mk('polygon', { points: pts([[x0, y0, h], [x1, y0, h], [x1, y1, h], [x0, y1, h]]), fill: top }, G);
-    return G;
-  };
-  // road
-  const road = [[-60, -60], [-20, -40], [30, -60], [60, -10], [20, 40], [40, 90], [100, 110]];
-  const rp = road.map(p => pr(p[0], p[1]));
-  const rd = 'M' + rp.map(p => p.join(',')).join(' L');
-  let len = 0; for (let i = 1; i < rp.length; i++) len += Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
-  const road1 = mk('path', { d: rd, stroke: '#4B4038', 'stroke-width': 34, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
-  const road2 = mk('path', { d: rd, stroke: '#F4D35E', 'stroke-width': 3, fill: 'none', 'stroke-dasharray': '10 12' });
-  // barn (red, gable roof)
-  const barn = g(); box(-60, -150, 0, -96, 56, '#C0392B', '#C0392B', '#A93226', barn);
-  mk('polygon', { points: pts([[-60, -150, 56], [0, -150, 56], [0, -123, 84], [-60, -123, 84]]), fill: '#7B241C' }, barn);
-  mk('polygon', { points: pts([[-60, -123, 84], [0, -123, 84], [0, -96, 56], [-60, -96, 56]]), fill: '#922B21' }, barn);
-  mk('polygon', { points: pts([[-40, -96, 0], [-20, -96, 0], [-20, -96, 34], [-40, -96, 34]]), fill: '#fff' }, barn);
-  // silo
-  const silo = g(); box(10, -170, 36, -144, 96, '#D5DBDB', '#BDC3C7', '#A6ACAF', silo);
-  // packing plant (grey, chimney)
-  const plant = g(); box(40, -60, 110, 0, 60, '#B9C2CC', '#8E9AA6', '#76828E', plant);
-  box(86, -56, 102, -40, 110, '#7F8C8D', '#6C7A7B', '#5D6D6E', plant);
-  mk('polygon', { points: pts([[110, -44, 0], [110, -16, 0], [110, -16, 30], [110, -44, 30]]), fill: '#34495E' }, plant);
-  // market (striped awning)
-  const mkt = g(); box(110, 90, 170, 150, 48, '#FFE7C2', '#F5CBA7', '#E59866', mkt);
-  for (let i = 0; i < 5; i++) mk('polygon', { points: pts([[110, 90 + i * 12, 48], [110, 102 + i * 12, 48], [124, 102 + i * 12, 38], [124, 90 + i * 12, 38]]), fill: i % 2 ? '#fff' : '#27AE60' }, mkt);
-  // trees
-  const trees = [[-180, 60], [-150, 150], [-60, 170], [20, 180], [170, 20], [180, -80], [150, -170], [-180, 10], [-120, 120]];
-  const treeEls = trees.map(([x, y]) => {
-    const G = g(); const [sx, sy] = pr(x, y);
-    mk('rect', { x: sx - 3, y: sy - 18, width: 6, height: 18, fill: '#6E4B2A' }, G);
-    mk('polygon', { points: `${sx},${sy - 62} ${sx - 18},${sy - 14} ${sx + 18},${sy - 14}`, fill: '#2E8B57' }, G);
-    return { G, sx, sy };
-  });
-  // truck
-  const truck = g();
-  mk('rect', { x: -26, y: -30, width: 36, height: 30, rx: 4, fill: '#F4D35E' }, truck);
-  mk('rect', { x: 10, y: -22, width: 18, height: 22, rx: 4, fill: '#E67E22' }, truck);
-  mk('circle', { cx: -16, cy: 0, r: 5, fill: '#222' }, truck); mk('circle', { cx: 16, cy: 0, r: 5, fill: '#222' }, truck);
-  const labs = [
-    { x: 230, y: 700, n: 1, t: 'Cosecha', s: 'Día 1' },
-    { x: 690, y: 800, n: 2, t: 'Empaque', s: 'Día 2' },
-    { x: 600, y: 1150, n: 3, t: 'Tu mesa', s: 'Día 3' },
-  ].map(o => { const e = rel($('div', 'iso-lab', r, `<b style="background:#2E8B57">${o.n}</b><div><span>${o.t}</span><small>${o.s}</small></div>`)); css(e, { left: o.x + 'px', top: o.y + 'px' }); return e; });
-  const along = k => {
-    let target = k * len, acc = 0;
-    for (let i = 1; i < rp.length; i++) {
-      const sl = Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
-      if (acc + sl >= target) { const u = (target - acc) / sl; return [L(rp[i - 1][0], rp[i][0], u), L(rp[i - 1][1], rp[i][1], u), rp[i][0] - rp[i - 1][0]]; }
-      acc += sl;
-    }
-    const e = rp[rp.length - 1]; return [e[0], e[1], 1];
-  };
+  const cv = $('canvas', '', r); cv.width = W; cv.height = H; css(cv, { position: 'absolute', left: 0, top: 0 });
+  const ctx = cv.getContext('2d');
+  const labs = FARM_STEPS.map((st, i) => rel($('div', 'iso-lab fm-lab', r, `<b>${i + 1}</b><div><span>${st.t}</span><small>${st.s}</small></div>`)));
+  const cap = rel($('div', 'center fm-cap', r));
+  const bar = $('div', 'fm-bar', r, FARM_STEPS.map((st, i) => `<div class="fm-seg"><div class="tr"><i></i></div><span>${i + 1} · ${st.t}</span></div>`).join(''));
+  rel(bar);
+  const fills = [...bar.querySelectorAll('i')], segs = [...bar.querySelectorAll('span')];
   return { root: r, update(lt) {
     const tk = eo(P(lt, 0, .3));
-    css(title, { opacity: tk, transform: `scale(${L(.9, 1, tk)})` });
-    // slab spins in instead of rising
-    const sk = eback(P(lt, .02, .45), 1.1);
-    slab.setAttribute('transform', `translate(${CX} ${CY}) scale(${Math.max(0, sk)}) translate(${-CX} ${-CY})`);
-    const rk = eio(P(lt, .3, .75));
-    road1.setAttribute('stroke-dasharray', `${len * rk} ${len}`); road1.setAttribute('opacity', P(lt, .28, .35));
-    road2.setAttribute('opacity', P(lt, .7, .85));
-    [[barn, .2], [silo, .26], [plant, .32], [mkt, .38]].forEach(([G, a]) => { const k = eback(P(lt, a, a + .3), 2); const [px, py] = [CX, CY]; G.setAttribute('transform', `translate(0 ${(1 - C(k)) * 30}) `); G.setAttribute('opacity', C(k * 3)); });
-    treeEls.forEach((tr, i) => { const k = eback(P(lt, .4 + i * .025, .6 + i * .025), 2.5); tr.G.setAttribute('transform', `translate(${tr.sx} ${tr.sy}) scale(1 ${Math.max(0, k)}) translate(${-tr.sx} ${-tr.sy})`); });
-    labs.forEach((e, i) => { const k = eo(P(lt, .6 + i * .17, .85 + i * .17)); css(e, { opacity: k, transform: `translateY(${(1 - k) * 30}px)` }); });
-    const vk = eio(P(lt, .65, 1.45));
-    const [vx, vy, dx] = along(vk);
-    truck.setAttribute('transform', `translate(${vx} ${vy - 4}) scale(${dx < 0 ? -1 : 1} 1)`); truck.setAttribute('opacity', P(lt, .62, .7));
+    css(title, { opacity: tk, transform: `translateY(${(1 - tk) * 24}px)` });
+    const { canvas, meta } = farm3D(lt);
+    ctx.clearRect(0, 0, W, H); ctx.drawImage(canvas, 0, 0);
+    let cur = -1, best = 0;
+    FARM_STEPS.forEach((st, i) => {
+      const a = meta.act ? meta.act[i] : 0; if (a > best) { best = a; cur = i; }
+      const k = eback(P(lt, st.a, st.a + .25), 2), seen = lt >= st.a;
+      const [x, y] = meta.pts ? meta.pts[i] : [0, 0];
+      css(labs[i], { left: x + 'px', top: y + 'px', opacity: seen ? .5 + .5 * a : 0, transform: `translate(-50%,-100%) scale(${seen ? Math.max(0, k) * (1 + .06 * a) : 0})` });
+      labs[i].querySelector('b').style.background = a > .5 ? '#2E8B57' : '#9AA79C';
+      fills[i].style.width = (P(lt, st.a, st.b) * 100) + '%';
+      segs[i].style.opacity = lt >= st.a ? 1 : .45;
+    });
+    const ck = P(lt, .4, .55);
+    bar.style.opacity = ck;
+    if (cur >= 0) { cap.textContent = FARM_STEPS[cur].cap; css(cap, { opacity: best, transform: `translateY(${(1 - best) * 16}px)` }); } else cap.style.opacity = 0;
   } };
 }
-
-// ---- /notificaciones · salon bookings on a sunset lock screen ----
 function Book() {
   const r = poster('book');
   $('div', 'center', r, '<svg width="30" height="38" viewBox="0 0 30 38"><rect x="2" y="16" width="26" height="20" rx="5" fill="#fff"/><path d="M8 16v-5a7 7 0 0 1 14 0v5" stroke="#fff" stroke-width="3.5" fill="none"/></svg>').style.top = '228px';
@@ -879,10 +801,10 @@ const SC = [
   { kind: 'globe',  cmd: '/globo-rutas',     desc: 'Globo 3D, rutas en arco entre ciudades',  chip: 'Pedidos enviados a 38 países',     t0: 0,    enter: 'morph',  exit: 'fadezoom' },
   { kind: 'barber', cmd: '/antes-despues',   desc: 'Deslizador: de la web vieja a la nueva',  chip: 'Misma barbería. Nueva web.', t0: 3.0,  enter: 'reveal', exit: 'minimize' },
   { kind: 'farm',   cmd: '/flujo-iso',       desc: 'Diagrama isométrico de cómo funciona',    chip: 'Del campo a tu mesa',        t0: 6.1,  enter: 'rise',   exit: 'slideleft' },
-  { kind: 'book',   cmd: '/notificaciones',  desc: 'Pantalla bloqueada, reservas llegando',   chip: 'Nueva reserva: Corte + barba · 18:30',            t0: 8.7,  enter: 'drop',   exit: 'unlock' },
-  { kind: 'day',    cmd: '/contador-dias',   desc: 'Contador de días, el calendario se llena', chip: 'Publicando cada día por 30 días', t0: 11.6, enter: 'wipe',   exit: 'iris' },
-  { kind: 'laptop', cmd: '/portatil',        desc: 'Un portátil se abre y muestra tu web',    chip: 'Ritmo, lanzamiento el lunes',      t0: 14.2, enter: 'tilt',   exit: 'fade' },
-  { kind: 'grid',   cmd: '/animar',          desc: 'Cada estilo, un prompt',                  chip: null,                               t0: 17.1, enter: 'morph',  exit: null, greet: true },
+  { kind: 'book',   cmd: '/notificaciones',  desc: 'Pantalla bloqueada, reservas llegando',   chip: 'Nueva reserva: Corte + barba · 18:30',            t0: 9.9,  enter: 'drop',   exit: 'unlock' },
+  { kind: 'day',    cmd: '/contador-dias',   desc: 'Contador de días, el calendario se llena', chip: 'Publicando cada día por 30 días', t0: 12.8, enter: 'wipe',   exit: 'iris' },
+  { kind: 'laptop', cmd: '/portatil',        desc: 'Un portátil se abre y muestra tu web',    chip: 'Ritmo, lanzamiento el lunes',      t0: 15.4, enter: 'tilt',   exit: 'fade' },
+  { kind: 'grid',   cmd: '/animar',          desc: 'Cada estilo, un prompt',                  chip: null,                               t0: 18.7, enter: 'morph',  exit: null, greet: true },
 ];
 const EXIT_D = .42, FULL_D = .45;
 SC.forEach((s, i) => {
@@ -893,7 +815,7 @@ SC.forEach((s, i) => {
   s.send = s.greet ? s.t0 + .65 : s.t0 + (first ? .8 : .78);
   s.card = s.send + .25;
   s.content = s.card + (s.greet ? .1 : .22);
-  s.full = s.greet ? 19.0 : s.content + (first ? .5 : .36);
+  s.full = s.greet ? s.t0 + 1.9 : s.content + (first ? .5 : .36);
   s.end = i < SC.length - 1 ? SC[i + 1].t0 : DURATION + 1;
   s.cardP = MAKERS[s.kind](); card.appendChild(s.cardP.root);
   s.fullF = $('div', 'frame', inner); s.fullP = MAKERS[s.kind](); s.fullF.appendChild(s.fullP.root);
@@ -1053,6 +975,7 @@ window.checkSafe = () => {
 };
 if (location.search.includes('guides')) ZONES.forEach(z => css($('div', 'guide', stage), { left: z.x0 + 'px', top: z.y0 + 'px', width: (z.x1 - z.x0) + 'px', height: (z.y1 - z.y0) + 'px' }));
 render(+(new URLSearchParams(location.search).get('t') || 0) * SLOW);
+window.READY = true;
 </script>
 </body>
 </html>

@@ -20,10 +20,21 @@ const guides = args.includes('--guides');
 const audio = opt('--audio'); // optional: pass --audio file.m4a to mux a track
 const out = args.find(a => a.endsWith('.mp4')) || path.join(dir, 'reel_es.mp4');
 
-const browser = await chromium.launch();
+// ES modules (three.js) do not load from file://, so serve this folder locally
+import http from 'node:http';
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.woff2': 'font/woff2', '.png': 'image/png', '.css': 'text/css' };
+const server = http.createServer((req, res) => {
+  const f = path.join(dir, decodeURIComponent(req.url.split('?')[0]));
+  if (!f.startsWith(dir) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
+  res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res);
+}).listen(0, '127.0.0.1');
+await new Promise(r => server.once('listening', r));
+const base = `http://127.0.0.1:${server.address().port}/`;
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('pageerror', e => console.error('PAGE ERROR', e.message));
-await page.goto('file://' + path.join(dir, 'anim.html') + (guides ? '?guides' : ''));
+await page.goto(base + 'anim.html' + (guides ? '?guides' : ''));
+await page.waitForFunction(() => window.render && window.READY === true, null, { timeout: 120000 });
 await page.evaluate(() => document.fonts.ready);
 const duration = await page.evaluate(() => window.DURATION);
 const grab = async t => { await page.evaluate(t => window.render(t), t); return page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: W, height: H } }); };
@@ -60,3 +71,4 @@ if (stills) {
   console.log('wrote', out);
 }
 await browser.close();
+server.close();
