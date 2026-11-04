@@ -196,116 +196,52 @@ body { font-family: Inter, sans-serif; color: var(--ink); -webkit-font-smoothing
 .tw-rep .t b { display:block; font-size:23px; }
 .stamp { position:absolute; left:300px; top:600px; width:480px; padding:16px 0; border:6px solid #D2342A; border-radius:16px; color:#D2342A; font-size:44px; font-weight:800; letter-spacing:.06em; text-align:center; background:rgba(255,255,255,.75); }
 
-/* 2 · product site */
-.p-site { background: linear-gradient(180deg,#EEEAE4,#E1DBD2); }
-.st-title { top:262px; font-size:84px; font-weight:800; letter-spacing:-.045em; line-height:.98; color:#141210; }
-.st-title em { font-style:normal; color:var(--or); }
-.sbr { position:absolute; left:185px; top:500px; width:690px; height:900px; border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 30px 70px rgba(40,30,20,.22), 0 4px 14px rgba(40,30,20,.12); }
-.sbr .bchrome { position:absolute; left:0; top:0; width:100%; height:58px; background:#F3F2F0; border-bottom:1px solid #e4e1dc; z-index:3; }
-.sbr .bchrome .d { position:absolute; top:22px; width:14px; height:14px; border-radius:7px; background:#cfcac3; }
-.sbr .url { position:absolute; left:175px; top:12px; width:340px; height:34px; border-radius:17px; background:#fff; font-size:19px; color:#444; text-align:center; line-height:34px; }
-.sview { position:absolute; left:0; top:58px; width:690px; height:842px; overflow:hidden; }
-.spage { position:absolute; left:0; top:0; width:690px; }
-.snav { height:66px; background:#0F0F10; color:#ddd; display:flex; align-items:center; padding:0 28px; gap:26px; font-size:18px; }
-.snav b { color:#fff; font-size:22px; letter-spacing:.18em; margin-right:auto; }
-.shero { position:relative; height:640px; background: radial-gradient(70% 60% at 50% 40%, #2A2A2E 0%, #121214 70%); color:#fff; text-align:center; overflow:hidden; }
-.shero h3 { position:absolute; left:0; top:400px; width:100%; margin:0; font-size:66px; font-weight:800; letter-spacing:-.04em; }
-.shero p { position:absolute; left:0; top:478px; width:100%; margin:0; font-size:24px; color:#aaa; }
-.sbuy { position:absolute; left:215px; top:530px; width:260px; height:58px; border-radius:29px; background:#fff; color:#111; font-size:22px; font-weight:800; line-height:58px; }
-.sw { position:absolute; top:612px; width:20px; height:20px; border-radius:10px; }
-.sfeat { height:330px; background:#F6F4F1; display:flex; gap:16px; padding:34px 26px; }
-.sfeat div { flex:1; background:#fff; border-radius:20px; padding:24px 18px; color:#111; }
-.sfeat b { display:block; font-size:44px; font-weight:800; letter-spacing:-.03em; color:var(--or); }
-.sfeat span { font-size:19px; color:#555; line-height:1.3; }
-.srev { height:300px; background:#fff; padding:36px 32px; color:#111; font-size:24px; }
+/* before/after · barber */
+.p-barber { background: linear-gradient(180deg,#E8ECE6,#D5DDD3); }
+.p-barber .bk-title em { color:#B08A3E; }
+.bb-old { position:absolute; inset:0; background:#C0C0C0; font-family:'Liberation Serif',serif; color:#000; padding:24px 28px; font-size:22px; line-height:1.3; }
+.bb-old a { color:#00e; text-decoration:underline; }
+.bb-mq { background:#000080; color:#FFFF00; font-family:'Liberation Sans'; font-weight:700; font-size:30px; text-align:center; padding:12px; border:4px outset #8080ff; }
+.bb-old table { border-collapse:collapse; width:420px; margin:6px 0 10px; background:#fff; }
+.bb-old th, .bb-old td { border:2px solid #555; padding:4px 10px; text-align:left; }
+.bb-old th { background:#800000; color:#fff; }
+.bb-uc { display:inline-block; background:#FFD700; border:3px dashed #000; padding:6px 12px; font-family:'Liberation Sans'; font-weight:700; font-size:18px; }
+.bb-new { position:absolute; inset:0; background:#141414; color:#F3EBDD; }
+.bb-nav { position:absolute; left:0; top:44px; width:100%; height:64px; display:flex; align-items:center; gap:26px; padding:0 26px; font-size:19px; color:#bdb3a3; }
+.bb-nav b { color:#F3EBDD; letter-spacing:.3em; font-size:22px; margin-right:auto; }
+.bb-pole { position:absolute; left:470px; top:140px; width:170px; height:290px; border-radius:85px 85px 20px 20px; background:#1F1F1F; overflow:hidden; border:2px solid #2c2c2c; }
+.bb-pole i { position:absolute; left:55px; top:30px; width:60px; height:230px; border-radius:30px; background: repeating-linear-gradient(135deg,#C9A35B 0 22px,#F3EBDD 22px 44px,#7B2D26 44px 66px,#F3EBDD 66px 88px); }
+.bb-h1 { position:absolute; left:34px; top:150px; width:420px; font-size:60px; font-weight:800; letter-spacing:-.04em; line-height:.98; }
+.bb-h1 em { font-style:normal; color:#C9A35B; }
+.bb-sub { position:absolute; left:34px; top:300px; font-size:21px; color:#bdb3a3; }
+.bb-cta { position:absolute; left:34px; top:350px; height:54px; padding:0 8px 0 24px; border-radius:27px; background:#C9A35B; color:#141414; font-size:19px; font-weight:800; display:flex; align-items:center; gap:12px; }
+.bb-cta b { width:38px; height:38px; border-radius:19px; background:#141414; color:#C9A35B; display:flex; align-items:center; justify-content:center; }
+.bb-svc { position:absolute; left:34px; width:612px; height:62px; border-bottom:1px solid #2e2e2e; display:flex; align-items:center; justify-content:space-between; font-size:22px; font-weight:700; }
+.bb-svc small { display:block; font-size:15px; color:#8d8577; font-weight:500; }
+.bb-svc span { color:#C9A35B; }
+.bb-rate { position:absolute; left:34px; top:690px; font-size:18px; color:#C9A35B; font-weight:700; }
 
-/* 3 · tracking app */
-.p-app { background: linear-gradient(160deg,#FFB36B 0%,#FF6F61 55%,#E8456B 100%); }
-.ap-title { top:286px; font-size:68px; font-weight:800; letter-spacing:-.045em; color:#fff; }
-.phone { position:absolute; left:300px; top:420px; width:480px; height:1000px; border-radius:72px; background:#0d0d0d; padding:16px; box-shadow:0 40px 80px rgba(90,10,30,.35); }
-.pscr { position:relative; width:100%; height:100%; border-radius:58px; background:#fff; overflow:hidden; }
-.pmap { position:absolute; left:0; top:0; width:448px; height:540px; background:#EDF0EA; }
-.street { position:absolute; background:#fff; }
-.psheet { position:absolute; left:0; top:470px; width:448px; height:500px; border-radius:36px 36px 0 0; background:#fff; box-shadow:0 -10px 30px rgba(0,0,0,.08); padding:26px 30px; color:#151515; }
-.psheet .hd { width:60px; height:6px; border-radius:3px; background:#ddd; margin:0 auto 18px; }
-.eta-l { font-size:20px; color:#888; font-weight:600; }
-.eta { font-size:58px; font-weight:800; letter-spacing:-.03em; line-height:1.05; }
-.step { position:relative; height:52px; padding-left:46px; font-size:22px; font-weight:700; line-height:30px; color:#bbb; }
-.step i { position:absolute; left:0; top:2px; width:26px; height:26px; border-radius:13px; border:3px solid #ddd; background:#fff; }
-.step s { position:absolute; left:12px; top:30px; width:3px; height:22px; background:#e5e5e5; }
-.rider { position:absolute; left:30px; right:30px; bottom:26px; height:72px; border-radius:20px; background:#F6F6F6; display:flex; align-items:center; gap:14px; padding:0 14px; font-size:20px; font-weight:700; }
-.rider .av { width:48px; height:48px; border-radius:24px; background:#FF6F61; color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; }
+/* iso · farm */
+.p-farm { background: linear-gradient(180deg,#FDF6E3,#F1E3C3); }
+.p-farm .iso-title { color:#3A2E1F; }
 
-/* 4 · 3D card */
-.p-card { background: radial-gradient(70% 50% at 50% 48%, #2C1C63 0%, #120C2A 55%, #08060F 100%); color:#fff; }
-.cd-lab { top:290px; font-size:28px; letter-spacing:.42em; color:#A99BFF; }
-.cd-big { top:330px; font-size:130px; font-weight:800; letter-spacing:-.05em; line-height:1.05; }
-.c3 { position:absolute; left:540px; top:880px; width:0; height:0; perspective:1800px; }
-.ncard { position:absolute; left:-320px; top:-200px; width:640px; height:400px; border-radius:34px; background: linear-gradient(135deg,#6D5BFF 0%,#3E8BFF 52%,#21D4C8 100%); overflow:hidden; box-shadow:0 40px 90px rgba(60,40,200,.45); }
-.ncard .gl { position:absolute; inset:-40%; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%); }
-.ncard .chip { position:absolute; left:52px; top:150px; width:86px; height:64px; border-radius:12px; background: linear-gradient(135deg,#F7DD8B,#C9A24A); }
-.ncard .lg { position:absolute; left:52px; top:44px; font-size:38px; font-weight:800; letter-spacing:.2em; }
-.ncard .num { position:absolute; left:52px; top:250px; font-size:34px; letter-spacing:.12em; }
-.ncard .nm { position:absolute; left:52px; top:320px; font-size:22px; letter-spacing:.18em; opacity:.9; }
-.ncard .ex { position:absolute; right:52px; top:320px; font-size:22px; letter-spacing:.1em; opacity:.9; }
-.cpill { position:absolute; height:70px; border-radius:35px; background:rgba(255,255,255,.1); border:1.5px solid rgba(255,255,255,.22); padding:0 30px; font-size:28px; font-weight:700; line-height:68px; white-space:nowrap; }
-.cpill b { color:#7CF0DA; }
+/* notifications · bookings, sunset wallpaper */
+.p-book { background: linear-gradient(180deg,#2B1055 0%,#7A2E7A 40%,#D3436E 75%,#F5A65B 100%); }
+.p-book .nt-card { background:rgba(255,255,255,.18); }
 
-/* 5 · flip countdown */
-.p-flip { background: linear-gradient(180deg,#E5452F,#C9311F); color:#fff; }
-.fl-lab { top:300px; font-size:30px; letter-spacing:.4em; color:rgba(255,255,255,.85); }
-.fgrp { position:absolute; top:380px; display:flex; gap:8px; }
-.ftile { position:relative; width:76px; height:130px; perspective:500px; }
-.fh { position:absolute; left:0; width:76px; height:65px; overflow:hidden; background:#1B1B1D; color:#fff; font-size:104px; text-align:center; }
-.fh span { position:absolute; left:0; width:76px; height:130px; line-height:132px; }
-.fh.t { top:0; border-radius:12px 12px 0 0; transform-origin:50% 100%; }
-.fh.b { top:65px; border-radius:0 0 12px 12px; transform-origin:50% 0; background:#232325; }
-.fh.b span { top:-65px; }
-.fsep { position:absolute; top:400px; font-size:80px; color:rgba(255,255,255,.7); }
-.funit { position:absolute; top:530px; width:160px; text-align:center; font-size:22px; letter-spacing:.25em; font-weight:700; color:rgba(255,255,255,.85); }
-.fcard { position:absolute; left:190px; top:690px; width:680px; border-radius:32px; background:#fff; color:#1b1b1b; padding:40px 42px; box-shadow:0 30px 60px rgba(80,10,0,.3); }
-.fcard h4 { margin:0; font-size:56px; font-weight:800; letter-spacing:-.04em; }
-.fcard p { margin:10px 0 28px; font-size:26px; color:#777; }
-.fbtn { display:inline-flex; align-items:center; gap:14px; height:66px; padding:0 30px; border-radius:33px; background:#1b1b1b; color:#fff; font-size:26px; font-weight:800; }
-.fwait { position:absolute; left:190px; top:1130px; width:680px; display:flex; align-items:center; gap:18px; font-size:30px; font-weight:700; }
-.fwait .av { width:62px; height:62px; border-radius:31px; border:4px solid #D63A27; margin-right:-34px; }
-
-/* 6 · kinetic type */
-.p-kin { background:#111; }
-.kbg { position:absolute; inset:0; }
-.kword { position:absolute; left:0; top:700px; width:1080px; text-align:center; font-size:220px; line-height:1; }
-.klab { top:300px; font-size:28px; letter-spacing:.4em; color:#999; }
-.kstack { position:absolute; left:0; top:520px; width:1080px; text-align:center; font-size:178px; line-height:1.02; }
-.kbar { position:absolute; left:290px; top:1290px; height:16px; border-radius:8px; background:#B7F34A; }
-
-/* 7 · receipt */
-.p-rec { background: linear-gradient(180deg,#E7EFEA,#D3E0D8); }
-.rc-lab { top:290px; font-size:28px; letter-spacing:.3em; color:#5B7466; }
-.slot { position:absolute; left:250px; top:400px; width:580px; height:54px; border-radius:27px; background:#22302A; }
-.paperw { position:absolute; left:290px; top:427px; width:500px; height:900px; overflow:hidden; }
-.paper { position:absolute; left:0; top:0; width:500px; height:900px; background:#FFFEFA; padding:44px 40px; color:#222; font-size:25px; box-shadow:0 20px 40px rgba(0,0,0,.12); clip-path: polygon(0 0,100% 0,100% 97%,95% 100%,90% 97%,85% 100%,80% 97%,75% 100%,70% 97%,65% 100%,60% 97%,55% 100%,50% 97%,45% 100%,40% 97%,35% 100%,30% 97%,25% 100%,20% 97%,15% 100%,10% 97%,5% 100%,0 97%); }
-.paper .r { display:flex; justify-content:space-between; margin:10px 0; }
-.paper hr { border:0; border-top:3px dashed #cfcac0; margin:22px 0; }
-.bars { height:90px; margin-top:26px; background: repeating-linear-gradient(90deg,#222 0 4px,transparent 4px 7px,#222 7px 9px,transparent 9px 14px,#222 14px 20px,transparent 20px 23px); }
-
-/* 8 · bar race */
-.p-rank { background: linear-gradient(180deg,#0D1117,#121A26); color:#fff; }
-.rk-title { top:280px; font-size:70px; font-weight:800; letter-spacing:-.04em; }
-.rk-sub { top:372px; font-size:28px; color:#8A97AA; }
-.rk-row { position:absolute; left:150px; width:720px; height:104px; }
-.rk-row .bar { position:absolute; left:0; top:0; height:104px; border-radius:18px; }
-.rk-row .nm { position:absolute; left:26px; top:0; line-height:104px; font-size:32px; font-weight:800; color:#0D1117; white-space:nowrap; }
-.rk-row .vl { position:absolute; top:0; line-height:104px; font-size:32px; font-weight:800; white-space:nowrap; }
-.rk-yr { position:absolute; right:210px; top:1150px; font-size:210px; color:rgba(255,255,255,.1); line-height:1; }
-
-/* 9 · reviews */
-.p-rev { background:#FFF6EA; color:#1d1a16; }
-.rv-big { top:280px; font-size:210px; font-weight:800; letter-spacing:-.05em; line-height:1; }
-.rv-stars { position:absolute; left:0; top:500px; width:1080px; display:flex; justify-content:center; gap:14px; }
-.rv-n { top:600px; font-size:34px; color:#8a7f70; font-weight:600; }
-.rv-card { position:absolute; left:180px; width:690px; border-radius:28px; background:#fff; padding:30px 34px; box-shadow:0 20px 50px rgba(80,50,10,.12); }
-.rv-card q { display:block; font-size:32px; font-weight:700; line-height:1.25; quotes:'«' '»'; margin:10px 0 12px; }
-.rv-card span { font-size:23px; color:#8a7f70; }
+/* grid extras */
+.p-pay { background:#EAF4EF; color:#14261E; }
+.py-t { top:280px; font-size:62px; font-weight:800; letter-spacing:-.04em; }
+.py-s { top:366px; font-size:28px; color:#5E7A6C; }
+.py-col { position:absolute; top:0; width:120px; height:1360px; }
+.py-col .bar { position:absolute; left:10px; bottom:100px; width:100px; border-radius:16px 16px 6px 6px; }
+.py-col .vl { position:absolute; left:0; width:120px; text-align:center; font-size:30px; font-weight:800; }
+.py-col .lb { position:absolute; left:-20px; bottom:46px; width:160px; text-align:center; font-size:24px; font-weight:700; color:#3d5448; }
+.py-yr { position:absolute; left:0; width:1080px; text-align:center; top:430px; font-size:150px; color:rgba(20,38,30,.08); }
+.p-save { background:#F4F1EA; color:#1E1A16; }
+.sv-t { top:262px; font-size:150px; line-height:1; }
+.sv-s { top:590px; font-size:26px; letter-spacing:.3em; color:#7d7366; }
+.p-post { background:#0F1216; }
 
 /* restyled globe: light paper look */
 .p-globe { background: radial-gradient(90% 60% at 50% 50%, #FBF7F0 0%, #F1EADF 60%, #E6DDCF 100%); }
@@ -597,267 +533,252 @@ function Laptop() {
   } };
 }
 
-// ---- 2 · product landing page (Sonora X) ----
-function Site() {
-  const r = poster('site');
-  const title = rel($('div', 'center st-title', r));
-  title.innerHTML = ['Una', 'web', 'que'].map(w => `<span class="word">${w} </span>`).join('') + '<br>' + ['vende', 'sola<em>.</em>'].map(w => `<span class="word">${w} </span>`).join('');
+// ---- /antes-despues · Barbería Norte (old 2000s site vs new dark site) ----
+function Barber() {
+  const r = poster('barber');
+  const title = rel($('div', 'center bk-title', r));
+  const words = ['Misma', 'barbería<em>.</em>', 'Nueva', 'web<em>.</em>'];
+  title.innerHTML = words.map((w, i) => `<span class="word">${w}${i === 1 ? '' : ' '}</span>${i === 1 ? '<br>' : ''}`).join('');
   const ws = [...title.querySelectorAll('.word')];
-  const br = rel($('div', 'sbr', r));
+  const br = rel($('div', 'browser', r));
   const ch = $('div', 'bchrome', br);
   [24, 46, 68].forEach(x => css($('div', 'd', ch), { left: x + 'px' }));
-  $('div', 'url', ch, 'sonora.audio');
-  const view = $('div', 'sview', br);
-  const page = $('div', 'spage', view);
-  $('div', 'snav', page, '<b>SONORA</b><span>Audio</span><span>Soporte</span><span>Tienda</span>');
-  const hero = $('div', 'shero', page);
-  const NS = 'http://www.w3.org/2000/svg';
-  hero.insertAdjacentHTML('beforeend', `<svg class="hp" width="360" height="330" viewBox="0 0 360 330" style="position:absolute;left:165px;top:40px">
-    <defs><linearGradient id="hpg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-    <path class="band" d="M70 200 C70 60 290 60 290 200" fill="none" stroke-width="30" stroke-linecap="round"/>
-    <rect class="cup" x="34" y="170" width="86" height="140" rx="40"/><rect class="cup" x="240" y="170" width="86" height="140" rx="40"/>
-    <rect x="34" y="170" width="86" height="70" rx="36" fill="url(#hpg)"/><rect x="240" y="170" width="86" height="70" rx="36" fill="url(#hpg)"/>
-    <rect x="58" y="196" width="38" height="88" rx="19" fill="#000" opacity=".25"/><rect x="264" y="196" width="38" height="88" rx="19" fill="#000" opacity=".25"/></svg>`);
-  $('h3', '', hero, 'Sonora X');
-  $('p', '', hero, 'Silencio total. Sonido puro.');
-  $('div', 'sbuy', hero, 'Comprar · $249');
-  const COLS = ['#2B2B2F', '#D9C6A5', '#4A6CF7', '#E5E2DC'];
-  const sws = COLS.map((c, i) => { const e = $('div', 'sw', hero); css(e, { left: (291 + i * 30) + 'px', background: c, boxShadow: '0 0 0 2px #555' }); return e; });
-  $('div', 'sfeat', page, '<div><b>40 h</b><span>de batería con una carga</span></div><div><b>−35 dB</b><span>cancelación activa de ruido</span></div><div><b>10 min</b><span>de carga = 5 h de música</span></div>');
-  $('div', 'srev', page, '<div style="color:#E5A100;font-size:30px;letter-spacing:4px">★★★★★</div><div style="font-size:34px;font-weight:800;margin:10px 0 6px;letter-spacing:-.02em">«El mejor sonido que he tenido.»</div><div style="color:#888">4,8 de media · más de 12.000 clientes</div>');
-  const hp = hero.querySelector('.hp'), band = hp.querySelector('.band'), cups = [...hp.querySelectorAll('.cup')];
-  const mix = (a, b, k) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(L(v, B[i], k))).join(',')})`; };
+  $('div', 'url', ch, 'barberianorte.com');
+  const view = $('div', 'bview', br);
+  $('div', 'bb-old', view, `
+    <div class="bb-mq">✂ ¡¡Bienvenidos a BARBERÍA NORTE!! ✂</div>
+    <div style="text-align:center;margin:8px 0 14px"><a>Inicio</a> · <a>Precios</a> · <a>Galería</a> · <a>Libro de visitas</a></div>
+    <table><tr><th>Servicio</th><th>Precio</th></tr><tr><td>Corte de pelo</td><td>$10</td></tr><tr><td>Afeitado</td><td>$8</td></tr><tr><td>Corte niño</td><td>$7</td></tr></table>
+    <p>Cortes de calidad desde 1995. ¡Sin cita previa!<br><b>Llámenos:</b> 555-0199</p>
+    <p><a>Ver fotos de nuestros cortes</a> (requiere Flash)</p>
+    <div class="bb-uc">🚧 PÁGINA EN CONSTRUCCIÓN 🚧</div>
+    <div style="margin-top:12px;font-size:16px">Visitas: <span style="background:#000;color:#0f0;padding:2px 8px;font-family:'Liberation Mono'">002391</span> · Mejor visto en 800×600</div>`);
+  const nw = $('div', 'bb-new', view, `
+    <div class="bb-nav"><b>NORTE</b><span>Servicios</span><span>Equipo</span><span>Reservar</span></div>
+    <div class="bb-pole"><i></i></div>
+    <div class="bb-h1">Cortes con <em>oficio</em>.</div>
+    <div class="bb-sub">Clásico y moderno, desde 1995.</div>
+    <div class="bb-cta">Reservar cita <b>→</b></div>
+    ${[['Corte', '40 min', '$18'], ['Barba', '25 min', '$12'], ['Corte + barba', '60 min', '$26']].map((p, i) =>
+      `<div class="bb-svc" style="top:${452 + i * 74}px"><div>${p[0]}<small>${p[1]}</small></div><span>${p[2]}</span></div>`).join('')}
+    <div class="bb-rate">★ 4,9 · 860 reseñas</div>`);
+  const pole = nw.querySelector('.bb-pole i');
+  const pa = $('div', 'pill', view, 'DESPUÉS'); css(pa, { left: '14px', background: '#C9A35B', color: '#111', zIndex: 3 });
+  const pd = $('div', 'pill', view, 'ANTES'); css(pd, { right: '14px', background: '#fff', color: '#111', zIndex: 3 });
+  const sl = $('div', 'slider', view); $('div', 'knob', sl, '‹›');
   return { root: r, update(lt) {
-    ws.forEach((w, i) => { const k = eo(P(lt, i * .07, .4 + i * .07)); css(w, { opacity: k, transform: `translateY(${(1 - k) * 50}px)`, filter: `blur(${(1 - k) * 8}px)` }); });
-    const bk = eo(P(lt, .08, .55));
-    css(br, { opacity: bk, transform: `translateY(${(1 - bk) * 140}px) rotate(${(1 - bk) * 3}deg)` });
-    const hk = eback(P(lt, .25, .8));
-    css(hp, { transform: `translateY(${(1 - hk) * 60 + Math.sin(lt * 3) * 6}px) rotate(${(1 - hk) * -12}deg) scale(${L(.8, 1, C(hk))})`, opacity: C(hk * 2) });
-    // colour swatches cycle: dark → sand → blue
-    const c1 = eio(P(lt, .55, .75)), c2 = eio(P(lt, 1.35, 1.55));
-    const col = c2 > 0 ? mix(COLS[1], COLS[2], c2) : mix(COLS[0], COLS[1], c1);
-    band.setAttribute('stroke', col); cups.forEach(c => c.setAttribute('fill', col));
-    const sel = c2 > .5 ? 2 : c1 > .5 ? 1 : 0;
-    sws.forEach((s, i) => s.style.boxShadow = i === sel ? '0 0 0 3px #fff' : '0 0 0 2px #555');
-    // page scroll to the features
-    const sk = eio(P(lt, .85, 1.3));
-    page.style.transform = `translateY(${-sk * 430}px)`;
+    ws.forEach((w, i) => { const k = eo(P(lt, i * .08, .45 + i * .08)); css(w, { opacity: k, transform: `translateX(${(1 - k) * (i % 2 ? 80 : -80)}px)`, filter: `blur(${(1 - k) * 6}px)` }); });
+    const bk = eback(P(lt, .1, .6), 1.2);
+    css(br, { opacity: C(bk * 2), transform: `scale(${L(.85, 1, C(bk))}) rotate(${(1 - C(bk)) * -3}deg)` });
+    // slider sweeps left -> right this time (new site enters from the left)
+    let pos = 0;
+    if (lt > .4) pos = L(0, .94, eio(P(lt, .4, 1.15)));
+    if (lt > 1.25) pos = L(.94, .5, eio(P(lt, 1.25, 1.75)));
+    css(nw, { clipPath: `inset(0 ${100 - pos * 100}% 0 0)` });
+    css(sl, { left: (pos * 680 - 2) + 'px', opacity: P(lt, .35, .5) });
+    pole.style.backgroundPositionY = (lt * 120) + 'px';
   } };
 }
 
-// ---- 3 · delivery tracking app (Mordisco) ----
-function App() {
-  const r = poster('app');
-  const title = rel($('div', 'center ap-title', r, 'Tu pedido, en tiempo real'));
-  const ph = rel($('div', 'phone', r));
-  const scr = $('div', 'pscr', ph);
-  const map = $('div', 'pmap', scr);
-  [[0, 120, 448, 26, -8], [0, 330, 448, 30, 6], [110, 0, 24, 540, 4], [300, 0, 28, 540, -5], [0, 230, 448, 14, 0]].forEach(([x, y, w, h, a]) => css($('div', 'street', map), { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', transform: `rotate(${a}deg)` }));
-  css($('div', '', map), { position: 'absolute', left: '170px', top: '150px', width: '110px', height: '70px', borderRadius: '30px', background: '#CDE8C4' });
-  css($('div', '', map), { position: 'absolute', left: '330px', top: '380px', width: '90px', height: '80px', borderRadius: '30px', background: '#CDE8C4' });
+// ---- /flujo-iso · Del campo a tu mesa ----
+function Farm() {
+  const r = poster('farm');
+  const title = rel($('div', 'center iso-title', r, 'Del campo a tu mesa'));
   const NS = 'http://www.w3.org/2000/svg';
-  map.insertAdjacentHTML('beforeend', `<svg width="448" height="540" style="position:absolute;left:0;top:0"><path class="rt" d="M90 90 L122 132 L122 330 L312 344 L312 440" fill="none" stroke="#FF6F61" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
-  const route = map.querySelector('.rt'); const RL = route.getTotalLength ? 0 : 0;
-  const pinA = $('div', '', map, '<svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="#FF6F61"/><path d="M20 18v20M26 18v8a6 6 0 0 1-12 0v-8M34 18c6 4 6 12 0 14v6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'); css(pinA, { position: 'absolute', left: '62px', top: '62px' });
-  const pinB = $('div', '', map, '<svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="#151515"/><path d="M16 30l12-11 12 11v10H16z" fill="#fff"/></svg>'); css(pinB, { position: 'absolute', left: '284px', top: '412px' });
-  const moto = $('div', '', map); css(moto, { position: 'absolute', width: '34px', height: '34px', borderRadius: '17px', background: '#fff', border: '7px solid #FF6F61', boxShadow: '0 0 0 10px rgba(255,111,97,.25)' });
-  const sheet = $('div', 'psheet', scr);
-  sheet.innerHTML = `<div class="hd"></div><div class="eta-l">Llega en</div><div class="eta"></div><div style="height:18px"></div>
-    ${['Pedido confirmado', 'Preparando tu comida', 'En camino', 'Entregado'].map((s, i) => `<div class="step"><i></i>${i < 3 ? '<s></s>' : ''}${s}</div>`).join('')}
-    <div class="rider"><div class="av">AR</div><div>Andrés · Moto<div style="font-size:17px;color:#999;font-weight:600">★ 4,9 · 1.204 entregas</div></div><div style="margin-left:auto;width:48px;height:48px;border-radius:24px;background:#22C55E;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 3h4l2 5-3 2a11 11 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A18 18 0 0 1 3 5a2 2 0 0 1 2-2" fill="#fff"/></svg></div></div>`;
-  const eta = sheet.querySelector('.eta'), steps = [...sheet.querySelectorAll('.step')];
-  const pts = [[90, 90], [122, 132], [122, 330], [312, 344], [312, 440]];
-  let tot = 0; const seg = pts.slice(1).map((p, i) => { const l = Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]); tot += l; return l; });
-  const at = k => { let d = k * tot; for (let i = 0; i < seg.length; i++) { if (d <= seg[i]) { const u = d / seg[i]; return [L(pts[i][0], pts[i + 1][0], u), L(pts[i][1], pts[i + 1][1], u)]; } d -= seg[i]; } return pts[pts.length - 1]; };
+  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('width', W); svg.setAttribute('height', H);
+  css(svg, { position: 'absolute', left: 0, top: 0 }); r.appendChild(svg);
+  const CX = 505, CY = 990;
+  const pr = (X, Y, Z = 0) => [CX + (X - Y) * .866, CY + (X + Y) * .5 - Z];
+  const pts = a => a.map(p => pr(...p).join(',')).join(' ');
+  const mk = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  const g = (p = svg) => mk('g', {}, p);
+  const S = 210, T = 40;
+  const slab = g();
+  mk('polygon', { points: pts([[S, -S, 0], [S, S, 0], [S, S, -T], [S, -S, -T]]), fill: '#8A6A4A' }, slab);
+  mk('polygon', { points: pts([[-S, S, 0], [S, S, 0], [S, S, -T], [-S, S, -T]]), fill: '#6E5238' }, slab);
+  mk('polygon', { points: pts([[-S, -S, 0], [S, -S, 0], [S, S, 0], [-S, S, 0]]), fill: '#CFE8B8' }, slab);
+  // crop field rows (back-left quadrant)
+  const field = g(slab);
+  for (let i = 0; i < 6; i++) { const y0 = -190 + i * 22; mk('polygon', { points: pts([[-195, y0, 0], [-80, y0, 0], [-80, y0 + 12, 0], [-195, y0 + 12, 0]]), fill: i % 2 ? '#7DBB4E' : '#9BCF63' }, field); }
+  const box = (x0, y0, x1, y1, h, top, left, right, parent) => {
+    const G = g(parent);
+    mk('polygon', { points: pts([[x1, y0, 0], [x1, y1, 0], [x1, y1, h], [x1, y0, h]]), fill: right }, G);
+    mk('polygon', { points: pts([[x0, y1, 0], [x1, y1, 0], [x1, y1, h], [x0, y1, h]]), fill: left }, G);
+    mk('polygon', { points: pts([[x0, y0, h], [x1, y0, h], [x1, y1, h], [x0, y1, h]]), fill: top }, G);
+    return G;
+  };
+  // road
+  const road = [[-60, -60], [-20, -40], [30, -60], [60, -10], [20, 40], [40, 90], [100, 110]];
+  const rp = road.map(p => pr(p[0], p[1]));
+  const rd = 'M' + rp.map(p => p.join(',')).join(' L');
+  let len = 0; for (let i = 1; i < rp.length; i++) len += Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
+  const road1 = mk('path', { d: rd, stroke: '#4B4038', 'stroke-width': 34, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  const road2 = mk('path', { d: rd, stroke: '#F4D35E', 'stroke-width': 3, fill: 'none', 'stroke-dasharray': '10 12' });
+  // barn (red, gable roof)
+  const barn = g(); box(-60, -150, 0, -96, 56, '#C0392B', '#C0392B', '#A93226', barn);
+  mk('polygon', { points: pts([[-60, -150, 56], [0, -150, 56], [0, -123, 84], [-60, -123, 84]]), fill: '#7B241C' }, barn);
+  mk('polygon', { points: pts([[-60, -123, 84], [0, -123, 84], [0, -96, 56], [-60, -96, 56]]), fill: '#922B21' }, barn);
+  mk('polygon', { points: pts([[-40, -96, 0], [-20, -96, 0], [-20, -96, 34], [-40, -96, 34]]), fill: '#fff' }, barn);
+  // silo
+  const silo = g(); box(10, -170, 36, -144, 96, '#D5DBDB', '#BDC3C7', '#A6ACAF', silo);
+  // packing plant (grey, chimney)
+  const plant = g(); box(40, -60, 110, 0, 60, '#B9C2CC', '#8E9AA6', '#76828E', plant);
+  box(86, -56, 102, -40, 110, '#7F8C8D', '#6C7A7B', '#5D6D6E', plant);
+  mk('polygon', { points: pts([[110, -44, 0], [110, -16, 0], [110, -16, 30], [110, -44, 30]]), fill: '#34495E' }, plant);
+  // market (striped awning)
+  const mkt = g(); box(110, 90, 170, 150, 48, '#FFE7C2', '#F5CBA7', '#E59866', mkt);
+  for (let i = 0; i < 5; i++) mk('polygon', { points: pts([[110, 90 + i * 12, 48], [110, 102 + i * 12, 48], [124, 102 + i * 12, 38], [124, 90 + i * 12, 38]]), fill: i % 2 ? '#fff' : '#27AE60' }, mkt);
+  // trees
+  const trees = [[-180, 60], [-150, 150], [-60, 170], [20, 180], [170, 20], [180, -80], [150, -170], [-180, 10], [-120, 120]];
+  const treeEls = trees.map(([x, y]) => {
+    const G = g(); const [sx, sy] = pr(x, y);
+    mk('rect', { x: sx - 3, y: sy - 18, width: 6, height: 18, fill: '#6E4B2A' }, G);
+    mk('polygon', { points: `${sx},${sy - 62} ${sx - 18},${sy - 14} ${sx + 18},${sy - 14}`, fill: '#2E8B57' }, G);
+    return { G, sx, sy };
+  });
+  // truck
+  const truck = g();
+  mk('rect', { x: -26, y: -30, width: 36, height: 30, rx: 4, fill: '#F4D35E' }, truck);
+  mk('rect', { x: 10, y: -22, width: 18, height: 22, rx: 4, fill: '#E67E22' }, truck);
+  mk('circle', { cx: -16, cy: 0, r: 5, fill: '#222' }, truck); mk('circle', { cx: 16, cy: 0, r: 5, fill: '#222' }, truck);
+  const labs = [
+    { x: 230, y: 700, n: 1, t: 'Cosecha', s: 'Día 1' },
+    { x: 690, y: 800, n: 2, t: 'Empaque', s: 'Día 2' },
+    { x: 600, y: 1150, n: 3, t: 'Tu mesa', s: 'Día 3' },
+  ].map(o => { const e = rel($('div', 'iso-lab', r, `<b style="background:#2E8B57">${o.n}</b><div><span>${o.t}</span><small>${o.s}</small></div>`)); css(e, { left: o.x + 'px', top: o.y + 'px' }); return e; });
+  const along = k => {
+    let target = k * len, acc = 0;
+    for (let i = 1; i < rp.length; i++) {
+      const sl = Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
+      if (acc + sl >= target) { const u = (target - acc) / sl; return [L(rp[i - 1][0], rp[i][0], u), L(rp[i - 1][1], rp[i][1], u), rp[i][0] - rp[i - 1][0]]; }
+      acc += sl;
+    }
+    const e = rp[rp.length - 1]; return [e[0], e[1], 1];
+  };
   return { root: r, update(lt) {
-    const tk = eo(P(lt, 0, .35));
-    css(title, { opacity: tk, transform: `translateY(${(1 - tk) * -30}px)` });
-    const pk = eo(P(lt, .05, .55));
-    css(ph, { opacity: pk, transform: `translateY(${(1 - pk) * 200}px) rotate(${(1 - pk) * -6}deg)` });
-    const rk = eio(P(lt, .35, .9));
-    route.setAttribute('stroke-dasharray', `${tot * rk} 2000`);
-    [pinA, pinB].forEach((p, i) => { const k = eback(P(lt, .3 + i * .15, .6 + i * .15), 2.4); p.style.transform = `scale(${Math.max(0, k)})`; });
-    const mk = eio(P(lt, .6, 1.6));
-    const [mx, my] = at(mk * .82);
-    css(moto, { left: (mx - 17) + 'px', top: (my - 17) + 'px', opacity: P(lt, .55, .65) });
-    eta.textContent = Math.round(L(18, 12, mk)) + ' min';
-    const sh = eo(P(lt, .25, .7));
-    sheet.style.transform = `translateY(${(1 - sh) * 400}px)`;
-    steps.forEach((s, i) => {
-      const k = P(lt, .5 + i * .3, .65 + i * .3);
-      const done = i < 2 ? k : 0, active = i === 2 ? k : 0;
-      s.style.color = k > 0 && i < 3 ? '#151515' : '#bbb';
-      const dot = s.querySelector('i');
-      dot.style.background = done > 0 ? '#22C55E' : active > 0 ? '#FF6F61' : '#fff';
-      dot.style.borderColor = done > 0 ? '#22C55E' : active > 0 ? '#FFD2CD' : '#ddd';
-      dot.style.transform = `scale(${1 + Math.sin(Math.PI * k) * .35 + (active > 0 ? Math.sin(lt * 8) * .08 : 0)})`;
-      const ln = s.querySelector('s'); if (ln) ln.style.background = done >= 1 ? '#22C55E' : '#e5e5e5';
-    });
+    const tk = eo(P(lt, 0, .3));
+    css(title, { opacity: tk, transform: `scale(${L(.9, 1, tk)})` });
+    // slab spins in instead of rising
+    const sk = eback(P(lt, .02, .45), 1.1);
+    slab.setAttribute('transform', `translate(${CX} ${CY}) scale(${Math.max(0, sk)}) translate(${-CX} ${-CY})`);
+    const rk = eio(P(lt, .3, .75));
+    road1.setAttribute('stroke-dasharray', `${len * rk} ${len}`); road1.setAttribute('opacity', P(lt, .28, .35));
+    road2.setAttribute('opacity', P(lt, .7, .85));
+    [[barn, .2], [silo, .26], [plant, .32], [mkt, .38]].forEach(([G, a]) => { const k = eback(P(lt, a, a + .3), 2); const [px, py] = [CX, CY]; G.setAttribute('transform', `translate(0 ${(1 - C(k)) * 30}) `); G.setAttribute('opacity', C(k * 3)); });
+    treeEls.forEach((tr, i) => { const k = eback(P(lt, .4 + i * .025, .6 + i * .025), 2.5); tr.G.setAttribute('transform', `translate(${tr.sx} ${tr.sy}) scale(1 ${Math.max(0, k)}) translate(${-tr.sx} ${-tr.sy})`); });
+    labs.forEach((e, i) => { const k = eo(P(lt, .6 + i * .17, .85 + i * .17)); css(e, { opacity: k, transform: `translateY(${(1 - k) * 30}px)` }); });
+    const vk = eio(P(lt, .65, 1.45));
+    const [vx, vy, dx] = along(vk);
+    truck.setAttribute('transform', `translate(${vx} ${vy - 4}) scale(${dx < 0 ? -1 : 1} 1)`); truck.setAttribute('opacity', P(lt, .62, .7));
   } };
 }
 
-// ---- 4 · 3D card (Nube Card) ----
-function Card3D() {
-  const r = poster('card');
-  const lab = rel($('div', 'center mono cd-lab', r, 'PRESENTAMOS'));
-  const big = rel($('div', 'center cd-big', r, 'Nube Card'));
-  const c3 = $('div', 'c3', r);
-  const cd = rel($('div', 'ncard', c3, `<div class="gl"></div><div class="lg">NUBE</div><div class="chip"></div>
-    <svg width="44" height="54" viewBox="0 0 44 54" style="position:absolute;right:56px;top:46px"><path d="M8 10a24 24 0 0 1 0 34M18 4a34 34 0 0 1 0 46M28 14a16 16 0 0 1 0 26" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
-    <div class="num mono">••••  ••••  ••••  4821</div><div class="nm">ANA SOTO</div><div class="ex mono">12/29</div>`));
-  const gl = cd.querySelector('.gl');
-  const pills = [['<b>0%</b> comisión', 250, 1150], ['<b>3%</b> de cashback', 548, 1150], ['Paga con <b>un toque</b>', 330, 1250]]
-    .map(([h, x, y]) => { const e = rel($('div', 'cpill', r, h)); css(e, { left: x + 'px', top: y + 'px' }); return e; });
+// ---- /notificaciones · salon bookings on a sunset lock screen ----
+function Book() {
+  const r = poster('book');
+  $('div', 'center', r, '<svg width="30" height="38" viewBox="0 0 30 38"><rect x="2" y="16" width="26" height="20" rx="5" fill="#fff"/><path d="M8 16v-5a7 7 0 0 1 14 0v5" stroke="#fff" stroke-width="3.5" fill="none"/></svg>').style.top = '228px';
+  const date = rel($('div', 'center nt-date', r, 'lunes, 6 de abril'));
+  const time = rel($('div', 'center nt-time', r, '7:30'));
+  const sum = rel($('div', 'nt-sum', r));
+  const CAL = '<svg width="34" height="34" viewBox="0 0 34 34"><rect x="5" y="8" width="24" height="21" rx="4" fill="#fff"/><rect x="5" y="8" width="24" height="7" rx="3" fill="#FFD1E0"/><path d="M11 5v6M23 5v6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+  const BK = [['Corte + barba', '18:30', 26], ['Color y peinado', '11:00', 64], ['Manicura', '16:00', 22], ['Masaje 60 min', '12:30', 55], ['Corte', '10:15', 18], ['Tratamiento facial', '17:00', 48], ['Barba', '19:15', 12]];
+  const cards = BK.map(o => rel($('div', 'nt-card', r, `<div class="appic" style="background:linear-gradient(160deg,#A96BFF,#6A3DE8)">${CAL}</div><div class="tx"><b>Agenda</b><br><span>Nueva reserva: ${o[0]} · ${o[1]}</span></div><div class="ago">ahora</div>`)));
+  const T0 = .25, DT = .19;
   return { root: r, update(lt) {
     const hk = eo(P(lt, 0, .4));
-    css(lab, { opacity: hk, letterSpacing: L(.8, .42, hk) + 'em' });
-    css(big, { opacity: hk, transform: `scale(${L(1.15, 1, hk)})`, filter: `blur(${(1 - hk) * 12}px)` });
-    const ck = eo5(P(lt, .1, 1.3));
-    const ry = L(-70, 14, ck) + Math.sin(lt * 1.6) * 3, rx = L(26, 8, ck);
-    css(cd, { opacity: P(lt, .1, .3), transform: `translateY(${Math.sin(lt * 2.2) * 10}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${L(-10, -4, ck)}deg)` });
-    gl.style.transform = `translateX(${L(-60, 70, P(lt, .3, 1.5))}%)`;
-    pills.forEach((p, i) => { const k = eback(P(lt, .8 + i * .14, 1.1 + i * .14), 2); css(p, { opacity: C(k * 2), transform: `translateY(${(1 - k) * 40}px) scale(${L(.7, 1, C(k))})` }); });
+    css(date, { opacity: hk, letterSpacing: L(.2, 0, hk) + 'em' });
+    css(time, { opacity: hk, transform: `translateY(${(1 - hk) * 40}px)`, filter: `blur(${(1 - hk) * 10}px)` });
+    let arrived = 0, total = 214, n = 7;
+    BK.forEach((o, i) => { const k = P(lt, T0 + i * DT, T0 + i * DT + .3); arrived += eo(k); total += o[2] * eo(k); n += k >= .5 ? 1 : 0; });
+    const sk = eo(P(lt, .15, .5));
+    css(sum, { opacity: sk, transform: `scale(${L(.9, 1, sk)})` });
+    sum.innerHTML = `<div class="appic" style="background:linear-gradient(160deg,#A96BFF,#6A3DE8)">${CAL}</div><div style="font-size:30px;font-weight:800;line-height:1.1">Hoy<br><span style="font-size:22px;font-weight:600;color:#6b5a80">${n} reservas</span></div><div style="margin-left:auto;font-size:44px;font-weight:800;letter-spacing:-.02em">$${fmt(total)}</div>`;
+    cards.forEach((c, i) => {
+      const k = eo(P(lt, T0 + i * DT, T0 + i * DT + .3));
+      if (k <= 0) { c.style.opacity = 0; return; }
+      const slot = arrived - (i + k);
+      const y = 720 + Math.max(0, slot) * 138;
+      const fade = C(1 - (slot - 3.2) / .8);
+      // new cards slide in from the right (reference stacks from the top)
+      css(c, { top: y + 'px', opacity: k * fade, transform: `translateX(${(1 - k) * 260}px) scale(${L(1, .94, C(slot - 3))})` });
+    });
   } };
 }
 
-// ---- 5 · flip countdown ----
-function Flip() {
-  const r = poster('flip');
-  rel($('div', 'center mono fl-lab', r, 'LANZAMIENTO EN'));
-  const X0 = 175, GW = 160, SEP = 30;
-  const tiles = [];
-  ['DÍAS', 'HORAS', 'MIN', 'SEG'].forEach((u, g) => {
-    const x = X0 + g * (GW + SEP);
-    const grp = rel($('div', 'fgrp', r)); grp.style.left = x + 'px';
-    for (let j = 0; j < 2; j++) {
-      const t = $('div', 'ftile anton', grp, '<div class="fh t up"><span></span></div><div class="fh b lo"><span></span></div><div class="fh t flapA"><span></span></div><div class="fh b flapB"><span></span></div>');
-      tiles.push({ up: t.children[0].firstChild, lo: t.children[1].firstChild, fa: t.children[2], fb: t.children[3], fas: t.children[2].firstChild, fbs: t.children[3].firstChild });
-    }
-    rel($('div', 'funit', r, u)).style.left = x + 'px';
-    if (g < 3) css($('div', 'fsep anton', r, ':'), { left: (x + GW + 6) + 'px' });
+// ---- grid extra · ¿Cómo pagan tus clientes? (vertical columns) ----
+function Pay() {
+  const r = poster('pay');
+  rel($('div', 'center py-t', r, '¿Cómo pagan tus clientes?'));
+  rel($('div', 'center py-s', r, 'Porcentaje de pagos'));
+  const yr = $('div', 'py-yr anton', r, '2023');
+  const DATA = [['Tarjeta', 46, 38, '#2F6BF2'], ['Billetera', 12, 34, '#E07A4F'], ['Transfer.', 18, 16, '#22A06B'], ['Efectivo', 20, 8, '#9AA3AE'], ['A plazos', 4, 4, '#B07CFF']];
+  const cols = DATA.map((d, i) => { const e = rel($('div', 'py-col', r, `<div class="vl"></div><div class="bar" style="background:${d[3]}"></div><div class="lb">${d[0]}</div>`)); e.style.left = (170 + i * 150) + 'px'; return e; });
+  return { root: r, update(lt) {
+    const k = eio(P(lt, .3, 1.6));
+    yr.textContent = Math.round(2023 + 3 * k);
+    cols.forEach((e, i) => {
+      const d = DATA[i]; const gk = eback(P(lt, i * .06, .45 + i * .06));
+      const v = L(d[1], d[2], k) * Math.max(0, gk);
+      e.children[1].style.height = (v / 46 * 520) + 'px';
+      e.children[0].style.bottom = (v / 46 * 520 + 70) + 'px';
+      e.children[0].textContent = Math.round(v) + '%';
+    });
+  } };
+}
+
+// ---- grid extra · AHORRAR vs INVERTIR ----
+function Save() {
+  const r = poster('save');
+  rel($('div', 'center anton sv-t', r, 'AHORRAR<br><span class="rb-vs" style="background:#1E1A16;color:#F4F1EA">vs</span>INVERTIR'));
+  rel($('div', 'center mono sv-s', r, '$500 AL MES · 10 AÑOS'));
+  const ROWS = [['APORTADO', 60000, 60000], ['VALOR FINAL', 63000, 97000], ['GANANCIA', 3000, 37000]];
+  const rows = ROWS.map((d, i) => {
+    const e = rel($('div', 'rb-row', r, `<div class="k" style="color:#7d7366">${d[0]}</div><div class="rb-bar"><i style="background:#9AA3AE"></i><b style="color:#1E1A16"></b></div><div class="rb-bar"><i style="background:#22A06B"></i><b style="color:#1E1A16"></b></div>`));
+    e.style.top = (700 + i * 220) + 'px'; return e;
   });
-  const card = rel($('div', 'fcard', r, `<h4>Gran apertura</h4><p>Sábado · 20:00 · Calle Mayor 12</p><div class="fbtn"><svg width="26" height="28" viewBox="0 0 26 28"><path d="M13 3a7 7 0 0 1 7 7v6l3 4H3l3-4v-6a7 7 0 0 1 7-7zM10 23a3 3 0 0 0 6 0" fill="#fff"/></svg>Recordarme</div>`));
-  const wait = rel($('div', 'fwait', r));
-  const AV = ['#FFC857', '#7CC6FE', '#B7F34A', '#F49AC2', '#fff'];
-  wait.innerHTML = AV.map(c => `<div class="av" style="background:${c}"></div>`).join('') + '<span style="margin-left:46px" class="wn"></span>';
-  const wn = wait.querySelector('.wn');
-  const START = 3 * 86400 + 12 * 3600 + 45 * 60 + 10, STEP = .17;
-  const digs = s => { const d = Math.floor(s / 86400), h = Math.floor(s / 3600) % 24, m = Math.floor(s / 60) % 60, se = s % 60; return [d, h, m, se].map(v => String(v).padStart(2, '0')).join(''); };
   return { root: r, update(lt) {
-    const n = Math.max(0, Math.floor((lt - .3) / STEP)), f = lt < .3 ? 1 : C(((lt - .3) % STEP) / .13);
-    const cur = digs(START - n), prev = digs(START - n + 1);
-    tiles.forEach((t, i) => {
-      const a = prev[i], b = cur[i], flipping = a !== b && f < 1;
-      t.up.textContent = b; t.lo.textContent = flipping ? a : b;
-      t.fas.textContent = a; t.fbs.textContent = b;
-      t.fa.style.display = flipping && f < .5 ? '' : 'none';
-      t.fb.style.display = flipping && f >= .5 ? '' : 'none';
-      t.fa.style.transform = `rotateX(${-f * 180}deg)`;
-      t.fb.style.transform = `rotateX(${(1 - f) * 180}deg)`;
-    });
-    const ek = eo(P(lt, 0, .4));
-    r.querySelectorAll('.fgrp').forEach((g, i) => css(g, { opacity: P(lt, i * .06, .2 + i * .06), transform: `translateY(${(1 - eo(P(lt, i * .06, .4 + i * .06))) * -50}px)` }));
-    const ck = eback(P(lt, .35, .8));
-    css(card, { opacity: C(ck * 2), transform: `translateY(${(1 - ck) * 120}px)` });
-    const wk = eo(P(lt, .6, 1.0));
-    css(wait, { opacity: wk, transform: `translateX(${(1 - wk) * -40}px)` });
-    wn.textContent = '+' + fmt(L(980, 1240, eo(P(lt, .6, 1.6)))) + ' personas esperando';
-  } };
-}
-
-// ---- 6 · kinetic typography ----
-function Kinetic() {
-  const r = poster('kin');
-  const bg = $('div', 'kbg', r);
-  const lab = rel($('div', 'center mono klab', r, 'NUESTRO MÉTODO'));
-  const W3 = [['DISEÑA.', '#FFD43B', '#111'], ['LANZA.', '#2F6BF2', '#fff'], ['CRECE.', '#B7F34A', '#111']];
-  const words = W3.map(([w]) => rel($('div', 'kword anton', r, w)));
-  const stack = rel($('div', 'kstack anton', r, W3.map(([w, c]) => `<div style="color:${c}">${w}</div>`).join('')));
-  const lines = [...stack.children];
-  const bar = $('div', 'kbar', r);
-  return { root: r, update(lt) {
-    const ph = lt < 1.2 ? Math.min(2, Math.floor(lt / .4)) : 3;
-    bg.style.background = ph < 3 ? W3[ph][1] : '#111';
-    lab.style.color = ph < 3 ? (ph === 1 ? 'rgba(255,255,255,.8)' : 'rgba(0,0,0,.55)') : '#999';
-    words.forEach((w, i) => {
-      if (ph !== i) { w.style.opacity = 0; return; }
-      const k = eo5(P(lt, i * .4, i * .4 + .22));
-      css(w, { opacity: 1, color: W3[i][2], transform: `scale(${L(2.4, 1, k)}) rotate(${L(i % 2 ? 9 : -9, 0, k)}deg)`, filter: `blur(${(1 - k) * 10}px)` });
-    });
-    lines.forEach((l, i) => { const k = eback(P(lt, 1.2 + i * .1, 1.5 + i * .1), 1.8); css(l, { opacity: ph === 3 ? C(k * 2) : 0, transform: `translateX(${(1 - k) * (i % 2 ? 120 : -120)}px)` }); });
-    const bk = eio(P(lt, 1.55, 1.9));
-    css(bar, { width: (500 * bk) + 'px', opacity: ph === 3 ? 1 : 0 });
-  } };
-}
-
-// ---- 7 · printed receipt ----
-function Receipt() {
-  const r = poster('rec');
-  rel($('div', 'center mono rc-lab', r, 'PEDIDO #2048'));
-  $('div', 'slot', r);
-  const pw = $('div', 'paperw', r);
-  const paper = rel($('div', 'paper', pw, `
-    <div class="anton" style="text-align:center;font-size:62px;letter-spacing:.04em">CAFÉ LUNA</div>
-    <div style="text-align:center;color:#888;font-size:21px">Calle del Sol 8 · Madrid</div><hr>
-    <div class="mono">${[['Flat white ×2', '$7,60'], ['Croissant', '$2,90'], ['Tarta de queso', '$4,50']].map(a => `<div class="r"><span>${a[0]}</span><span>${a[1]}</span></div>`).join('')}</div><hr>
-    <div class="r mono" style="font-size:32px;font-weight:800"><span>TOTAL</span><span>$15,00</span></div>
-    <div style="text-align:center;margin-top:26px;font-weight:700">¡Gracias por tu visita!</div><div class="bars"></div>`));
-  return { root: r, update(lt) {
-    const h = 900 * eio(P(lt, .1, 1.4));
-    paper.style.transform = `translateY(${h - 900}px)`;
-    pw.style.height = h + 'px';
-  } };
-}
-
-// ---- 8 · bar race ----
-function Rank() {
-  const r = poster('rank');
-  rel($('div', 'center rk-title', r, 'Ventas por país'));
-  rel($('div', 'center rk-sub', r, 'Miles de pedidos al año'));
-  const yr = $('div', 'rk-yr anton', r);
-  const DATA = [['México', [40, 55, 70, 92], '#FF8A4C'], ['Colombia', [52, 58, 66, 74], '#FFD43B'], ['España', [60, 62, 64, 68], '#7CC6FE'], ['Argentina', [30, 44, 60, 81], '#B7F34A'], ['Chile', [35, 40, 47, 58], '#F49AC2']];
-  const rows = DATA.map(d => { const e = rel($('div', 'rk-row', r, `<div class="bar" style="background:${d[2]}"></div><div class="nm">${d[0]}</div><div class="vl"></div>`)); return e; });
-  const val = (d, y) => { const i = Math.min(2, Math.floor(y)), u = y - i; return L(d[1][i], d[1][i + 1], u); };
-  const rankAt = y => { const v = DATA.map((d, i) => [val(d, y), i]).sort((a, b) => b[0] - a[0]); const rk = []; v.forEach(([, i], p) => rk[i] = p); return rk; };
-  return { root: r, update(lt) {
-    const y = 3 * eio(P(lt, .3, 1.7));
-    yr.textContent = Math.round(2023 + y);
-    const samples = [0, .06, .12, .18, .24].map(o => rankAt(Math.max(0, y - o * 3 / 1.4)));
     rows.forEach((e, i) => {
-      const pos = samples.reduce((s, rk) => s + rk[i], 0) / samples.length;
-      const v = val(DATA[i], y), g = eo(P(lt, i * .05, .4 + i * .05));
-      e.style.top = (480 + pos * 130) + 'px';
-      const w = v / 92 * 560 * g;
-      e.children[0].style.width = w + 'px';
-      e.children[2].style.left = (w + 18) + 'px';
-      e.children[2].textContent = Math.round(v * g) + ' mil';
-      e.style.opacity = C(g * 2);
+      const d = ROWS[i], mx = Math.max(d[1], d[2]); const k = eo(P(lt, .2 + i * .25, 1.0 + i * .25));
+      const bars = e.querySelectorAll('.rb-bar');
+      [d[1], d[2]].forEach((v, j) => {
+        const w = Math.max(10, v / mx * 440) * k;
+        bars[j].children[0].style.width = w + 'px';
+        bars[j].children[1].style.left = (w + 16) + 'px';
+        bars[j].children[1].textContent = '$' + fmt(v * k);
+      });
+      e.style.opacity = C(k * 3);
     });
   } };
 }
 
-// ---- 9 · reviews ----
-function Reviews() {
-  const r = poster('rev');
-  const big = rel($('div', 'center rv-big', r));
-  const stars = rel($('div', 'rv-stars', r));
-  const STAR = '<svg width="64" height="64" viewBox="0 0 24 24"><defs><clipPath id="c"><rect class="cl" x="0" y="0" width="24" height="24"/></clipPath></defs><path d="M12 2l3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z" fill="#EADFCF"/><path class="fg" d="M12 2l3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z" fill="#F5A300"/></svg>';
-  stars.innerHTML = STAR.repeat(5);
-  const fgs = [...stars.querySelectorAll('.fg')];
-  const n = rel($('div', 'center rv-n', r));
-  const cards = [['«Llegó en 24 horas y en perfecto estado.»', 'Carla M. · hace 2 días', 720], ['«La mejor compra que hice este año.»', 'Jorge P. · hace 1 semana', 940], ['«Atención rápida y muy amable.»', 'Lucía R. · hace 3 semanas', 1160]]
-    .map(([q, s, y]) => { const e = rel($('div', 'rv-card', r, `<div style="color:#F5A300;font-size:26px;letter-spacing:3px">★★★★★</div><q>${q.slice(1, -1)}</q><span>${s}</span>`)); e.style.top = y + 'px'; return e; });
+// ---- grid extra · post that got deleted (dark mode, café) ----
+function Post() {
+  const r = poster('post');
+  rel($('div', 'center tw-h', r, 'Publicado el lunes. Borrado el miércoles.')).style.color = '#8B95A1';
+  const card = rel($('div', 'tw-card', r, `
+    <div class="tw-hd"><div class="av" style="background:#C0392B">BV</div><div><div class="tw-nm">Bruno Vidal <span style="color:#1D9BF0">✔︎</span></div><div class="tw-hn">@brunovidal · Fundador de Ola Café</div></div></div>
+    <div class="tw-tx">Cambiamos toda nuestra carta por recetas hechas con IA. <u>Nadie va a notar la diferencia.</u></div>
+    <div class="tw-st"><span>💬︎ 5,1 mil</span><span>⟲ 7,2 mil</span><span class="lk">♥ 18,4 mil</span><span>9,6 M vistas</span></div>`));
+  css(card, { background: '#1C2127', color: '#E7E9EA', boxShadow: '0 26px 60px rgba(0,0,0,.45)' });
+  card.querySelector('.tw-hn').style.color = '#8B95A1'; card.querySelector('.tw-st').style.color = '#8B95A1';
+  const lk = card.querySelector('.lk');
+  const reps = [['NS', '#8E44AD', 'Nora Sanz', 'Sí la notamos.', 1090], ['PG', '#16A085', 'Pablo Gil', '¿Dónde quedó el café de siempre?', 1240]]
+    .map(d => { const e = rel($('div', 'tw-rep', r, `<div class="av" style="background:${d[1]}">${d[0]}</div><div class="t"><b>${d[2]}</b>${d[3]}</div>`)); e.style.top = d[4] + 'px'; css(e, { background: '#1C2127', boxShadow: 'none', border: '1.5px solid #2B323A' }); e.querySelector('.t').style.color = '#E7E9EA'; return e; });
+  const stamp = rel($('div', 'stamp', r, 'ELIMINADO'));
+  css(stamp, { background: 'rgba(21,24,28,.8)', color: '#FF5A4F', borderColor: '#FF5A4F' });
   return { root: r, update(lt) {
-    const k = eo(P(lt, 0, 1.0));
-    big.textContent = (4.0 + .9 * k).toFixed(1).replace('.', ',');
-    fgs.forEach((f, i) => { const q = eback(P(lt, .1 + i * .1, .35 + i * .1), 2.5); f.setAttribute('transform', `translate(12 12) scale(${Math.max(0, q)}) translate(-12 -12)`); });
-    n.textContent = fmt(L(1400, 2318, eo(P(lt, .1, 1.2)))) + ' reseñas';
-    cards.forEach((c, i) => { const q = eo(P(lt, .5 + i * .18, .9 + i * .18)); css(c, { opacity: q, transform: `translateX(${(1 - q) * 160}px) rotate(${(1 - q) * 4}deg)` }); });
+    const k = eo(P(lt, 0, .45));
+    css(card, { opacity: k, transform: `scale(${L(.9, 1, k)})` });
+    lk.textContent = '♥ ' + (18.4 * eo(P(lt, .2, 1.2))).toFixed(1).replace('.', ',') + ' mil';
+    reps.forEach((e, i) => { const q = eback(P(lt, .6 + i * .3, 1.0 + i * .3)); css(e, { opacity: C(q * 2), transform: `translateY(${(1 - q) * 60}px)` }); });
+    const s = P(lt, 1.6, 1.9);
+    css(stamp, { opacity: s, transform: `rotate(-9deg) scale(${L(2, 1, eo(s))})` });
+    card.style.filter = `grayscale(${s * .8}) brightness(${1 - s * .2})`;
   } };
 }
 
-const MAKERS = { globe: Globe, site: Site, app: App, card: Card3D, day: Day, laptop: Laptop, kin: Kinetic, rec: Receipt, rev: Reviews };
-const GRID_ORDER = ['globe', 'site', 'app', 'card', 'day', 'laptop', 'kin', 'rec', 'rev'];
+const MAKERS = { globe: Globe, barber: Barber, farm: Farm, book: Book, day: Day, laptop: Laptop, pay: Pay, save: Save, post: Post };
+const GRID_ORDER = ['globe', 'barber', 'farm', 'laptop', 'pay', 'save', 'book', 'post', 'day'];
 const GX = 210, GY = 540, TW = 212, TH = 265, GAP = 12;
 const TILE_S = TW / W;
 
@@ -956,9 +877,9 @@ const kpop = $('div', 'pop', kbd);
 // ---------- scenes ----------
 const SC = [
   { kind: 'globe',  cmd: '/globo-rutas',     desc: 'Globo 3D, rutas en arco entre ciudades',  chip: 'Pedidos enviados a 38 países',     t0: 0,    enter: 'morph',  exit: 'fadezoom' },
-  { kind: 'site',   cmd: '/web-producto',    desc: 'Landing de producto con scroll animado',  chip: 'Sonora X, audífonos inalámbricos', t0: 3.0,  enter: 'reveal', exit: 'minimize' },
-  { kind: 'app',    cmd: '/app-seguimiento', desc: 'App móvil con el pedido en tiempo real',  chip: 'Tu pedido llega en 12 min',        t0: 6.1,  enter: 'rise',   exit: 'slideleft' },
-  { kind: 'card',   cmd: '/tarjeta-3d',      desc: 'Tarjeta en 3D con brillo holográfico',    chip: 'Presentamos Nube Card',            t0: 8.7,  enter: 'drop',   exit: 'unlock' },
+  { kind: 'barber', cmd: '/antes-despues',   desc: 'Deslizador: de la web vieja a la nueva',  chip: 'Misma barbería. Nueva web.', t0: 3.0,  enter: 'reveal', exit: 'minimize' },
+  { kind: 'farm',   cmd: '/flujo-iso',       desc: 'Diagrama isométrico de cómo funciona',    chip: 'Del campo a tu mesa',        t0: 6.1,  enter: 'rise',   exit: 'slideleft' },
+  { kind: 'book',   cmd: '/notificaciones',  desc: 'Pantalla bloqueada, reservas llegando',   chip: 'Nueva reserva: Corte + barba · 18:30',            t0: 8.7,  enter: 'drop',   exit: 'unlock' },
   { kind: 'day',    cmd: '/contador-dias',   desc: 'Contador de días, el calendario se llena', chip: 'Publicando cada día por 30 días', t0: 11.6, enter: 'wipe',   exit: 'iris' },
   { kind: 'laptop', cmd: '/portatil',        desc: 'Un portátil se abre y muestra tu web',    chip: 'Ritmo, lanzamiento el lunes',      t0: 14.2, enter: 'tilt',   exit: 'fade' },
   { kind: 'grid',   cmd: '/animar',          desc: 'Cada estilo, un prompt',                  chip: null,                               t0: 17.1, enter: 'morph',  exit: null, greet: true },
