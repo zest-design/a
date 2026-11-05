@@ -10,10 +10,15 @@ DROP = [(12.50, 12.96), (19.74, 20.23), (26.87, 27.26), (36.74, 37.26)]   # blan
 # (section start, window top on the title, window top on the ranking, seconds held on the title)
 SEC = [(0.9, 500, 1220, 1.3), (12.8, 500, 1220, 1.2), (20.4, 500, 1100, 1.2), (27.3, 560, 1100, 1.3), (37.2, 520, 1268, 0.7)]
 def ease(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
+# nav menu opened by a tap (page below gets dimmed): the camera snaps up to the menu right at the tap
+MENU = [(9.62, 12.45), (18.33, 19.75), (25.78, 26.85), (35.62, 36.75)]; MTOP = 300; MSNAP = 0.3
 def top_at(t):
     s = max([x for x in SEC if x[0] <= t] or [SEC[0]], key=lambda x: x[0])
     k = t - s[0]
-    return s[1] + (s[2] - s[1]) * ease((k - s[3]) / 0.8)
+    y = s[1] + (s[2] - s[1]) * ease((k - s[3]) / 0.8)
+    for a, b in MENU:
+        if a - MSNAP <= t < b: y += (MTOP - y) * ease((t - (a - MSNAP)) / MSNAP)
+    return y
 dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", SRC], capture_output=True, text=True).stdout)
 NF = int((dur - T0 - 0.05) * 30)
 p = subprocess.Popen(["ffmpeg", "-v", "error", "-ss", str(T0), "-i", SRC, "-vf", "fps=30,format=rgb24", "-frames:v", str(NF), "-f", "rawvideo", "-"], stdout=subprocess.PIPE, bufsize=10 ** 8)
