@@ -88,3 +88,20 @@ def m_10x(k, beats):
         g = glow(grad_text("10x", F(190, 800)), (90, 110, 255), 20, 140, 30); pop_in(im, g, 590, 185, kk, 8)
         if kk > 6: d.text((590, 345), "más barato", font=F(46, 700), fill=WHITE, anchor="mm")
     return im
+
+# "en vez de pagar 20 euros por ChatGPT, 20 por Claude, 20 por Grok... pagas una sola suscripción"
+def price_pill(txt, col=(240, 110, 100), ink=(20, 22, 30), size=34):
+    f = F(size, 800); w = int(f.getlength(txt) + 36); h = int(size * 1.5)
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=col); d.text((w / 2, h / 2 + 1), txt, font=f, fill=ink, anchor="mm"); return im
+def m_euros(k, beats):
+    im = hpanel()
+    for i, n in enumerate(["chatgpt", "claude", "grok"]):
+        kk = k - beats[i]; y = 92 + i * 128
+        pop_in(im, logo(n, 96), 110, y, kk); pop_in(im, price_pill("20 €"), 236, y, kk - 2)
+    kk = k - beats[3]
+    if kk > 0:
+        pop_in(im, sym("→", 70, (150, 160, 255)), 380, 220, kk)
+        pop_in(im, wordmark(70), 590, 170, kk)
+        pop_in(im, price_pill("1 suscripción", YEL, size=30), 590, 290, kk - 3)
+    return im
