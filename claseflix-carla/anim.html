@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Claseflix · Carla</title>
+<style>
+  @font-face { font-family: 'D'; src: local('Inter Display Black'), local('InterDisplay-Black'); font-weight: 900; }
+  @font-face { font-family: 'D'; src: local('Inter Display ExtraBold'), local('InterDisplay-ExtraBold'); font-weight: 800; }
+  @font-face { font-family: 'D'; src: local('Inter Display Bold'), local('InterDisplay-Bold'); font-weight: 700; }
+  @font-face { font-family: 'D'; src: local('Inter Display SemiBold'), local('InterDisplay-SemiBold'); font-weight: 600; }
+  :root {
+    --red: #E3120B; --red2: #C80E1E; --mag: #B5287E; --pur: #6E1A4F; --org: #F36A1C;
+    --cream: #F8F4F0; --ink: #1B1B1F; --blush: #FBE1DE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--cream); font-family: 'D', 'Inter', sans-serif; color: var(--ink); }
+  .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .bg-cream { background: var(--cream); }
+  .bg-red { background: radial-gradient(120% 80% at 30% 20%, #F0281C 0%, var(--red) 45%, #B80C1C 100%); color: #fff; }
+  .abs { position: absolute; }
+  .title { position: absolute; left: 70px; right: 70px; text-align: center; z-index: 10; }
+  .sm { font-weight: 800; font-size: 64px; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
+  .bg-red .sm { color: #fff; }
+  .big { font-weight: 900; font-size: 150px; letter-spacing: -0.035em; line-height: 0.98; color: var(--red); white-space: nowrap; display: inline-block; }
+  .bg-red .big { color: #fff; }
+  .w { display: inline-block; will-change: transform, filter, opacity; }
+  .line { display: block; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(2px); }
+  .char { position: absolute; left: 50%; transform-origin: 50% 100%; }
+  .char img { display: block; width: 100%; }
+
+  /* badges / chips */
+  .badge { position: absolute; width: 170px; height: 170px; border-radius: 44px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, var(--org) 0%, var(--red) 55%, var(--mag) 100%); box-shadow: 0 18px 40px rgba(180,20,40,.28); }
+  .badge svg { width: 96px; height: 96px; }
+  .badge .mk { position: absolute; right: -16px; top: -16px; width: 64px; height: 64px; border-radius: 50%; background: #fff; color: var(--red);
+    font-weight: 900; font-size: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,.15); }
+  .badge .lb { position: absolute; top: 186px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-weight: 800; font-size: 34px; color: var(--ink); }
+  .chip { position: absolute; display: flex; align-items: center; gap: 18px; background: #fff; border-radius: 26px; padding: 18px 30px 18px 18px;
+    box-shadow: 0 16px 40px rgba(40,10,20,.16); font-weight: 800; font-size: 40px; white-space: nowrap; }
+  .chip i { width: 68px; height: 68px; border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, var(--org), var(--red) 55%, var(--mag)); }
+  .chip i svg { width: 40px; height: 40px; }
+
+  /* laptop */
+  .laptop { position: absolute; width: 900px; left: 90px; }
+  .laptop .scr { width: 820px; height: 520px; margin: 0 auto; background: #121216; border: 18px solid #23232a; border-bottom-width: 26px; border-radius: 30px 30px 8px 8px; overflow: hidden; position: relative; }
+  .laptop .base { width: 900px; height: 34px; background: linear-gradient(#d9d9de, #a9a9b2); border-radius: 4px 4px 30px 30px; position: relative; }
+  .laptop .base:after { content: ''; position: absolute; left: 50%; top: 0; width: 140px; height: 12px; transform: translateX(-50%); background: #9a9aa3; border-radius: 0 0 12px 12px; }
+  .dash { position: absolute; inset: 0; padding: 20px 24px; color: #fff; font-family: 'D'; }
+  .dash .top { display: flex; align-items: center; justify-content: space-between; height: 34px; }
+  .dash .top img { height: 26px; filter: brightness(0) invert(1); }
+  .dash .top .logo-c { display: flex; align-items: center; gap: 8px; }
+  .dash .top .logo-c img.ic { filter: none; height: 30px; }
+  .dash .top .logo-c span { font-weight: 800; font-size: 22px; letter-spacing: .04em; }
+  .dash .av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(145deg, var(--org), var(--mag)); }
+  .dash .hero { margin-top: 14px; height: 168px; border-radius: 14px; position: relative; overflow: hidden;
+    background: linear-gradient(110deg, #3a0d2a 0%, #8f1239 45%, #E3120B 100%); padding: 20px 22px; }
+  .dash .hero b { display: block; font-weight: 900; font-size: 34px; line-height: 1.05; width: 420px; }
+  .dash .hero small { display: block; margin-top: 8px; font-weight: 600; font-size: 16px; opacity: .85; }
+  .dash .hero .play { position: absolute; right: 30px; top: 46px; width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.95); }
+  .dash .hero .play:after { content: ''; position: absolute; left: 30px; top: 22px; border-left: 26px solid var(--red); border-top: 16px solid transparent; border-bottom: 16px solid transparent; }
+  .dash .prog { margin-top: 12px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.18); overflow: hidden; }
+  .dash .prog div { height: 100%; width: 10%; background: linear-gradient(90deg, var(--org), var(--red)); }
+  .dash .row-t { margin-top: 14px; font-weight: 800; font-size: 18px; opacity: .9; }
+  .dash .row { display: flex; gap: 12px; margin-top: 10px; }
+  .dash .card { flex: 1; height: 112px; border-radius: 10px; position: relative; overflow: hidden; padding: 10px; font-weight: 800; font-size: 15px; display: flex; align-items: flex-end; }
+
+  /* phone */
+  .phone { position: absolute; width: 480px; height: 980px; border-radius: 74px; background: #15151a; padding: 18px; box-shadow: 0 40px 80px rgba(60,10,20,.25); }
+  .phone .in { width: 100%; height: 100%; border-radius: 58px; overflow: hidden; position: relative; background: #fff; }
+  .phone .notch { position: absolute; top: 18px; left: 50%; width: 150px; height: 42px; transform: translateX(-50%); background: #15151a; border-radius: 24px; z-index: 5; }
+
+  .post { position: absolute; left: 30px; right: 30px; height: 300px; border-radius: 26px; background: #fff; box-shadow: 0 14px 34px rgba(0,0,0,.14); overflow: hidden; }
+  .post .img { position: absolute; left: 0; right: 0; top: 0; height: 210px; }
+  .post .meta { position: absolute; left: 22px; bottom: 22px; right: 22px; display: flex; align-items: center; gap: 14px; }
+  .post .meta .h { width: 40px; height: 40px; }
+  .post .meta .bar { flex: 1; height: 14px; border-radius: 7px; background: #eee; }
+
+  .cal { position: absolute; display: grid; grid-template-columns: repeat(7, 96px); gap: 14px; }
+  .cal div { height: 82px; border-radius: 18px; background: #EEE6E2; }
+
+  .avatar { position: absolute; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; box-shadow: 0 14px 30px rgba(0,0,0,.15); border: 8px solid #fff; }
+  .avatar svg { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const W = 1080, H = 1920;
+window.DURATION = 50.6;
+const stage = document.getElementById('stage');
+
+/* ---------- helpers ---------- */
+const cl = x => Math.max(0, Math.min(1, x));
+const eo = x => 1 - Math.pow(1 - cl(x), 3);
+const eio = x => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const eb = x => { x = cl(x); const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, p) => a + (b - a) * p;
+const h = (html) => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; };
+
+// Blur + rise reveal (like the reference's kinetic titles)
+function rv(el, t, a, o = {}) {
+  const d = o.d ?? 0.42, y = o.y ?? 46, bl = o.blur ?? 16;
+  const p = cl((t - a) / d), e = eo(p);
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 1.8);
+  const sc = o.scale ? lerp(o.scale, 1, e) : 1;
+  el.style.transform = `translateY(${(1 - e) * y}px) scale(${sc})`;
+  el.style.filter = `blur(${(1 - e) * bl}px)`;
+}
+// Pop in with overshoot
+function pop(el, t, a, o = {}) {
+  const d = o.d ?? 0.5, p = cl((t - a) / d);
+  const s = p <= 0 ? 0 : eb(p);
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 3);
+  el.style.transform = `${o.pre || ''} scale(${s}) rotate(${(1 - eo(p)) * (o.rot ?? 0)}deg)`;
+}
+function hide(el) { el.style.opacity = 0; }
+
+// words -> spans
+function words(text, cls = '') { return text.split(' ').map(w => `<span class="w ${cls}">${w}</span>`).join(' '); }
+function fit(el, maxW) {
+  const fs = parseFloat(getComputedStyle(el).fontSize);
+  const w = el.scrollWidth;
+  if (w > maxW) el.style.fontSize = (fs * maxW / w) + 'px';
+}
+
+/* ---------- icons (white line glyphs) ---------- */
+const S = 'fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"';
+const IC = {
+  post: `<svg viewBox="0 0 100 100" ${S}><rect x="16" y="16" width="68" height="68" rx="14"/><circle cx="38" cy="40" r="8"/><path d="M18 74l22-20 16 14 10-8 18 16"/></svg>`,
+  mega: `<svg viewBox="0 0 100 100" ${S}><path d="M18 42v18h14l30 18V24L32 42z"/><path d="M74 38c5 4 5 20 0 24"/><path d="M34 62l6 18"/></svg>`,
+  ai: `<svg viewBox="0 0 100 100" ${S}><path d="M44 14l7 20 20 7-20 7-7 20-7-20-20-7 20-7z"/><path d="M76 58l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>`,
+  clock: `<svg viewBox="0 0 100 100" ${S}><circle cx="50" cy="52" r="32"/><path d="M50 34v18l12 8"/></svg>`,
+  pen: `<svg viewBox="0 0 100 100" ${S}><path d="M22 78l6-20 38-38 14 14-38 38z"/><path d="M58 28l14 14"/></svg>`,
+  bolt: `<svg viewBox="0 0 100 100" ${S}><path d="M56 12L24 56h24l-6 32 34-46H52z"/></svg>`,
+  chart: `<svg viewBox="0 0 100 100" ${S}><path d="M18 80h66"/><path d="M28 70V54M46 70V40M64 70V28"/><path d="M24 40l20-14 14 8 22-16"/></svg>`,
+  play: `<svg viewBox="0 0 100 100" ${S}><rect x="12" y="22" width="76" height="56" rx="12"/><path d="M42 38l20 12-20 12z" fill="#fff"/></svg>`,
+  heart: `<svg viewBox="0 0 100 100"><path d="M50 84S14 62 14 38c0-12 9-22 21-22 7 0 12 4 15 9 3-5 8-9 15-9 12 0 21 10 21 22 0 24-36 46-36 46z" fill="#E3120B"/></svg>`,
+};
+function avatar(bg, skin, hair) {
+  return `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="${bg}"/><circle cx="50" cy="42" r="18" fill="${skin}"/>
+  <path d="M32 40c0-14 8-22 18-22s18 8 18 22c-4-8-10-10-18-10s-14 2-18 10z" fill="${hair}"/>
+  <path d="M18 100c2-20 16-30 32-30s30 10 32 30z" fill="#fff" opacity=".9"/></svg>`;
+}
+
+/* ---------- scene factory ---------- */
+const scenes = [];
+function scene(s, e, cls, build, update) {
+  const el = document.createElement('div'); el.className = 'scene ' + cls; stage.appendChild(el);
+  const ctx = build(el) || {};
+  scenes.push({ s, e, el, ctx, update });
+}
+// title block: small line + big line
+function title(el, top, sm, big, o = {}) {
+  const t = h(`<div class="title" style="top:${top}px">
+      ${sm ? `<div class="line sm">${words(sm)}</div>` : ''}
+      <div class="line"><span class="big" style="${o.bigStyle || ''}">${o.letters ? big.split('').map(c => `<span class="w">${c === ' ' ? '&nbsp;' : c}</span>`).join('') : words(big)}</span></div>
+    </div>`);
+  el.appendChild(t);
+  const bigEl = t.querySelector('.big');
+  requestAnimationFrame(() => {});
+  return { t, smW: [...t.querySelectorAll('.sm .w')], bigEl, bigW: [...t.querySelectorAll('.big .w')] };
+}
+// reveal small words starting at times[] (or evenly), big words at times
+function playTitle(tt, t, smTimes, bigTimes, o = {}) {
+  tt.smW.forEach((w, i) => rv(w, t, smTimes[Math.min(i, smTimes.length - 1)] + (i >= smTimes.length ? (i - smTimes.length + 1) * 0.08 : 0), { y: 30, blur: 12, d: 0.35 }));
+  tt.bigW.forEach((w, i) => rv(w, t, bigTimes[Math.min(i, bigTimes.length - 1)] + (i >= bigTimes.length ? (i - bigTimes.length + 1) * (o.stagger ?? 0.1) : 0), { y: o.y ?? 70, blur: 20, d: 0.45, scale: o.scale }));
+}
+// subtle push-in so nothing is ever static
+function push(el, t, s, e, amt = 0.035) { el.style.transform = `scale(${1 + amt * cl((t - s) / (e - s))})`; }
+
+/* ======================================================================
+   SCENE A  0.00 – 4.10  "Esta es Carla" / "Tiene su propio negocio"
+   ====================================================================== */
+scene(0, 4.10, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const blob1 = h(`<div class="blob" style="width:900px;height:900px;left:420px;top:760px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 55%,rgba(251,225,222,0) 72%)"></div>`);
+  const blob2 = h(`<div class="blob" style="width:620px;height:620px;left:-260px;top:1100px;background:radial-gradient(circle,#F7C9D9 0%,rgba(247,201,217,0) 70%)"></div>`);
+  // storefront awning (business decor)
+  const shop = h(`<svg class="abs" style="left:-30px;top:1080px;width:300px;opacity:0" viewBox="0 0 360 420">
+      <rect x="40" y="120" width="280" height="290" rx="10" fill="#F6C9C3"/>
+      <rect x="80" y="210" width="90" height="200" rx="8" fill="#F1A79E"/>
+      <rect x="200" y="210" width="90" height="90" rx="8" fill="#fff" opacity=".7"/>
+      <path d="M20 40h320l10 80H10z" fill="#E3120B"/>
+      <path d="M20 40h53l-8 80H10zM126 40h54v80h-62zM233 40h53l11 80h-62z" fill="#fff" opacity=".9"/>
+      <path d="M10 120c0 22 22 22 27 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0" fill="#E3120B"/></svg>`);
+  const bars = h(`<div class="abs" style="left:720px;top:900px;width:300px;height:300px"></div>`);
+  const barEls = [0, 1, 2, 3].map(i => { const b = h(`<div class="abs" style="left:${i * 70}px;bottom:0;width:52px;border-radius:14px 14px 4px 4px;background:linear-gradient(${['#F7B7AE', '#F3897C', '#EC5A47', '#E3120B'][i]},${['#F7B7AE', '#F3897C', '#EC5A47', '#E3120B'][i]})"></div>`); bars.appendChild(b); return b; });
+  const arrow = h(`<svg class="abs" style="left:-10px;top:-40px;width:320px;height:260px;overflow:visible" viewBox="0 0 320 260"><path id="ar" d="M10 230 L110 150 L170 180 L300 40" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path id="ah" d="M250 36 L304 36 L304 90" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  bars.appendChild(arrow);
+  [blob1, blob2, shop, bars].forEach(x => wrap.appendChild(x));
+  const ch = h(`<div class="char" style="width:900px;top:820px;margin-left:-450px"><img src="assets/carla_laptop.png"></div>`); wrap.appendChild(ch);
+  const t1 = title(wrap, 300, 'Esta es', 'Carla');
+  const t2 = title(wrap, 300, 'Tiene su propio', 'Negocio');
+  return { wrap, blob1, blob2, shop, bars, barEls, arrow, ch, t1, t2 };
+}, (c, t) => {
+  push(c.wrap, t, 0, 4.1, 0.03);
+  // Carla rises in
+  const p = cl((t - 0.05) / 0.7);
+  c.ch.style.opacity = p > 0 ? 1 : 0;
+  c.ch.style.transform = `translateY(${(1 - eb(p)) * 500 + Math.sin(t * 2.2) * 6}px)`;
+  c.blob1.style.opacity = eo((t - 0.1) / 0.6); c.blob1.style.transform = `scale(${lerp(.6, 1, eo((t - .1) / .8))})`;
+  const showT1 = t < 1.18;
+  c.t1.t.style.display = showT1 ? '' : 'none'; c.t2.t.style.display = showT1 ? 'none' : '';
+  if (showT1) playTitle(c.t1, t, [0.12, 0.22], [0.38]);
+  else playTitle(c.t2, t, [1.2, 1.56, 1.79], [2.22]);
+  // business decor
+  rv(c.shop, t, 1.9, { y: 80, blur: 10, d: 0.5 });
+  c.blob2.style.opacity = eo((t - 1.9) / .6);
+  // growth "y quiere que crezca"
+  c.bars.style.opacity = t > 2.8 ? 1 : 0;
+  const hs = [70, 120, 180, 250];
+  c.barEls.forEach((b, i) => b.style.height = (hs[i] * eb((t - 2.85 - i * 0.1) / 0.45)) + 'px');
+  const ar = c.arrow.querySelector('#ar'), ah = c.arrow.querySelector('#ah');
+  const L = 420, pa = eo((t - 3.25) / 0.6);
+  ar.style.strokeDasharray = L; ar.style.strokeDashoffset = L * (1 - pa);
+  ah.style.strokeDasharray = 120; ah.style.strokeDashoffset = 120 * (1 - eo((t - 3.75) / 0.25));
+});
+
+/* ======================================================================
+   SCENE B  4.10 – 6.78  red: "Pero todos los días / La misma pregunta"
+   ====================================================================== */
+scene(4.10, 6.78, 'bg-red', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const ring = h(`<div class="abs" style="left:540px;top:960px;width:1400px;height:1400px;margin:-700px 0 0 -700px;border-radius:50%;border:2px solid rgba(255,255,255,.18)"></div>`);
+  const ring2 = h(`<div class="abs" style="left:540px;top:960px;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;border:2px solid rgba(255,255,255,.22)"></div>`);
+  wrap.appendChild(ring); wrap.appendChild(ring2);
+  const tt = title(wrap, 760, 'Pero todos los días', 'La misma', { });
+  const tt2 = title(wrap, 1000, '', 'pregunta');
+  return { wrap, tt, tt2, ring, ring2 };
+}, (c, t) => {
+  push(c.wrap, t, 4.1, 6.78, 0.05);
+  c.ring.style.transform = `scale(${lerp(.4, 1, eo((t - 4.1) / 1.2))})`;
+  c.ring2.style.transform = `scale(${lerp(.3, 1, eo((t - 4.2) / 1.2))})`;
+  playTitle(c.tt, t, [4.14, 4.44, 4.68, 4.86], [5.49, 5.64]);
+  playTitle(c.tt2, t, [0], [5.9]);
+});
+
+/* ======================================================================
+   SCENE C  6.78 – 9.15  "¿Cómo atraer más / Clientes?"
+   ====================================================================== */
+scene(6.78, 9.15, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const glow = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:500px;background:radial-gradient(circle,#FBDAD6 0%,rgba(251,225,222,0) 65%)"></div>`); wrap.appendChild(glow);
+  const tt = title(wrap, 760, '¿Cómo atraer más', 'Clientes?');
+  const av = [
+    [110, 420, '#FDE2C8', '#F2C3A0', '#3B2A20'], [800, 380, '#E8D7F5', '#E9B993', '#1E1E1E'], [880, 1200, '#D6ECF7', '#C98E68', '#2E1C12'],
+    [120, 1240, '#FBD5DC', '#F0C9A8', '#8A4B2A'], [470, 1430, '#FFF0C2', '#D7A07A', '#151515'],
+  ].map(([x, y, bg, sk, hr]) => { const a = h(`<div class="avatar" style="left:${x}px;top:${y}px">${avatar(bg, sk, hr)}</div>`); wrap.appendChild(a); return a; });
+  const q = h(`<div class="abs" style="left:780px;top:620px;font-weight:900;font-size:180px;color:#B5287E;opacity:0">?</div>`); wrap.appendChild(q);
+  return { wrap, tt, av, q, glow };
+}, (c, t) => {
+  push(c.wrap, t, 6.78, 9.15, 0.04);
+  playTitle(c.tt, t, [6.84, 7.12, 7.32, 7.66], [7.91]);
+  const at = [7.55, 7.72, 7.9, 8.08, 8.26];
+  c.av.forEach((a, i) => { pop(a, t, at[i], { rot: i % 2 ? 12 : -12 }); a.style.transform += ` translateY(${Math.sin(t * 2 + i) * 8}px)`; });
+  pop(c.q, t, 8.4, { rot: 20 });
+});
+
+/* ======================================================================
+   SCENE D  9.15 – 18.62  Carla thinking + pain-point icons
+   ====================================================================== */
+scene(9.15, 18.62, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const blob = h(`<div class="blob" style="width:1000px;height:1000px;left:40px;top:780px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
+  const ch = h(`<div class="char" style="width:740px;top:1010px;margin-left:-410px"><img src="assets/carla_think.png"></div>`); wrap.appendChild(ch);
+  const tt = title(wrap, 300, 'Sabe que necesita crear', 'Contenido');
+  const tt2 = title(wrap, 300, 'Pero no sabe…', '¿Por dónde empezar?', { });
+  const mk = (x, y, icon, m, label) => { const b = h(`<div class="badge" style="left:${x}px;top:${y}px">${IC[icon]}<div class="mk">${m}</div><div class="lb">${label}</div></div>`); wrap.appendChild(b); return b; };
+  const b = [
+    mk(110, 640, 'post', '?', 'Qué publicar'),
+    mk(790, 600, 'mega', '!', 'Vender en redes'),
+    mk(80, 940, 'ai', '?', 'Usar la IA'),
+    mk(830, 940, 'clock', '!', 'Sin perder horas'),
+  ];
+  return { wrap, ch, tt, tt2, b, blob };
+}, (c, t) => {
+  push(c.wrap, t, 9.15, 18.62, 0.03);
+  const p = cl((t - 9.15) / 0.6);
+  c.ch.style.transform = `translateY(${(1 - eo(p)) * 300}px) rotate(${Math.sin(t * 1.6) * 0.8}deg)`;
+  c.ch.style.opacity = p > 0 ? 1 : 0;
+  const first = t < 12.0;
+  c.tt.t.style.display = first ? '' : 'none'; c.tt2.t.style.display = first ? 'none' : '';
+  if (first) playTitle(c.tt, t, [9.2, 9.94, 10.05, 10.53], [10.86]);
+  else playTitle(c.tt2, t, [12.0, 12.03, 12.14], [12.44, 12.62, 12.75], { stagger: 0.1 });
+  const at = [12.62, 13.8, 15.73, 17.24];
+  c.b.forEach((b, i) => { pop(b, t, at[i], { rot: i % 2 ? 14 : -14 }); b.style.transform += ` translateY(${Math.sin(t * 2.4 + i * 1.3) * 10}px)`; });
+});
+
+/* ======================================================================
+   SCENE E  18.62 – 20.80  "Para dejar de / IMPROVISAR"
+   ====================================================================== */
+scene(18.62, 20.80, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const tt = title(wrap, 800, 'Para dejar de', 'IMPROVISAR', { letters: true });
+  const strike = h(`<div class="abs" style="left:110px;top:1012px;height:22px;width:860px;background:#1B1B1F;border-radius:11px;transform-origin:0 50%;transform:scaleX(0)"></div>`);
+  wrap.appendChild(strike);
+  return { wrap, tt, strike };
+}, (c, t) => {
+  push(c.wrap, t, 18.62, 20.8, 0.05);
+  playTitle(c.tt, t, [19.02, 19.09, 19.38], [19.49], { stagger: 0.045, y: 90 });
+  c.strike.style.transform = `scaleX(${eio((t - 20.35) / 0.35)}) rotate(-3deg)`;
+});
+
+/* ======================================================================
+   SCENE F  20.80 – 21.95  "Existe" + Claseflix logo reveal
+   ====================================================================== */
+scene(20.80, 21.95, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const burst = h(`<div class="abs" style="left:540px;top:960px;width:1600px;height:1600px;margin:-800px 0 0 -800px;border-radius:50%;background:radial-gradient(circle,rgba(227,18,11,.16) 0%,rgba(181,40,126,.08) 35%,rgba(255,255,255,0) 60%)"></div>`);
+  wrap.appendChild(burst);
+  const ex = h(`<div class="title sm" style="top:770px">${words('Existe')}</div>`); wrap.appendChild(ex);
+  const logoBox = h(`<div class="abs" style="left:90px;width:900px;top:900px;height:200px;overflow:hidden"></div>`);
+  const ic = h(`<img class="abs" src="assets/claseflix_icon.png" style="left:0;top:2px;height:196px">`);
+  const lg = h(`<img class="abs" src="assets/claseflix_logo.png" style="left:0;top:2px;height:196px">`);
+  logoBox.appendChild(lg); wrap.appendChild(logoBox); wrap.appendChild(ic);
+  ic.style.left = (90) + 'px'; ic.style.top = '902px';
+  return { wrap, ex, lg, ic, burst };
+}, (c, t) => {
+  push(c.wrap, t, 20.8, 21.95, 0.04);
+  rv(c.ex.querySelector('.w'), t, 20.46, { y: 30 });
+  c.burst.style.transform = `scale(${lerp(.2, 1, eo((t - 20.85) / 0.8))})`;
+  c.burst.style.opacity = eo((t - 20.85) / .3);
+  // icon pops, then wordmark wipes from left
+  pop(c.ic, t, 20.85, { d: 0.45, rot: -20 });
+  const p = eio((t - 21.12) / 0.45);
+  c.lg.style.clipPath = `inset(0 ${100 - lerp(20, 100, p)}% 0 0)`;
+  c.lg.style.opacity = t > 21.12 ? 1 : 0;
+  c.ic.style.opacity = t > 21.12 ? 0 : c.ic.style.opacity;
+});
+
+/* ======================================================================
+   SCENE G+H  21.95 – 30.42  Platform (laptop dashboard) + skills chips
+   ====================================================================== */
+scene(21.95, 30.42, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const wave = h(`<svg class="abs" style="left:0;top:1060px;width:1080px;height:860px" viewBox="0 0 1080 860" preserveAspectRatio="none"><path d="M0 160 C 260 40, 520 260, 1080 90 L1080 860 L0 860 Z" fill="#FBE1DE"/><path d="M0 330 C 300 210, 640 420, 1080 250 L1080 860 L0 860 Z" fill="#F8CFC9"/></svg>`);
+  wrap.appendChild(wave);
+  const lap = h(`<div class="laptop" style="top:760px">
+     <div class="scr"><div class="dash">
+       <div class="top"><div class="logo-c"><img class="ic" src="assets/claseflix_icon.png"><span>CLASEFLIX</span></div><div class="av"></div></div>
+       <div class="hero"><b>IA para hacer crecer tu negocio</b><small>Módulo 1 · Crea contenido que vende</small><div class="play"></div></div>
+       <div class="prog"><div></div></div>
+       <div class="row-t">Continúa aprendiendo</div>
+       <div class="row">
+         <div class="card" style="background:linear-gradient(140deg,#F36A1C,#E3120B)">Contenido</div>
+         <div class="card" style="background:linear-gradient(140deg,#B5287E,#6E1A4F)">Copywriting</div>
+         <div class="card" style="background:linear-gradient(140deg,#E3120B,#B5287E)">Automatización</div>
+       </div>
+     </div></div>
+     <div class="base"></div></div>`);
+  wrap.appendChild(lap);
+  const ttA = title(wrap, 300, 'La plataforma de', 'Aprendizaje de IA');
+  const step = h(`<div class="chip" style="left:340px;top:610px;font-size:42px"><i>${IC.chart}</i>Paso a paso</div>`); wrap.appendChild(step);
+  const ttB = title(wrap, 300, 'Aprende a', 'Crear contenido');
+  const ttC = title(wrap, 300, 'Aprende a escribir', 'Textos que venden');
+  const ttD = title(wrap, 300, 'Y a', 'Automatizar');
+  const chip = (x, y, ic, txt) => { const c = h(`<div class="chip" style="left:${x}px;top:${y}px"><i>${IC[ic]}</i>${txt}</div>`); wrap.appendChild(c); return c; };
+  const chips = [chip(60, 1420, 'post', 'Contenido'), chip(560, 1520, 'pen', 'Copywriting'), chip(80, 1640, 'bolt', 'Automatización'), chip(620, 1330, 'chart', 'Marketing')];
+  return { wrap, lap, ttA, ttB, ttC, ttD, step, chips, wave, prog: lap.querySelector('.prog div'), cards: [...lap.querySelectorAll('.card')] };
+}, (c, t) => {
+  push(c.wrap, t, 21.95, 30.42, 0.03);
+  const p = cl((t - 21.95) / 0.7);
+  c.lap.style.opacity = p > 0 ? 1 : 0;
+  c.lap.style.transform = `translateY(${(1 - eo(p)) * 400 + Math.sin(t * 1.8) * 6}px) scale(${lerp(.85, 1, eo(p))})`;
+  c.wave.style.transform = `translateY(${(1 - eo((t - 21.95) / 0.8)) * 300}px)`;
+  const ts = [c.ttA, c.ttB, c.ttC, c.ttD], tb = [21.95, 25.76, 27.2, 28.84, 99];
+  ts.forEach((x, i) => x.t.style.display = (t >= tb[i] && t < tb[i + 1]) ? '' : 'none');
+  if (t < 25.76) playTitle(c.ttA, t, [21.97, 22.21, 22.77], [22.9, 23.49, 23.7]);
+  else if (t < 27.2) playTitle(c.ttB, t, [25.76, 25.76], [25.99, 26.37]);
+  else if (t < 28.84) playTitle(c.ttC, t, [27.2, 27.2, 27.22], [27.74, 28.12, 28.29]);
+  else playTitle(c.ttD, t, [28.84, 28.84], [28.94]);
+  // "paso a paso" chip + progress bar
+  pop(c.step, t, 24.96, { rot: -8 });
+  c.step.style.opacity = t > 25.72 ? Math.max(0, 1 - (t - 25.72) / 0.2) : c.step.style.opacity;
+  c.prog.style.width = lerp(10, 72, eio((t - 24.96) / 1.0)) + '%';
+  // highlight dashboard cards as each skill is said
+  const hl = [26.0, 27.3, 28.95];
+  c.cards.forEach((cd, i) => { const k = eb((t - hl[i]) / 0.35); cd.style.transform = `translateY(${-14 * k * (t < hl[i] + 1.2 ? 1 : 0)}px) scale(${1 + .06 * k * (t < hl[i] + 1.2 ? 1 : 0)})`; });
+  const at = [26.0, 27.26, 28.95, 29.75];
+  c.chips.forEach((ch, i) => { pop(ch, t, at[i], { rot: i % 2 ? 10 : -10 }); ch.style.transform += ` translateY(${Math.sin(t * 2.2 + i) * 9}px)`; });
+});
+
+/* ======================================================================
+   SCENE I  30.42 – 32.30  "Todo en / UN SOLO LUGAR"
+   ====================================================================== */
+scene(30.42, 32.30, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const tiles = [];
+  const icons = ['post', 'pen', 'ai', 'bolt', 'play', 'chart'];
+  icons.forEach((ic, i) => {
+    const ang = -Math.PI / 2 + i * Math.PI * 2 / 6, r = 380;
+    const b = h(`<div class="badge" style="width:140px;height:140px;border-radius:38px;left:${540 - 70 + Math.cos(ang) * r}px;top:${960 - 70 + Math.sin(ang) * r}px">${IC[ic]}</div>`);
+    b.querySelector('svg').style.width = '78px'; b.querySelector('svg').style.height = '78px';
+    wrap.appendChild(b); tiles.push({ b, ang, r });
+  });
+  const tt = title(wrap, 840, 'Todo en', 'UN SOLO LUGAR');
+  return { wrap, tiles, tt };
+}, (c, t) => {
+  push(c.wrap, t, 30.42, 32.3, 0.04);
+  playTitle(c.tt, t, [30.42, 31.15], [31.25, 31.4, 31.65]);
+  // icons fly in to orbit, then collapse toward the center ("one place")
+  c.tiles.forEach(({ b, ang, r }, i) => {
+    const pin = eb((t - 30.42 - i * 0.06) / 0.45);
+    const col = eio((t - 31.75) / 0.45);
+    const rr = r * (1 + (1 - Math.min(1, pin)) * .6) * lerp(1, .0, col);
+    const a2 = ang + Math.sin(t * 1.5 + i) * 0.03;
+    b.style.left = (540 - 70 + Math.cos(a2) * rr * 1.05) + 'px';
+    b.style.top = (960 - 70 + Math.sin(a2) * rr * 1.35) + 'px';
+    b.style.opacity = t < 30.42 + i * .06 ? 0 : (1 - col);
+    b.style.transform = `scale(${Math.max(0, pin) * lerp(1, .3, col)})`;
+  });
+});
+
+/* ======================================================================
+   SCENE J  32.30 – 34.95  "A tu ritmo, desde el / Celular" phone
+   ====================================================================== */
+scene(32.30, 34.95, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const curve = h(`<svg class="abs" style="left:0;top:1150px;width:1080px;height:770px" viewBox="0 0 1080 770" preserveAspectRatio="none"><path d="M0 230 C 300 90, 700 360, 1080 120 L1080 770 L0 770 Z" fill="#E3120B"/><path d="M0 330 C 320 200, 700 470, 1080 260 L1080 770 L0 770 Z" fill="#B80C1C" opacity=".55"/></svg>`);
+  wrap.appendChild(curve);
+  const ph = h(`<div class="phone" style="left:300px;top:760px"><div class="notch"></div><div class="in" style="background:linear-gradient(170deg,#fff 0%,#FFF3F1 100%)">
+      <div class="abs" style="left:50%;top:250px;width:230px;height:230px;margin-left:-115px;border-radius:56px;background:#fff;box-shadow:0 20px 50px rgba(200,20,40,.25);display:flex;align-items:center;justify-content:center"><img src="assets/claseflix_icon.png" style="height:160px"></div>
+      <div class="abs" style="left:0;right:0;top:520px;text-align:center;font-weight:900;font-size:50px;letter-spacing:.04em;color:#1B1B1F">CLASEFLIX</div>
+      <div class="abs" style="left:60px;right:60px;top:610px;height:16px;border-radius:8px;background:#F1E4E1"><div class="ld" style="height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#F36A1C,#E3120B,#B5287E)"></div></div>
+    </div></div>`);
+  wrap.appendChild(ph);
+  const tt = title(wrap, 300, 'A tu ritmo, desde el', 'Celular');
+  return { wrap, ph, tt, curve, ld: ph.querySelector('.ld') };
+}, (c, t) => {
+  push(c.wrap, t, 32.3, 34.95, 0.035);
+  playTitle(c.tt, t, [32.34, 32.5, 32.62, 33.24, 33.49], [33.67]);
+  const p = cl((t - 32.35) / 0.75);
+  c.ph.style.transform = `translateY(${(1 - eb(p)) * 900}px) rotate(${(1 - eo(p)) * 8}deg)`;
+  c.curve.style.transform = `translateY(${(1 - eo((t - 32.3) / .6)) * 500}px)`;
+  c.ld.style.width = (eio((t - 33.3) / 1.4) * 100) + '%';
+});
+
+/* ======================================================================
+   SCENE K  34.95 – 37.10  "Crea / Publicaciones" (en minutos)
+   ====================================================================== */
+scene(34.95, 37.10, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:700px;background:radial-gradient(circle,#FAD3CE 0%,rgba(251,225,222,0) 65%)"></div>`); wrap.appendChild(blob);
+  const ph = h(`<div class="phone" style="left:300px;top:720px"><div class="notch"></div><div class="in" style="background:#F6F1EE"></div></div>`);
+  wrap.appendChild(ph);
+  const inn = ph.querySelector('.in');
+  const grads = ['linear-gradient(140deg,#F36A1C,#E3120B)', 'linear-gradient(140deg,#B5287E,#6E1A4F)', 'linear-gradient(140deg,#E3120B,#B5287E)'];
+  const posts = grads.map((g, i) => { const p = h(`<div class="post" style="top:${90 + i * 320}px"><div class="img" style="background:${g}">
+      <svg class="abs" style="left:30px;top:30px;width:120px" viewBox="0 0 100 100">${''}<circle cx="30" cy="30" r="14" fill="rgba(255,255,255,.7)"/><path d="M0 100 L40 55 L60 75 L80 60 L100 80 L100 100Z" fill="rgba(255,255,255,.55)"/></svg>
+      <div class="abs" style="right:26px;bottom:24px;font-weight:900;font-size:30px;color:#fff;opacity:.95">${['¡Nuevo!', 'Tips', 'Oferta'][i]}</div></div>
+      <div class="meta"><div class="h">${IC.heart}</div><div class="bar"></div></div></div>`); inn.appendChild(p); return p; });
+  const timer = h(`<div class="chip" style="left:640px;top:1360px"><i>${IC.clock}</i>en minutos</div>`); wrap.appendChild(timer);
+  const tt = title(wrap, 300, 'Crea', 'Publicaciones');
+  return { wrap, ph, posts, timer, tt };
+}, (c, t) => {
+  push(c.wrap, t, 34.95, 37.1, 0.035);
+  playTitle(c.tt, t, [35.0], [35.49]);
+  const p = cl((t - 34.95) / 0.5);
+  c.ph.style.transform = `translateY(${(1 - eo(p)) * 600}px)`;
+  const at = [35.5, 35.75, 36.0];
+  c.posts.forEach((po, i) => { const k = cl((t - at[i]) / 0.4); po.style.opacity = k > 0 ? 1 : 0; po.style.transform = `translateX(${(1 - eb(k)) * 500}px) rotate(${(1 - eo(k)) * 8}deg)`; });
+  pop(c.timer, t, 36.3, { rot: 10 });
+});
+
+/* ======================================================================
+   SCENE L  37.10 – 39.25  red: "Genera / Imágenes y videos" con IA
+   ====================================================================== */
+scene(37.10, 39.25, 'bg-red', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const card = (x, y, w, hh, ic, rot) => { const c = h(`<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px;border-radius:36px;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;transform:rotate(${rot}deg)">${IC[ic]}</div>`); c.querySelector('svg').style.width = '130px'; wrap.appendChild(c); return c; };
+  const cards = [card(110, 1180, 360, 300, 'post', -8), card(600, 1140, 380, 320, 'play', 7), card(380, 1450, 320, 260, 'ai', -3)];
+  const tt = title(wrap, 640, 'Genera', 'Imágenes');
+  const tt2 = title(wrap, 860, '', 'y videos');
+  const ia = h(`<div class="chip" style="left:400px;top:1040px;color:#E3120B;opacity:0"><i>${IC.ai}</i>con IA</div>`); wrap.appendChild(ia);
+  return { wrap, cards, tt, tt2, ia };
+}, (c, t) => {
+  push(c.wrap, t, 37.1, 39.25, 0.05);
+  playTitle(c.tt, t, [37.13], [37.48]);
+  playTitle(c.tt2, t, [0], [37.88, 37.98]);
+  const at = [37.5, 37.98, 38.4];
+  c.cards.forEach((cd, i) => { pop(cd, t, at[i], { pre: `rotate(${[-8, 7, -3][i]}deg)`, rot: 0 }); cd.style.transform += ` translateY(${Math.sin(t * 2.4 + i) * 10}px)`; });
+  pop(c.ia, t, 38.4, { rot: -8 });
+});
+
+/* ======================================================================
+   SCENE M  39.25 – 41.80  "Planifica todo el / Mes" + counter + calendar
+   ====================================================================== */
+scene(39.25, 41.80, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const tt = title(wrap, 300, 'Planifica el contenido de', 'Todo el mes');
+  const num = h(`<div class="abs" style="left:0;right:0;top:640px;text-align:center;font-weight:900;font-size:300px;letter-spacing:-.04em;line-height:1;color:#E3120B">1</div>`); wrap.appendChild(num);
+  const lab = h(`<div class="abs" style="left:0;right:0;top:950px;text-align:center;font-weight:800;font-size:60px;color:#1B1B1F">días de contenido</div>`); wrap.appendChild(lab);
+  const cal = h(`<div class="cal" style="left:${(1080 - (7 * 96 + 6 * 14)) / 2}px;top:1100px"></div>`);
+  const cells = []; for (let i = 0; i < 35; i++) { const d = document.createElement('div'); cal.appendChild(d); cells.push(d); }
+  wrap.appendChild(cal);
+  return { wrap, tt, num, lab, cells };
+}, (c, t) => {
+  push(c.wrap, t, 39.25, 41.8, 0.035);
+  playTitle(c.tt, t, [39.39, 39.81, 39.97, 40.45], [40.59, 40.77, 40.96]);
+  const k = eio((t - 39.4) / 1.9);
+  const n = Math.max(1, Math.round(k * 30));
+  c.num.textContent = n;
+  rv(c.num, t, 39.3, { y: 60, blur: 18 });
+  rv(c.lab, t, 39.45, { y: 30 });
+  c.cells.forEach((cd, i) => {
+    const on = i < n; const a = 39.4 + (i / 30) * 1.9;
+    cd.style.background = on ? (i % 3 === 0 ? 'linear-gradient(140deg,#F36A1C,#E3120B)' : i % 3 === 1 ? 'linear-gradient(140deg,#E3120B,#B5287E)' : 'linear-gradient(140deg,#B5287E,#6E1A4F)') : (i < 30 ? '#EEE6E2' : 'transparent');
+    cd.style.transform = on ? `scale(${eb((t - a) / 0.3)})` : 'scale(1)';
+    cd.style.opacity = t > 39.3 + i * 0.012 ? 1 : 0;
+  });
+});
+
+/* ======================================================================
+   SCENE N  41.80 – 44.00  Carla happy: "Menos dudas / Más autonomía"
+   ====================================================================== */
+scene(41.80, 44.00, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:760px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
+  const sparks = [];
+  for (let i = 0; i < 14; i++) {
+    const s = h(`<div class="abs" style="width:${16 + (i % 4) * 8}px;height:${16 + (i % 4) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#E3120B', '#B5287E', '#F36A1C', '#6E1A4F'][i % 4]}"></div>`);
+    wrap.appendChild(s); sparks.push(s);
+  }
+  const ch = h(`<div class="char" style="width:860px;top:880px;margin-left:-430px"><img src="assets/carla_happy.png"></div>`); wrap.appendChild(ch);
+  const tt = title(wrap, 300, 'Menos', 'Dudas');
+  const tt2 = title(wrap, 300, 'Más', 'Autonomía');
+  return { wrap, ch, tt, tt2, sparks };
+}, (c, t) => {
+  push(c.wrap, t, 41.8, 44.0, 0.03);
+  const p = cl((t - 41.8) / 0.6);
+  c.ch.style.opacity = p > 0 ? 1 : 0;
+  c.ch.style.transform = `translateY(${(1 - eb(p)) * 500 + Math.sin(t * 3) * 6}px)`;
+  const first = t < 43.08;
+  c.tt.t.style.display = first ? '' : 'none'; c.tt2.t.style.display = first ? 'none' : '';
+  if (first) playTitle(c.tt, t, [41.85], [42.36]); else playTitle(c.tt2, t, [43.1], [43.26]);
+  // confetti burst on "autonomía"
+  c.sparks.forEach((s, i) => {
+    const ang = (i / 14) * Math.PI * 2 + 0.3, k = eo((t - 43.26) / 1.0);
+    const r = 120 + k * (360 + (i % 3) * 70);
+    s.style.left = (540 + Math.cos(ang) * r) + 'px'; s.style.top = (1000 + Math.sin(ang) * r * 0.8 + k * k * 120) + 'px';
+    s.style.opacity = t < 43.26 ? 0 : Math.max(0, 1 - (t - 43.9) / 0.4);
+    s.style.transform = `rotate(${k * 360 + i * 30}deg)`;
+  });
+});
+
+/* ======================================================================
+   SCENE O  44.00 – 45.92  red: "Para hacer crecer tu / Negocio"
+   ====================================================================== */
+scene(44.00, 45.92, 'bg-red', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const tt = title(wrap, 790, 'Para hacer crecer tu', 'Negocio');
+  const ov = h(`<svg class="abs" style="left:90px;top:880px;width:900px;height:260px;overflow:visible" viewBox="0 0 900 260">
+      <path id="o1" d="M450 18 C 760 10, 880 70, 860 140 C 840 220, 600 250, 420 244 C 200 238, 30 200, 40 130 C 50 60, 240 24, 470 26" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/></svg>`);
+  wrap.appendChild(ov);
+  const arr = h(`<svg class="abs" style="left:760px;top:520px;width:220px;height:220px;overflow:visible" viewBox="0 0 220 220"><path id="a1" d="M20 200 C 60 120, 110 80, 190 30" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path id="a2" d="M130 26 L194 26 L194 90" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  wrap.appendChild(arr);
+  return { wrap, tt, o1: ov.querySelector('#o1'), a1: arr.querySelector('#a1'), a2: arr.querySelector('#a2') };
+}, (c, t) => {
+  push(c.wrap, t, 44.0, 45.92, 0.05);
+  playTitle(c.tt, t, [44.0, 44.04, 44.28, 44.67], [44.79]);
+  const L = 2100; c.o1.style.strokeDasharray = L; c.o1.style.strokeDashoffset = L * (1 - eio((t - 45.0) / 0.6));
+  c.a1.style.strokeDasharray = 260; c.a1.style.strokeDashoffset = 260 * (1 - eo((t - 44.4) / 0.4));
+  c.a2.style.strokeDasharray = 140; c.a2.style.strokeDashoffset = 140 * (1 - eo((t - 44.75) / 0.25));
+});
+
+/* ======================================================================
+   SCENE P  45.92 – 50.60  End card: logo + "Aprende IA y haz crecer tu negocio"
+   ====================================================================== */
+scene(45.92, 50.60, 'bg-cream', el => {
+  const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
+  const glow = h(`<div class="abs" style="left:540px;top:900px;width:1500px;height:1500px;margin:-750px 0 0 -750px;border-radius:50%;background:radial-gradient(circle,rgba(227,18,11,.13) 0%,rgba(181,40,126,.07) 35%,rgba(255,255,255,0) 62%)"></div>`);
+  wrap.appendChild(glow);
+  const icon = h(`<img class="abs" src="assets/claseflix_icon.png" style="left:${540 - 150}px;top:560px;height:326px">`); wrap.appendChild(icon);
+  const logo = h(`<img class="abs" src="assets/claseflix_logo.png" style="left:110px;top:${980}px;width:860px">`); wrap.appendChild(logo);
+  const tag1 = h(`<div class="title sm" style="top:1250px;font-size:62px">${words('Aprende IA y')}</div>`); wrap.appendChild(tag1);
+  const tag2 = h(`<div class="title" style="top:1330px"><span class="big" style="font-size:96px">${words('haz crecer tu negocio')}</span></div>`); wrap.appendChild(tag2);
+  return { wrap, glow, icon, logo, tag1: [...tag1.querySelectorAll('.w')], tag2: [...tag2.querySelectorAll('.w')] };
+}, (c, t) => {
+  push(c.wrap, t, 45.92, 50.6, 0.04);
+  c.glow.style.transform = `scale(${lerp(.3, 1, eo((t - 46.0) / 1.0))})`;
+  pop(c.icon, t, 46.25, { d: 0.55, rot: -16 });
+  c.icon.style.transform += ` translateY(${Math.sin(t * 2) * 8}px)`;
+  const p = eio((t - 46.55) / 0.5);
+  c.logo.style.opacity = t > 46.55 ? 1 : 0;
+  c.logo.style.clipPath = `inset(0 ${100 - p * 100}% 0 0)`;
+  const t1 = [47.47, 47.89, 48.24]; c.tag1.forEach((w, i) => rv(w, t, t1[i], { y: 30 }));
+  const t2 = [48.36, 48.54, 48.9, 49.03]; c.tag2.forEach((w, i) => rv(w, t, t2[i], { y: 50, blur: 16 }));
+  // final fade to brand cream already; tiny fade-out last 0.25s
+  c.wrap.style.opacity = 1 - cl((t - 50.35) / 0.25);
+});
+
+/* ---------- fit oversized big words once fonts are ready ---------- */
+document.fonts.ready.then(() => {
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
+  stage.querySelectorAll('.big').forEach(b => fit(b, 940));
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'none');
+  window.READY = true;
+  if (!location.search.includes('render')) loop();
+});
+
+window.render = (t) => {
+  for (const sc of scenes) {
+    const on = t >= sc.s && t < sc.e;
+    sc.el.style.display = on ? 'block' : 'none';
+    if (on) sc.update(sc.ctx, t);
+  }
+};
+// live preview in a normal browser
+function loop() { const t0 = performance.now(); const f = () => { const t = ((performance.now() - t0) / 1000) % window.DURATION; render(t); requestAnimationFrame(f); }; f(); }
+</script>
+</body>
+</html>
