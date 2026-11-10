@@ -87,9 +87,10 @@
 </head>
 <body>
 <div id="stage"></div>
+<script src="timemap.js"></script>
 <script>
 const W = 1080, H = 1920;
-window.DURATION = 50.6;
+window.DURATION = 50.7;
 const stage = document.getElementById('stage');
 
 /* ---------- helpers ---------- */
@@ -147,10 +148,20 @@ function avatar(bg, skin, hair) {
 
 /* ---------- scene factory ---------- */
 const scenes = [];
-function scene(s, e, cls, build, update) {
+// nt = true: the scene's times are written against the current voiceover directly;
+// otherwise they are in the first take's time and get mapped through TIMEMAP.
+function scene(s, e, cls, build, update, nt = false) {
   const el = document.createElement('div'); el.className = 'scene ' + cls; stage.appendChild(el);
   const ctx = build(el) || {};
-  scenes.push({ s, e, el, ctx, update });
+  scenes.push({ s, e, el, ctx, update, nt });
+}
+function toOld(tn) {
+  const M = window.TIMEMAP;
+  for (let i = 0; i < M.length - 1; i++) {
+    const [o0, n0] = M[i], [o1, n1] = M[i + 1];
+    if (tn <= n1) return o0 + (o1 - o0) * (tn - n0) / (n1 - n0);
+  }
+  return tn;
 }
 // title block: small line + big line
 function title(el, top, sm, big, o = {}) {
@@ -249,14 +260,12 @@ scene(6.78, 9.15, 'bg-cream', el => {
     [110, 420, '#FDE2C8', '#F2C3A0', '#3B2A20'], [800, 380, '#E8D7F5', '#E9B993', '#1E1E1E'], [880, 1200, '#D6ECF7', '#C98E68', '#2E1C12'],
     [120, 1240, '#FBD5DC', '#F0C9A8', '#8A4B2A'], [470, 1430, '#FFF0C2', '#D7A07A', '#151515'],
   ].map(([x, y, bg, sk, hr]) => { const a = h(`<div class="avatar" style="left:${x}px;top:${y}px">${avatar(bg, sk, hr)}</div>`); wrap.appendChild(a); return a; });
-  const q = h(`<div class="abs" style="left:780px;top:620px;font-weight:900;font-size:180px;color:#B5287E;opacity:0">?</div>`); wrap.appendChild(q);
-  return { wrap, tt, av, q, glow };
+  return { wrap, tt, av, glow };
 }, (c, t) => {
   push(c.wrap, t, 6.78, 9.15, 0.04);
   playTitle(c.tt, t, [6.84, 7.12, 7.32, 7.66], [7.91]);
   const at = [7.55, 7.72, 7.9, 8.08, 8.26];
   c.av.forEach((a, i) => { pop(a, t, at[i], { rot: i % 2 ? 12 : -12 }); a.style.transform += ` translateY(${Math.sin(t * 2 + i) * 8}px)`; });
-  pop(c.q, t, 8.4, { rot: 20 });
 });
 
 /* ======================================================================
@@ -341,7 +350,7 @@ scene(21.95, 30.42, 'bg-cream', el => {
   const lap = h(`<div class="laptop" style="top:760px">
      <div class="scr"><div class="dash">
        <div class="top"><div class="logo-c"><img class="ic" src="assets/claseflix_icon.png"><span>CLASEFLIX</span></div><div class="av"></div></div>
-       <div class="hero"><b>IA para hacer crecer tu negocio</b><small>Módulo 1 · Crea contenido que vende</small><div class="play"></div></div>
+       <div class="hero"><b>IA para emprendedores</b><small>Módulo 1 · Crea contenido que vende</small><div class="play"></div></div>
        <div class="prog"><div></div></div>
        <div class="row-t">Continúa aprendiendo</div>
        <div class="row">
@@ -516,7 +525,7 @@ scene(39.25, 41.80, 'bg-cream', el => {
 /* ======================================================================
    SCENE N  41.80 – 44.00  Carla happy: "Menos dudas / Más autonomía"
    ====================================================================== */
-scene(41.80, 44.00, 'bg-cream', el => {
+scene(41.80, 43.77, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
   const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:760px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
   const sparks = [];
@@ -529,7 +538,7 @@ scene(41.80, 44.00, 'bg-cream', el => {
   const tt2 = title(wrap, 300, 'Más', 'Autonomía');
   return { wrap, ch, tt, tt2, sparks };
 }, (c, t) => {
-  push(c.wrap, t, 41.8, 44.0, 0.03);
+  push(c.wrap, t, 41.8, 43.77, 0.03);
   const p = cl((t - 41.8) / 0.6);
   c.ch.style.opacity = p > 0 ? 1 : 0;
   c.ch.style.transform = `translateY(${(1 - eb(p)) * 500 + Math.sin(t * 3) * 6}px)`;
@@ -549,48 +558,47 @@ scene(41.80, 44.00, 'bg-cream', el => {
 /* ======================================================================
    SCENE O  44.00 – 45.92  red: "Para hacer crecer tu / Negocio"
    ====================================================================== */
-scene(44.00, 45.92, 'bg-red', el => {
+scene(43.45, 45.20, 'bg-red', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const tt = title(wrap, 790, 'Para hacer crecer tu', 'Negocio');
-  const ov = h(`<svg class="abs" style="left:90px;top:880px;width:900px;height:260px;overflow:visible" viewBox="0 0 900 260">
-      <path id="o1" d="M450 18 C 760 10, 880 70, 860 140 C 840 220, 600 250, 420 244 C 200 238, 30 200, 40 130 C 50 60, 240 24, 470 26" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/></svg>`);
-  wrap.appendChild(ov);
+  const tt = title(wrap, 790, 'Para destacar en', 'Redes');
+  // ellipse lives inside the big word's box, so it is always centred on "Negocio"
+  tt.bigEl.style.position = 'relative';
+  tt.bigEl.parentElement.style.marginTop = '84px';
+  const ov = h(`<svg style="position:absolute;left:-150px;top:-58px;width:calc(100% + 300px);height:calc(100% + 120px);overflow:visible" viewBox="0 0 900 260" preserveAspectRatio="none">
+      <path id="o1" pathLength="100" vector-effect="non-scaling-stroke" d="M450 14 C 760 8, 892 62, 888 132 C 884 214, 640 252, 440 248 C 210 244, 12 206, 14 128 C 16 54, 230 16, 480 22" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/></svg>`);
+  tt.bigEl.appendChild(ov);
   const arr = h(`<svg class="abs" style="left:760px;top:520px;width:220px;height:220px;overflow:visible" viewBox="0 0 220 220"><path id="a1" d="M20 200 C 60 120, 110 80, 190 30" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path id="a2" d="M130 26 L194 26 L194 90" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
   wrap.appendChild(arr);
   return { wrap, tt, o1: ov.querySelector('#o1'), a1: arr.querySelector('#a1'), a2: arr.querySelector('#a2') };
 }, (c, t) => {
-  push(c.wrap, t, 44.0, 45.92, 0.05);
-  playTitle(c.tt, t, [44.0, 44.04, 44.28, 44.67], [44.79]);
-  const L = 2100; c.o1.style.strokeDasharray = L; c.o1.style.strokeDashoffset = L * (1 - eio((t - 45.0) / 0.6));
-  c.a1.style.strokeDasharray = 260; c.a1.style.strokeDashoffset = 260 * (1 - eo((t - 44.4) / 0.4));
-  c.a2.style.strokeDasharray = 140; c.a2.style.strokeDashoffset = 140 * (1 - eo((t - 44.75) / 0.25));
-});
+  push(c.wrap, t, 43.45, 45.2, 0.05);
+  playTitle(c.tt, t, [43.49, 43.73, 44.11], [44.24]);
+  c.o1.style.strokeDasharray = 100; c.o1.style.strokeDashoffset = 100 * (1 - eio((t - 44.5) / 0.55));
+  c.a1.style.strokeDasharray = 260; c.a1.style.strokeDashoffset = 260 * (1 - eo((t - 43.8) / 0.4));
+  c.a2.style.strokeDasharray = 140; c.a2.style.strokeDashoffset = 140 * (1 - eo((t - 44.15) / 0.25));
+}, true);
 
 /* ======================================================================
    SCENE P  45.92 – 50.60  End card: logo + "Aprende IA y haz crecer tu negocio"
    ====================================================================== */
-scene(45.92, 50.60, 'bg-cream', el => {
+scene(45.20, 50.70, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const glow = h(`<div class="abs" style="left:540px;top:900px;width:1500px;height:1500px;margin:-750px 0 0 -750px;border-radius:50%;background:radial-gradient(circle,rgba(227,18,11,.13) 0%,rgba(181,40,126,.07) 35%,rgba(255,255,255,0) 62%)"></div>`);
+  const glow = h(`<div class="abs" style="left:540px;top:914px;width:1500px;height:1500px;margin:-750px 0 0 -750px;border-radius:50%;background:radial-gradient(circle,rgba(227,18,11,.13) 0%,rgba(181,40,126,.07) 35%,rgba(255,255,255,0) 62%)"></div>`);
   wrap.appendChild(glow);
-  const icon = h(`<img class="abs" src="assets/claseflix_icon.png" style="left:${540 - 150}px;top:560px;height:326px">`); wrap.appendChild(icon);
-  const logo = h(`<img class="abs" src="assets/claseflix_logo.png" style="left:110px;top:${980}px;width:860px">`); wrap.appendChild(logo);
-  const tag1 = h(`<div class="title sm" style="top:1250px;font-size:62px">${words('Aprende IA y')}</div>`); wrap.appendChild(tag1);
-  const tag2 = h(`<div class="title" style="top:1330px"><span class="big" style="font-size:96px">${words('haz crecer tu negocio')}</span></div>`); wrap.appendChild(tag2);
-  return { wrap, glow, icon, logo, tag1: [...tag1.querySelectorAll('.w')], tag2: [...tag2.querySelectorAll('.w')] };
+  const logo = h(`<img class="abs" src="assets/claseflix_logo.png" style="left:110px;top:780px;width:860px">`); wrap.appendChild(logo);
+  const tag1 = h(`<div class="title sm" style="top:1060px;font-size:62px">${words('Aprende IA y')}</div>`); wrap.appendChild(tag1);
+  const tag2 = h(`<div class="title" style="top:1140px"><span class="big" style="font-size:96px">${words('crea sin límites')}</span></div>`); wrap.appendChild(tag2);
+  return { wrap, glow, logo, tag1: [...tag1.querySelectorAll('.w')], tag2: [...tag2.querySelectorAll('.w')] };
 }, (c, t) => {
-  push(c.wrap, t, 45.92, 50.6, 0.04);
-  c.glow.style.transform = `scale(${lerp(.3, 1, eo((t - 46.0) / 1.0))})`;
-  pop(c.icon, t, 46.25, { d: 0.55, rot: -16 });
-  c.icon.style.transform += ` translateY(${Math.sin(t * 2) * 8}px)`;
-  const p = eio((t - 46.55) / 0.5);
-  c.logo.style.opacity = t > 46.55 ? 1 : 0;
-  c.logo.style.clipPath = `inset(0 ${100 - p * 100}% 0 0)`;
-  const t1 = [47.47, 47.89, 48.24]; c.tag1.forEach((w, i) => rv(w, t, t1[i], { y: 30 }));
-  const t2 = [48.36, 48.54, 48.9, 49.03]; c.tag2.forEach((w, i) => rv(w, t, t2[i], { y: 50, blur: 16 }));
+  push(c.wrap, t, 45.2, 50.7, 0.04);
+  c.glow.style.transform = `scale(${lerp(.3, 1, eo((t - 45.3) / 1.0))})`;
+  rv(c.logo, t, 45.45, { d: 0.55, y: 40, blur: 18, scale: 0.7 });
+  c.logo.style.transform += ` translateY(${Math.sin(t * 2) * 6}px)`;
+  const t1 = [46.72, 47.13, 47.49]; c.tag1.forEach((w, i) => rv(w, t, t1[i], { y: 30 }));
+  const t2 = [47.59, 47.89, 48.06]; c.tag2.forEach((w, i) => rv(w, t, t2[i], { y: 50, blur: 16 }));
   // final fade to brand cream already; tiny fade-out last 0.25s
-  c.wrap.style.opacity = 1 - cl((t - 50.35) / 0.25);
-});
+  c.wrap.style.opacity = 1 - cl((t - 50.45) / 0.25);
+}, true);
 
 /* ---------- fit oversized big words once fonts are ready ---------- */
 document.fonts.ready.then(() => {
@@ -603,9 +611,10 @@ document.fonts.ready.then(() => {
 
 window.render = (t) => {
   for (const sc of scenes) {
-    const on = t >= sc.s && t < sc.e;
+    const tt = sc.nt ? t : toOld(t);
+    const on = tt >= sc.s && tt < sc.e;
     sc.el.style.display = on ? 'block' : 'none';
-    if (on) sc.update(sc.ctx, t);
+    if (on) sc.update(sc.ctx, tt);
   }
 };
 // live preview in a normal browser
