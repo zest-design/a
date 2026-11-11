@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Duolingo · anuncio</title>
+<style>
+  @font-face { font-family: 'R'; src: url('fonts/nunito-latin-900-normal.woff2') format('woff2'); font-weight: 900; }
+  @font-face { font-family: 'R'; src: url('fonts/nunito-latin-800-normal.woff2') format('woff2'); font-weight: 800; }
+  :root { --g: #58CC02; --gd: #58A700; --gl: #D7FFB8; --red: #FF4B4B; --redd: #EA2B2B; --redl: #FFDFE0; --blue: #1CB0F6; --yel: #FFC800; --org: #FF9600; --eel: #4B4B4B; --swan: #E5E5E5; --hare: #AFAFAF; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #fff; font-family: 'R', sans-serif; color: var(--eel); }
+  .abs { position: absolute; }
+  .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .title { position: absolute; left: 60px; right: 60px; top: 250px; text-align: center; z-index: 5; }
+  .sm { font-weight: 800; font-size: 64px; line-height: 1.08; color: var(--eel); }
+  .big { font-weight: 900; font-size: 150px; line-height: 1; letter-spacing: -0.01em; white-space: nowrap; display: inline-block; color: var(--g); }
+  .big.bad { color: var(--red); }
+  .line { display: block; }
+  .w { display: inline-block; will-change: transform, filter, opacity; }
+  .card { position: absolute; background: #fff; border: 4px solid var(--swan); border-bottom-width: 10px; border-radius: 36px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; background: var(--g); color: #fff; font-weight: 900; font-size: 56px; letter-spacing: .04em; text-transform: uppercase;
+    border-radius: 30px; padding: 30px 60px; box-shadow: 0 12px 0 var(--gd); }
+  .char { position: absolute; left: 50%; transform-origin: 50% 100%; }
+  .char img { display: block; width: 100%; }
+  .bubble { position: absolute; background: #fff; border: 4px solid var(--swan); border-radius: 30px; padding: 18px 30px; font-weight: 900; font-size: 50px; white-space: nowrap; }
+  .x { position: absolute; width: 130px; height: 130px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 0 var(--redd); }
+  .ok { position: absolute; width: 130px; height: 130px; border-radius: 50%; background: var(--g); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 0 var(--gd); }
+  .x svg, .ok svg { width: 64%; height: 64%; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+window.DURATION = 36.4;
+const stage = document.getElementById('stage');
+const cl = x => Math.max(0, Math.min(1, x));
+const eo = x => 1 - Math.pow(1 - cl(x), 3);
+const eio = x => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const eb = x => { x = cl(x); const c1 = 2.0, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, p) => a + (b - a) * p;
+const h = html => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; };
+function rv(el, t, a, o = {}) {
+  const d = o.d ?? .4, y = o.y ?? 50, bl = o.blur ?? 14, p = cl((t - a) / d), e = eo(p);
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 1.8);
+  el.style.transform = `translateY(${(1 - e) * y}px) scale(${o.scale ? lerp(o.scale, 1, e) : 1})`;
+  el.style.filter = `blur(${(1 - e) * bl}px)`;
+}
+function pop(el, t, a, o = {}) {
+  const p = cl((t - a) / (o.d ?? .45));
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 3);
+  el.style.transform = `${o.pre || ''} scale(${p <= 0 ? 0 : eb(p)}) rotate(${(1 - eo(p)) * (o.rot ?? 0)}deg)`;
+}
+const words = s => s.split(' ').map(w => `<span class="w">${w}</span>`).join(' ');
+function fit(el, maxW) { const fs = parseFloat(getComputedStyle(el).fontSize); if (el.scrollWidth > maxW) el.style.fontSize = (fs * maxW / el.scrollWidth) + 'px'; }
+const XSVG = `<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"><path d="M28 28l44 44M72 28L28 72"/></svg>`;
+const CHK = `<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M22 54l20 20 38-44"/></svg>`;
+
+const scenes = [];
+function scene(s, e, build, update, bg = '#fff') {
+  const el = document.createElement('div'); el.className = 'scene'; el.style.background = bg; stage.appendChild(el);
+  scenes.push({ s, e, el, ctx: build(el) || {}, update });
+}
+function title(el, sm, big, o = {}) {
+  const t = h(`<div class="title" style="top:${o.top ?? 250}px">${sm ? `<div class="line sm" style="${o.smStyle || ''}">${words(sm)}</div>` : ''}${big ? `<div class="line"><span class="big ${o.cls || ''}" style="${o.bigStyle || ''}">${words(big)}</span></div>` : ''}</div>`);
+  el.appendChild(t);
+  return { t, sm: [...t.querySelectorAll('.sm .w')], big: [...t.querySelectorAll('.big .w')] };
+}
+// sm words start at times[] (one per word, last repeats), big words at bigTimes[]
+function playT(T, t, smT, bigT) {
+  T.sm.forEach((w, i) => rv(w, t, smT[Math.min(i, smT.length - 1)] + Math.max(0, i - smT.length + 1) * .08, { y: 30, blur: 10, d: .3 }));
+  T.big.forEach((w, i) => rv(w, t, bigT[Math.min(i, bigT.length - 1)] + Math.max(0, i - bigT.length + 1) * .1, { y: 70, blur: 18, d: .4, scale: .85 }));
+}
+const push = (el, t, s, e, a = .035) => el.style.transform = `scale(${1 + a * cl((t - s) / (e - s))})`;
+function charIn(el, t, a, o = {}) { const p = cl((t - a) / .55); el.style.opacity = p > 0 ? 1 : 0; el.style.transform = `translateY(${(1 - eb(p)) * (o.y ?? 600) + Math.sin(t * 2.4) * 6}px)`; }
+
+/* ======== 1 · Job 0 – 3.62 ======== */
+scene(0, 3.62, el => {
+  const T1 = title(el, '¿Quieres ese', 'trabajo soñado?');
+  const T2 = title(el, 'pero te piden…', 'INGLÉS', { cls: 'bad' });
+  const job = h(`<div class="card" style="left:150px;right:150px;top:640px;padding:30px 40px">
+     <div style="font-weight:900;font-size:44px;color:var(--eel)">💼 Vacante</div>
+     ${[['Experiencia', 1], ['Buena actitud', 1], ['Inglés avanzado', 0]].map(([n, ok]) => `<div class="req" style="display:flex;align-items:center;gap:20px;margin-top:20px;font-weight:800;font-size:42px"><div style="width:58px;height:58px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:${ok ? 'var(--g)' : 'var(--red)'}">${(ok ? CHK : XSVG).replace('<svg', '<svg style="width:36px"')}</div>${n}</div>`).join('')}
+   </div>`);
+  el.appendChild(job);
+  const ch = h(`<div class="char" style="width:820px;margin-left:-410px;top:1080px"><img src="assets/job.png"></div>`); el.appendChild(ch);
+  return { T1, T2, job, reqs: [...job.querySelectorAll('.req')], ch };
+}, (c, t) => {
+  const first = t < 1.86;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, [0.16, 0.46], [0.69, 1.12]); else playT(c.T2, t, [1.87, 2.05, 2.2], [2.46]);
+  rv(c.job, t, 0.5, { y: 60, blur: 8 });
+  c.reqs.forEach((r, i) => pop(r, t, [0.75, 1.0, 2.46][i], { rot: 0 }));
+  const shake = t > 2.5 && t < 2.9 ? Math.sin(t * 80) * 12 : 0;
+  c.reqs[2].style.transform += ` translateX(${shake}px)`;
+  c.reqs[2].style.color = t > 2.46 ? 'var(--red)' : '';
+  charIn(c.ch, t, 0.05);
+}, '#fff');
+
+/* ======== 2 · Travel 3.62 – 8.0 ======== */
+scene(3.62, 8.0, el => {
+  const T1 = title(el, '¿Sueñas con', 'viajar?');
+  const T2 = title(el, 'pero no sabes ni pedir un', 'café', { cls: 'bad' });
+  const plane = h(`<svg class="abs" style="left:80px;top:560px;width:920px;height:360px;overflow:visible" viewBox="0 0 920 360">
+     <path id="p" d="M40 300 C 240 60, 560 380, 860 80" fill="none" stroke="#1CB0F6" stroke-width="10" stroke-dasharray="2 26" stroke-linecap="round"/>
+     <g id="pl"><text x="-34" y="20" font-size="72">✈️</text></g></svg>`);
+  el.appendChild(plane);
+  const ch = h(`<div class="char" style="width:720px;margin-left:-360px;top:930px"><img src="assets/travel.png"></div>`); el.appendChild(ch);
+  return { T1, T2, plane, path: plane.querySelector('#p'), pl: plane.querySelector('#pl'), ch };
+}, (c, t) => {
+  const first = t < 5.84;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, [3.92, 4.28], [4.46]); else playT(c.T2, t, [5.84, 6.03, 6.16, 6.51, 6.62, 6.91], [7.06]);
+  const L = c.path.getTotalLength(), k = eio((t - 4.4) / 1.4);
+  const pt = c.path.getPointAtLength(L * k), pt2 = c.path.getPointAtLength(Math.min(L, L * k + 2));
+  const ang = Math.atan2(pt2.y - pt.y, pt2.x - pt.x) * 180 / Math.PI;
+  c.pl.setAttribute('transform', `translate(${pt.x},${pt.y}) rotate(${ang + 45})`);
+  c.plane.style.opacity = t < 5.84 ? Math.min(1, (t - 4.3) * 4) : Math.max(0, 1 - (t - 5.84) * 4);
+  c.path.style.clipPath = 'none';
+  charIn(c.ch, t, 3.65);
+}, '#fff');
+
+/* ======== 3 · Series 8.0 – 12.25 ======== */
+scene(8.0, 12.25, el => {
+  const T1 = title(el, '¿Y tus', 'series favoritas?');
+  const T2 = title(el, 'Siempre pegado a los', 'subtítulos', { cls: 'bad' });
+  const subs = h(`<div class="abs" style="left:140px;right:140px;top:640px;text-align:center"></div>`);
+  ['I never said that...', 'Wait, what did you mean?', "We can't go back now!"].forEach((s, i) => subs.appendChild(h(`<div class="sb" style="display:inline-block;margin:10px;background:#1b1b1b;color:#FFE14D;font-weight:800;font-size:42px;padding:12px 26px;border-radius:14px">${s}</div>`)));
+  el.appendChild(subs);
+  const ch = h(`<div class="char" style="width:900px;margin-left:-450px;top:1080px"><img src="assets/series.png"></div>`); el.appendChild(ch);
+  return { T1, T2, sbs: [...subs.querySelectorAll('.sb')], ch };
+}, (c, t) => {
+  const first = t < 9.94;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, [8.32, 8.44], [8.6, 8.93]); else playT(c.T2, t, [9.95, 10.3, 10.64, 10.68], [10.86]);
+  c.sbs.forEach((s, i) => { const a = 9.0 + i * .9; rv(s, t, a, { y: 20, blur: 6, d: .25 }); if (t > a + .8 && i < 2) s.style.opacity = .35; });
+  charIn(c.ch, t, 8.05);
+}, '#fff');
+
+/* ======== 4 · Turn: "Eso se acaba hoy" 12.25 – 13.78 (green) ======== */
+scene(12.25, 13.78, el => {
+  const T = title(el, 'Eso se acaba', 'HOY', { top: 700, smStyle: 'color:#fff;font-size:80px', bigStyle: 'color:#fff;font-size:300px' });
+  const owl = h(`<img class="abs" src="assets/duo_owl.png" style="left:620px;top:1180px;width:420px">`); el.appendChild(owl);
+  return { T, owl };
+}, (c, t) => {
+  playT(c.T, t, [12.55, 12.75, 12.88], [13.28]);
+  const p = cl((t - 12.9) / .6);
+  c.owl.style.transform = `translate(${(1 - eo(p)) * 600}px, ${(1 - eo(p)) * 400 + Math.sin(t * 6) * 14}px) rotate(${(1 - eo(p)) * 30 - 6}deg)`;
+}, '#58CC02');
+
+/* ======== 5 · Duolingo: learn playing, few minutes a day 13.78 – 18.7 ======== */
+scene(13.78, 18.7, el => {
+  const icon = h(`<img class="abs" src="assets/duolingo_icon.png" style="left:390px;top:240px;width:300px">`); el.appendChild(icon);
+  const wm = h(`<img class="abs" src="assets/duolingo_wordmark.png" style="left:190px;top:590px;width:700px">`); el.appendChild(wm);
+  const T1 = title(el, 'Aprendes idiomas', 'jugando', { top: 790 });
+  const T2 = title(el, 'en solo unos', 'minutos al día', { top: 790 });
+  const games = h(`<div class="abs" style="left:110px;right:110px;top:1120px;display:flex;justify-content:center;gap:24px"></div>`);
+  [['🎧', 'Escucha'], ['🗣️', 'Habla'], ['🧩', 'Juega']].forEach(([e, n]) => games.appendChild(h(`<div class="card g" style="position:relative;width:250px;height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><div style="font-size:96px">${e}</div><div style="font-weight:900;font-size:42px">${n}</div></div>`)));
+  el.appendChild(games);
+  const clock = h(`<svg class="abs" style="left:390px;top:1120px;width:300px;height:300px" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#fff" stroke="#E5E5E5" stroke-width="9"/><circle id="arc" cx="50" cy="50" r="42" fill="none" stroke="#58CC02" stroke-width="9" stroke-linecap="round" transform="rotate(-90 50 50)" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/><text x="50" y="60" text-anchor="middle" font-family="R" font-weight="900" font-size="28" fill="#4B4B4B">5 min</text></svg>`);
+  el.appendChild(clock);
+  return { icon, wm, T1, T2, gs: [...games.querySelectorAll('.g')], games, clock, arc: clock.querySelector('#arc') };
+}, (c, t) => {
+  pop(c.icon, t, 13.8, { rot: -12 });
+  c.icon.style.transform += ` translateY(${Math.sin(t * 3) * 8}px)`;
+  const p = eio((t - 14.45) / .45);
+  c.wm.style.opacity = t > 14.45 ? 1 : 0; c.wm.style.clipPath = `inset(0 ${100 - p * 100}% 0 0)`;
+  const first = t < 16.5;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, [14.93, 15.34], [15.74]); else playT(c.T2, t, [16.53, 16.77, 17.02], [17.33, 17.71, 17.86]);
+  c.games.style.display = first ? 'flex' : 'none';
+  c.gs.forEach((g, i) => pop(g, t, 15.75 + i * .14, { rot: i % 2 ? 8 : -8 }));
+  c.clock.style.display = first ? 'none' : '';
+  pop(c.clock, t, 16.6);
+  c.arc.style.strokeDashoffset = 100 * (1 - eio((t - 17.0) / 1.4));
+}, '#fff');
+
+/* ======== 6 · Short fun lessons + streak 18.7 – 23.95 ======== */
+scene(18.7, 23.95, el => {
+  const T1 = title(el, 'Lecciones cortas y', 'divertidas');
+  const T2 = title(el, 'y una racha que no vas a', 'querer romper', { bigStyle: 'color:#FF9600' });
+  const phone = h(`<div class="abs" style="left:290px;top:600px;width:500px;height:900px;border-radius:70px;background:#2b2b2b;padding:18px">
+     <div style="width:100%;height:100%;border-radius:54px;background:#fff;overflow:hidden;position:relative;padding:60px 34px 30px">
+       <div style="height:22px;border-radius:11px;background:#E5E5E5;overflow:hidden"><div class="pb" style="height:100%;width:10%;background:var(--g);border-radius:11px"></div></div>
+       <div style="margin-top:40px;font-weight:900;font-size:40px">Traduce esta frase</div>
+       <div style="margin-top:24px;display:flex;align-items:center;gap:18px"><img src="assets/duo_owl.png" style="width:110px"><div class="bubble" style="position:relative;font-size:36px;padding:14px 22px">I love coffee</div></div>
+       <div class="ans" style="margin-top:30px;min-height:90px;border-bottom:4px solid #E5E5E5;display:flex;gap:12px;flex-wrap:wrap"></div>
+       <div class="opts" style="margin-top:30px;display:flex;gap:12px;flex-wrap:wrap">${['Me', 'encanta', 'el', 'café'].map(w => `<div class="op card" style="position:relative;padding:12px 22px;font-weight:800;font-size:34px;border-radius:20px">${w}</div>`).join('')}</div>
+       <div class="good" style="position:absolute;left:0;right:0;bottom:0;height:200px;background:#D7FFB8;padding:30px 34px;font-weight:900;font-size:44px;color:#58A700">¡Excelente! 🎉</div>
+     </div></div>`);
+  el.appendChild(phone);
+  const streak = h(`<div class="abs" style="left:0;right:0;top:640px;text-align:center"><div style="font-size:330px;line-height:1">🔥</div><div class="num" style="font-weight:900;font-size:200px;color:#FF9600;line-height:1">1</div><div style="font-weight:900;font-size:60px;color:#FF9600">días de racha</div></div>`);
+  el.appendChild(streak);
+  const week = h(`<div class="abs" style="left:150px;right:150px;top:1330px;display:flex;justify-content:space-between">${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => `<div class="d" style="width:96px;height:96px;border-radius:50%;background:#E5E5E5;color:#fff;font-weight:900;font-size:44px;display:flex;align-items:center;justify-content:center">${d}</div>`).join('')}</div>`);
+  el.appendChild(week);
+  return { T1, T2, phone, pb: phone.querySelector('.pb'), ans: phone.querySelector('.ans'), ops: [...phone.querySelectorAll('.op')], good: phone.querySelector('.good'), streak, num: streak.querySelector('.num'), week, ds: [...week.querySelectorAll('.d')] };
+}, (c, t) => {
+  const first = t < 21.2;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, [18.75, 19.5, 19.95], [20.02]); else playT(c.T2, t, [21.24, 21.42, 21.64, 21.96, 22.11, 22.2, 22.4], [22.51, 22.78]);
+  c.phone.style.display = first ? '' : 'none';
+  const p = cl((t - 18.72) / .5); c.phone.style.transform = `translateY(${(1 - eb(p)) * 900}px)`;
+  // tap the words in order
+  const order = [0, 1, 2, 3], taps = [19.5, 19.85, 20.15, 20.45];
+  c.ans.innerHTML = ''; c.ops.forEach(o => o.style.visibility = 'visible');
+  order.forEach((oi, k) => { if (t > taps[k]) { c.ops[oi].style.visibility = 'hidden'; c.ans.appendChild(h(`<div class="card" style="position:relative;padding:12px 22px;font-weight:800;font-size:34px;border-radius:20px">${c.ops[oi].textContent}</div>`)); } });
+  c.pb.style.width = lerp(10, 100, eio((t - 19.5) / 1.3)) + '%';
+  const gk = eo((t - 20.75) / .3); c.good.style.transform = `translateY(${(1 - gk) * 220}px)`;
+  c.streak.style.display = first ? 'none' : 'block'; c.week.style.display = first ? 'none' : 'flex';
+  pop(c.streak, t, 21.2);
+  const n = Math.max(1, Math.round(eio((t - 21.6) / 1.6) * 30)); c.num.textContent = n;
+  c.ds.forEach((d, i) => { const on = t > 21.6 + i * .2; d.style.background = on ? '#FF9600' : '#E5E5E5'; d.style.transform = `scale(${on ? eb((t - 21.6 - i * .2) / .3) : 1})`; });
+}, '#fff');
+
+/* ======== 7 · Payoff: Listo / Listo / Sin subtítulos 23.95 – 31.07 ======== */
+scene(23.95, 31.07, el => {
+  const rows = [['💼', '¿El trabajo?', 'Listo', 24.43, 25.49], ['✈️', '¿El viaje?', 'Listo', 26.38, 27.41], ['📺', '¿Tus series?', '¡Sin subtítulos!', 28.45, 29.28]];
+  const box = h(`<div class="abs" style="left:80px;right:80px;top:300px"></div>`);
+  const rs = rows.map(([e, q, a]) => { const r = h(`<div class="card rw" style="position:relative;margin-bottom:34px;padding:30px 36px;display:flex;align-items:center;gap:26px">
+      <div style="font-size:84px">${e}</div><div style="flex:1"><div style="font-weight:800;font-size:46px">${q}</div><div class="a" style="font-weight:900;font-size:66px;color:var(--g)">${a}</div></div>
+      <div class="ok" style="position:relative;width:110px;height:110px">${CHK}</div></div>`); box.appendChild(r); return r; });
+  el.appendChild(box);
+  const ch = h(`<div class="char" style="width:560px;margin-left:-280px;top:1240px"><img src="assets/happy.png"></div>`); el.appendChild(ch);
+  const conf = []; for (let i = 0; i < 18; i++) { const s = h(`<div class="abs" style="width:${18 + (i % 3) * 8}px;height:${18 + (i % 3) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#58CC02', '#1CB0F6', '#FFC800', '#FF9600', '#FF4B4B', '#CE82FF'][i % 6]}"></div>`); el.appendChild(s); conf.push(s); }
+  return { rows, rs, ch, conf };
+}, (c, t) => {
+  c.rs.forEach((r, i) => {
+    const [, , , qa, aa] = c.rows[i];
+    rv(r, t, qa - .12, { y: 60, blur: 8, d: .35 });
+    const a = r.querySelector('.a'), ok = r.querySelector('.ok');
+    rv(a, t, aa, { y: 20, blur: 8, d: .25 });
+    pop(ok, t, aa, { rot: -20 });
+    r.style.borderColor = t > aa ? '#58CC02' : '';
+    r.style.background = t > aa ? '#F2FFE8' : '#fff';
+  });
+  charIn(c.ch, t, 29.3);
+  c.conf.forEach((s, i) => { const ang = (i / 18) * Math.PI * 2, k = eo((t - 29.4) / 1.1), r = 80 + k * (380 + (i % 4) * 60);
+    s.style.left = (540 + Math.cos(ang) * r) + 'px'; s.style.top = (1300 + Math.sin(ang) * r * .7 + k * k * 200) + 'px';
+    s.style.opacity = t < 29.4 ? 0 : Math.max(0, 1 - (t - 30.4) / .6); s.style.transform = `rotate(${k * 400 + i * 20}deg)`; });
+}, '#fff');
+
+/* ======== 8 · End card 31.07 – 36.4 ======== */
+scene(31.07, 36.4, el => {
+  const glow = h(`<div class="abs" style="left:540px;top:900px;width:1400px;height:1400px;margin:-700px 0 0 -700px;border-radius:50%;background:radial-gradient(circle,rgba(88,204,2,.18) 0%,rgba(88,204,2,0) 60%)"></div>`); el.appendChild(glow);
+  const owl = h(`<img class="abs" src="assets/duo_owl.png" style="left:290px;top:300px;width:500px">`); el.appendChild(owl);
+  const wm = h(`<img class="abs" src="assets/duolingo_wordmark.png" style="left:165px;top:830px;width:750px">`); el.appendChild(wm);
+  const btn = h(`<div class="abs" style="left:0;right:0;top:1120px;text-align:center"><span class="btn">Descárgalo gratis</span></div>`); el.appendChild(btn);
+  const tag = h(`<div class="abs" style="left:0;right:0;top:1310px;text-align:center;font-weight:900;font-size:70px;color:#4B4B4B">${words('y empieza hoy')}</div>`); el.appendChild(tag);
+  return { glow, owl, wm, btn, tw: [...tag.querySelectorAll('.w')] };
+}, (c, t) => {
+  c.glow.style.transform = `scale(${lerp(.3, 1, eo((t - 31.1) / 1))})`;
+  pop(c.owl, t, 31.1, { rot: -20, d: .55 });
+  c.owl.style.transform += ` translateY(${Math.sin(t * 4) * 14}px) rotate(${Math.sin(t * 3) * 4}deg)`;
+  const p = eio((t - 31.4) / .45); c.wm.style.opacity = t > 31.4 ? 1 : 0; c.wm.style.clipPath = `inset(0 ${100 - p * 100}% 0 0)`;
+  pop(c.btn, t, 32.1);
+  // button press bounce
+  const pr = t > 34.3 && t < 34.55 ? 1 : 0; c.btn.firstElementChild.style.transform = `translateY(${pr * 10}px)`; c.btn.firstElementChild.style.boxShadow = pr ? '0 2px 0 #58A700' : '';
+  [33.0, 33.1, 33.62].forEach((a, i) => rv(c.tw[i], t, a, { y: 30, d: .3 }));
+  el => 0;
+}, '#fff');
+
+document.fonts.load('900 40px R').then(() => document.fonts.ready).then(() => {
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
+  stage.querySelectorAll('.big').forEach(b => fit(b, 960));
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'none');
+  window.READY = true;
+  if (!location.search.includes('render')) { const t0 = performance.now(); const f = () => { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(f); }; f(); }
+});
+window.render = t => {
+  for (const sc of scenes) { const on = t >= sc.s && t < sc.e; sc.el.style.display = on ? 'block' : 'none'; if (on) { sc.update(sc.ctx, t); } }
+};
+</script>
+</body>
+</html>
