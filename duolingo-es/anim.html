@@ -139,14 +139,14 @@ scene(8.0, 12.25, el => {
 
 /* ======== 4 · Turn: "Eso se acaba hoy" 12.25 – 13.78 (green) ======== */
 scene(12.25, 13.78, el => {
-  const T = title(el, 'Eso se acaba', 'HOY', { top: 700, smStyle: 'color:#fff;font-size:80px', bigStyle: 'color:#fff;font-size:300px' });
+  const T = title(el, 'Eso se acaba', 'HOY', { top: 700, smStyle: 'color:#58A700;font-size:80px', bigStyle: 'color:#58CC02;font-size:300px' });
   const owl = h(`<img class="abs" src="assets/duo_owl.png" style="left:620px;top:1180px;width:420px">`); el.appendChild(owl);
   return { T, owl };
 }, (c, t) => {
   playT(c.T, t, [12.55, 12.75, 12.88], [13.28]);
   const p = cl((t - 12.9) / .6);
   c.owl.style.transform = `translate(${(1 - eo(p)) * 600}px, ${(1 - eo(p)) * 400 + Math.sin(t * 6) * 14}px) rotate(${(1 - eo(p)) * 30 - 6}deg)`;
-}, '#58CC02');
+}, '#fff');
 
 /* ======== 5 · Duolingo: learn playing, few minutes a day 13.78 – 18.7 ======== */
 scene(13.78, 18.7, el => {
