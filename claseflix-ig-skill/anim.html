@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Claseflix · Instagram Agent Skill</title>
+<style>
+  @font-face { font-family: 'D'; src: local('Inter Display Black'), local('InterDisplay-Black'); font-weight: 900; }
+  @font-face { font-family: 'D'; src: local('Inter Display ExtraBold'), local('InterDisplay-ExtraBold'); font-weight: 800; }
+  @font-face { font-family: 'D'; src: local('Inter Display Bold'), local('InterDisplay-Bold'); font-weight: 700; }
+  @font-face { font-family: 'D'; src: local('Inter Display SemiBold'), local('InterDisplay-SemiBold'); font-weight: 600; }
+  :root { --red: #DA0B22; --red2: #FF3B45; --mag: #B5287E; --pur: #6E1A4F; --cream: #F8F4F0; --ink: #1B1B1F; --blush: #FBE0E3; --ok: #1E9E5A; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--cream); font-family: 'D', sans-serif; color: var(--ink); }
+  .abs { position: absolute; }
+  .layer { position: absolute; inset: 0; }
+  .scene { position: absolute; left: 0; right: 0; top: 0; height: 1080px; display: none; }
+  .title { position: absolute; left: 60px; right: 60px; top: 230px; text-align: center; z-index: 5; }
+  .sm { font-weight: 800; font-size: 58px; letter-spacing: -0.02em; line-height: 1.05; }
+  .big { font-weight: 900; font-size: 128px; letter-spacing: -0.035em; line-height: 0.98; color: var(--red); white-space: nowrap; display: inline-block; }
+  .line { display: block; }
+  .w { display: inline-block; will-change: transform, filter, opacity; }
+  .card { position: absolute; background: #fff; border-radius: 40px; box-shadow: 0 24px 60px rgba(60,10,20,.12); }
+  .card .hd { display: flex; align-items: center; gap: 18px; padding: 30px 36px 0; font-weight: 800; font-size: 40px; }
+  .ig { width: 64px; height: 64px; border-radius: 18px; background: radial-gradient(circle at 30% 110%, #FFD06A 0%, #F5733A 25%, #E1306C 50%, #A33BC2 80%, #5B51D8 100%); display: flex; align-items: center; justify-content: center; flex: none; }
+  .ig svg { width: 62%; height: 62%; }
+  .cl { width: 64px; height: 64px; border-radius: 18px; background: #1B1B1F; display: flex; align-items: center; justify-content: center; flex: none; }
+  .cl svg { width: 64%; height: 64%; }
+  .ic { width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; flex: none; background: linear-gradient(145deg, var(--red2), var(--red) 55%, var(--mag)); }
+  .ic svg { width: 58%; height: 58%; }
+  .pill { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 30px; white-space: nowrap; }
+  .pill.ok { background: #E3F5EA; color: var(--ok); }
+  .pill.red { background: var(--red); color: #fff; }
+  .row { display: flex; align-items: center; gap: 22px; padding: 22px 36px; font-weight: 800; font-size: 40px; border-top: 2px solid #F1ECE8; }
+  .row .grow { flex: 1; }
+  /* captions */
+  #cap { position: absolute; left: 0; right: 0; top: 1088px; text-align: center; z-index: 20; }
+  #cap span.box { display: inline-block; background: rgba(27,27,31,.92); color: #fff; font-weight: 900; font-size: 60px; letter-spacing: -0.01em; padding: 14px 34px 18px; border-radius: 26px; white-space: nowrap; }
+  #cap b { color: #FF4152; font-weight: 900; }
+  /* host */
+  #host { position: absolute; left: 50%; width: 640px; margin-left: -320px; top: 1170px; transform-origin: 50% 100%; z-index: 10; }
+  #host img { position: absolute; left: 0; top: 0; width: 100%; display: block; }
+  .shadowfloor { position: absolute; left: 140px; right: 140px; top: 1150px; height: 900px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #F9CDD2 0%, #FBE0E3 45%, rgba(251,224,227,0) 70%); }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+window.DURATION = 58.2;
+const stage = document.getElementById('stage');
+const cl = x => Math.max(0, Math.min(1, x));
+const eo = x => 1 - Math.pow(1 - cl(x), 3);
+const eio = x => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const eb = x => { x = cl(x); const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, p) => a + (b - a) * p;
+const h = html => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; };
+function rv(el, t, a, o = {}) {
+  const d = o.d ?? 0.4, y = o.y ?? 40, bl = o.blur ?? 14;
+  const p = cl((t - a) / d), e = eo(p);
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 1.8);
+  el.style.transform = `translateY(${(1 - e) * y}px) scale(${o.scale ? lerp(o.scale, 1, e) : 1})`;
+  el.style.filter = `blur(${(1 - e) * bl}px)`;
+}
+function pop(el, t, a, o = {}) {
+  const p = cl((t - a) / (o.d ?? 0.45));
+  el.style.opacity = p <= 0 ? 0 : Math.min(1, p * 3);
+  el.style.transform = `${o.pre || ''} scale(${p <= 0 ? 0 : eb(p)}) rotate(${(1 - eo(p)) * (o.rot ?? 0)}deg)`;
+}
+const words = s => s.split(' ').map(w => `<span class="w">${w}</span>`).join(' ');
+function fit(el, maxW) { const fs = parseFloat(getComputedStyle(el).fontSize); if (el.scrollWidth > maxW) el.style.fontSize = (fs * maxW / el.scrollWidth) + 'px'; }
+
+/* ---------- icons ---------- */
+const S = 'fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"';
+const IC = {
+  igcam: `<svg viewBox="0 0 100 100" ${S}><rect x="16" y="16" width="68" height="68" rx="20"/><circle cx="50" cy="50" r="16"/><circle cx="70" cy="30" r="3" fill="#fff"/></svg>`,
+  spark: `<svg viewBox="0 0 100 100"><path d="M50 8 L57 40 L90 50 L57 60 L50 92 L43 60 L10 50 L43 40Z" fill="#fff"/></svg>`,
+  pen: `<svg viewBox="0 0 100 100" ${S}><path d="M22 78l6-20 38-38 14 14-38 38z"/><path d="M58 28l14 14"/></svg>`,
+  chat: `<svg viewBox="0 0 100 100" ${S}><path d="M18 24h64v40H44L28 78V64H18z"/></svg>`,
+  reply: `<svg viewBox="0 0 100 100" ${S}><path d="M42 26L18 48l24 22"/><path d="M20 48h38c14 0 24 10 24 26"/></svg>`,
+  user: `<svg viewBox="0 0 100 100" ${S}><circle cx="50" cy="36" r="16"/><path d="M20 84c4-18 16-26 30-26s26 8 30 26"/></svg>`,
+  cal: `<svg viewBox="0 0 100 100" ${S}><rect x="16" y="22" width="68" height="62" rx="12"/><path d="M16 42h68M34 14v16M66 14v16"/></svg>`,
+  fire: `<svg viewBox="0 0 100 100"><path d="M52 8c4 18 26 26 26 50 0 18-13 32-28 32S22 76 22 58c0-14 8-22 14-28 0 10 6 16 12 16-4-16 0-28 4-38z" fill="#fff"/></svg>`,
+  hook: `<svg viewBox="0 0 100 100" ${S}><path d="M60 14v44c0 14-10 24-22 24S16 72 16 60"/><path d="M16 60l10-8"/></svg>`,
+  script: `<svg viewBox="0 0 100 100" ${S}><rect x="20" y="12" width="60" height="76" rx="10"/><path d="M34 34h32M34 50h32M34 66h20"/></svg>`,
+  grid: `<svg viewBox="0 0 100 100" ${S}><rect x="16" y="16" width="28" height="28" rx="6"/><rect x="56" y="16" width="28" height="28" rx="6"/><rect x="16" y="56" width="28" height="28" rx="6"/><rect x="56" y="56" width="28" height="28" rx="6"/></svg>`,
+  chart: `<svg viewBox="0 0 100 100" ${S}><path d="M18 80h66"/><path d="M28 70V54M46 70V40M64 70V28"/></svg>`,
+  heart: `<svg viewBox="0 0 100 100" ${S}><path d="M50 82S16 62 16 38c0-12 9-20 19-20 7 0 12 4 15 9 3-5 8-9 15-9 10 0 19 8 19 20 0 24-34 44-34 44z"/></svg>`,
+  play: `<svg viewBox="0 0 100 100"><path d="M34 22l44 28-44 28z" fill="#fff"/></svg>`,
+  search: `<svg viewBox="0 0 100 100" ${S}><circle cx="44" cy="44" r="24"/><path d="M62 62l20 20"/></svg>`,
+  link: `<svg viewBox="0 0 100 100" ${S}><path d="M42 58l16-16"/><path d="M36 48l-8 8a14 14 0 0 0 20 20l8-8"/><path d="M64 52l8-8a14 14 0 0 0-20-20l-8 8"/></svg>`,
+  check: `<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M24 52l18 18 34-38"/></svg>`,
+  q: `<svg viewBox="0 0 100 100" ${S}><path d="M36 36c0-10 6-16 14-16s14 6 14 14c0 12-14 12-14 24"/><circle cx="50" cy="76" r="3" fill="#fff"/></svg>`,
+  clock: `<svg viewBox="0 0 100 100" ${S}><circle cx="50" cy="52" r="32"/><path d="M50 34v18l12 8"/></svg>`,
+  mic: `<svg viewBox="0 0 100 100" ${S}><rect x="38" y="14" width="24" height="44" rx="12"/><path d="M26 48c0 14 10 24 24 24s24-10 24-24M50 72v14"/></svg>`,
+  eye: `<svg viewBox="0 0 100 100" ${S}><path d="M10 50s16-26 40-26 40 26 40 26-16 26-40 26S10 50 10 50z"/><circle cx="50" cy="50" r="10"/></svg>`,
+  send: `<svg viewBox="0 0 100 100"><path d="M14 50L86 18 70 84 50 60z" fill="#fff"/></svg>`,
+};
+const ig = (sz = 64) => `<div class="ig" style="width:${sz}px;height:${sz}px;border-radius:${sz * .28}px">${IC.igcam}</div>`;
+const clI = (sz = 64) => `<div class="cl" style="width:${sz}px;height:${sz}px;border-radius:${sz * .28}px">${IC.spark}</div>`;
+const icB = (k, sz = 64) => `<div class="ic" style="width:${sz}px;height:${sz}px;border-radius:${sz * .28}px">${IC[k]}</div>`;
+
+/* ---------- static layers: floor glow, host, captions ---------- */
+stage.appendChild(h(`<div class="shadowfloor"></div>`));
+const host = h(`<div id="host"></div>`); stage.appendChild(host);
+const POSES = ['talk', 'point', 'phone', 'stuck', 'down'];
+const poseImg = {};
+POSES.forEach(p => { const i = h(`<img src="assets/rapaz_${p}.png">`); host.appendChild(i); poseImg[p] = i; });
+// pose timeline [start, pose]
+const POSE_T = [[0, 'talk'], [5.45, 'point'], [13.25, 'talk'], [29.95, 'phone'], [41.05, 'stuck'], [44.35, 'talk'], [48.95, 'point'], [52.55, 'down']];
+const cap = h(`<div id="cap"><span class="box"></span></div>`); stage.appendChild(cap);
+const capBox = cap.querySelector('.box');
+// captions (start time from the original edit's word-by-word subtitles); *x* = highlight
+const CAPS = [[0.1, 'Claude acaba'], [0.8, 'de *matar*'], [1.3, '*Instagram*'], [1.8, 'ahora puedes'], [2.3, 'conectar *Claude* a'], [3.1, '*Instagram* y'], [3.6, 'gestionará'], [4.2, 'toda tu cuenta'], [5.1, 'por ti'],
+  [5.5, 'la skill se'], [6.1, 'llama'], [6.4, '*Instagram Agent Skill*'], [7.8, 'y es completamente'], [8.8, '*gratuita*'], [9.4, 'no es una'], [10.0, 'sola skill'], [11.0, 'son *11*'], [11.6, 'y cada una'], [12.1, 'hace un trabajo'], [12.7, 'distinto'],
+  [13.3, 'una escribe tus'], [13.9, '*publicaciones*'], [14.4, 'basándose en las'], [15.2, '*21 fórmulas*'], [16.0, 'de ganchos más'], [16.9, 'probadas'], [17.2, 'otra *comenta*'], [18.0, 'publicaciones de'], [18.9, 'otras personas por ti'],
+  [20.1, 'otra se encarga'], [20.7, 'de las *respuestas*'], [21.6, 'otra *optimiza*'], [22.5, 'tu perfil'], [23.4, 'otra *planifica*'], [24.4, 'tu semana entera'], [25.4, 'de Instagram'], [26.1, 'y así te'], [26.6, 'ayuda a saber'],
+  [27.4, '*qué* publicar'], [28.0, '*cuándo* publicar y'], [28.9, '*con quién*'], [29.4, 'interactuar'], [30.2, 'lo más loco'], [31.0, 'de esta skill'], [31.7, 'de *viralidad*'], [32.5, 'así llamémosla'], [33.8, 'es que encuentra'], [34.6, 'los *reels*'],
+  [35.5, 'con mejor'], [35.9, '*rendimiento* de tu'], [36.7, 'nicho'], [37.1, 'te analiza por'], [37.9, 'qué funcionan'], [38.5, 'convierte esas'], [39.2, 'ideas en *guiones*'], [40.2, '*originales* para ti'], [41.1, 'de esa forma'], [41.7, 'tú nunca te'],
+  [42.4, 'quedas *atascado*'], [43.6, 'pensando en qué'], [44.4, 'publicar'], [45.0, 'cuándo publicar'], [45.8, 'qué videos son'], [46.4, '*virales*'], [46.9, 'qué voz poner'], [47.6, 'y quién es'], [48.1, 'tu *audiencia*'],
+  [49.0, 'para'], [49.3, 'configurarlo'], [50.1, 'solo ve a'], [50.7, '*Claude* y pega'], [51.7, 'este *enlace*'], [52.6, 'y si'], [53.0, 'quieres la'], [53.4, 'configuración'], [53.9, 'completa'], [54.3, 'el paso a'], [54.8, 'paso detallado'],
+  [55.7, 'comenta aquí abajo'], [56.7, '*99*'], [57.6, 'y te lo'], [57.9, 'hago llegar']];
+CAPS.forEach(c => c[2] = c[1].replace(/\*([^*]+)\*/g, '<b>$1</b>'));
+
+/* ---------- scenes (top panel area: y 0–1060) ---------- */
+const scenes = [];
+function scene(s, e, build, update) {
+  const el = document.createElement('div'); el.className = 'scene'; stage.insertBefore(el, host);
+  scenes.push({ s, e, el, ctx: build(el) || {}, update });
+}
+function title(el, sm, big, top = 230) {
+  const t = h(`<div class="title" style="top:${top}px">${sm ? `<div class="line sm">${words(sm)}</div>` : ''}${big ? `<div class="line"><span class="big">${words(big)}</span></div>` : ''}</div>`);
+  el.appendChild(t);
+  return { t, sm: [...t.querySelectorAll('.sm .w')], big: [...t.querySelectorAll('.big .w')], bigEl: t.querySelector('.big') };
+}
+function playT(T, t, a, b, st = 0.08) { T.sm.forEach((w, i) => rv(w, t, a + i * st, { y: 26, blur: 10, d: .32 })); T.big.forEach((w, i) => rv(w, t, b + i * 0.1, { y: 60, blur: 18, d: .42 })); }
+const push = (el, t, s, e, amt = .03) => el.style.transform = `scale(${1 + amt * cl((t - s) / (e - s))})`;
+
+/* 1 · Hook 0–1.75 */
+scene(0, 1.75, el => {
+  const T = title(el, 'Claude acaba de', 'MATAR Instagram', 300);
+  const icon = h(`<div class="abs" style="left:420px;top:600px;width:240px;height:240px">${ig(240)}</div>`); el.appendChild(icon);
+  const x = h(`<svg class="abs" style="left:380px;top:560px;width:320px;height:320px;overflow:visible" viewBox="0 0 100 100"><path id="x1" d="M14 14L86 86" stroke="#DA0B22" stroke-width="12" stroke-linecap="round"/><path id="x2" d="M86 14L14 86" stroke="#DA0B22" stroke-width="12" stroke-linecap="round"/></svg>`); el.appendChild(x);
+  return { T, icon, x1: x.querySelector('#x1'), x2: x.querySelector('#x2') };
+}, (c, t) => {
+  playT(c.T, t, 0.08, 0.8);
+  pop(c.icon, t, 0.15, { rot: -10 });
+  const sh = t > 1.3 && t < 1.6 ? Math.sin(t * 90) * 10 : 0;
+  c.icon.style.transform += ` translateX(${sh}px)`;
+  [c.x1, c.x2].forEach((p, i) => { p.style.strokeDasharray = 110; p.style.strokeDashoffset = 110 * (1 - eo((t - 1.3 - i * .12) / .22)); });
+});
+
+/* 2 · Connect 1.75–3.55 */
+scene(1.75, 3.55, el => {
+  const T = title(el, 'Conecta', 'Claude + Instagram');
+  const a = h(`<div class="abs" style="left:150px;top:560px;text-align:center">${clI(200)}<div class="sm" style="font-size:40px;margin-top:16px">Claude</div></div>`);
+  const b = h(`<div class="abs" style="left:730px;top:560px;text-align:center">${ig(200)}<div class="sm" style="font-size:40px;margin-top:16px">Instagram</div></div>`);
+  const ln = h(`<svg class="abs" style="left:360px;top:650px;width:360px;height:20px" viewBox="0 0 360 20"><path id="l" d="M10 10H350" stroke="#DA0B22" stroke-width="8" stroke-dasharray="4 18" stroke-linecap="round"/></svg>`);
+  const ok = h(`<div class="abs" style="left:490px;top:620px;width:100px;height:100px;border-radius:50%;background:#1E9E5A;display:flex;align-items:center;justify-content:center">${IC.check}</div>`);
+  ok.querySelector('svg').style.width = '60px';
+  const lab = h(`<div class="abs" style="left:0;right:0;top:880px;text-align:center"><span class="pill ok" style="font-size:40px;padding:14px 30px">✓ Conectado</span></div>`);
+  [a, b, ln, ok, lab].forEach(x => el.appendChild(x));
+  return { T, a, b, ln, ok, lab };
+}, (c, t) => {
+  playT(c.T, t, 1.8, 2.3);
+  pop(c.a, t, 2.3, { rot: -8 }); pop(c.b, t, 2.55, { rot: 8 });
+  c.ln.style.clipPath = `inset(0 ${100 - eio((t - 2.7) / .4) * 100}% 0 0)`;
+  c.ln.querySelector('#l').style.strokeDashoffset = -t * 60;
+  pop(c.ok, t, 3.1); rv(c.lab, t, 3.15, { y: 20 });
+});
+
+/* 3 · Manages whole account 3.55–5.45 */
+scene(3.55, 5.45, el => {
+  const T = title(el, 'Gestiona toda', 'tu cuenta', 210);
+  const card = h(`<div class="card" style="left:90px;right:90px;top:500px;padding-bottom:10px">
+     <div class="hd">${ig(56)}Tu cuenta de Instagram</div><div style="height:22px"></div>
+     ${[['pen', 'Publicaciones'], ['chat', 'Comentarios'], ['reply', 'Respuestas'], ['user', 'Perfil']].map(([k, n]) => `<div class="row">${icB(k, 56)}<span class="grow">${n}</span><span class="pill ok">✓ Claude</span></div>`).join('')}
+   </div>`);
+  el.appendChild(card);
+  const stamp = h(`<div class="abs" style="left:640px;top:440px;transform-origin:50% 50%"><span class="pill red" style="font-size:44px;padding:14px 30px">¡Por ti!</span></div>`); el.appendChild(stamp);
+  return { T, card, pills: [...card.querySelectorAll('.pill')], stamp };
+}, (c, t) => {
+  playT(c.T, t, 3.6, 4.2);
+  rv(c.card, t, 3.6, { y: 80, blur: 8, d: .5 });
+  c.pills.forEach((p, i) => pop(p, t, 4.2 + i * .2));
+  pop(c.stamp, t, 5.1, { pre: 'rotate(-8deg)', rot: -20 });
+});
+
+/* 4 · Skill name + free 5.45–9.35 */
+scene(5.45, 9.35, el => {
+  const T = title(el, 'La skill se llama', '');
+  const card = h(`<div class="card" style="left:90px;right:90px;top:420px;height:300px;display:flex;align-items:center;gap:36px;padding:0 50px">
+     ${ig(170)}<div><div style="font-weight:900;font-size:66px;letter-spacing:-.02em;line-height:1">Instagram<br>Agent Skill</div><div style="margin-top:14px;font-weight:700;font-size:32px;color:#8a8580">Skill para Claude</div></div></div>`);
+  el.appendChild(card);
+  const free = h(`<div class="abs" style="left:0;right:0;top:790px;text-align:center"><span class="pill" style="background:#1E9E5A;color:#fff;font-size:76px;padding:22px 54px;border-radius:40px">100% GRATIS</span></div>`);
+  el.appendChild(free);
+  return { T, card, free };
+}, (c, t) => {
+  playT(c.T, t, 5.5, 99);
+  pop(c.card, t, 6.35, { rot: -4 });
+  pop(c.free, t, 8.75, { rot: 6 });
+});
+
+/* 5 · 11 skills 9.35–13.25 */
+const SK = [['pen', 'Escribir'], ['chat', 'Comentar'], ['reply', 'Responder'], ['user', 'Perfil'], ['cal', 'Planificar'], ['fire', 'Viralidad'], ['hook', 'Ganchos'], ['script', 'Guiones'], ['grid', 'Cuadrícula'], ['chart', 'Métricas'], ['heart', 'Interacción']];
+scene(9.35, 13.25, el => {
+  const T1 = title(el, 'No es una', 'sola skill');
+  const T2 = title(el, 'Son', '11 skills');
+  const tiles = SK.map(([k, n], i) => {
+    const col = i % 4, row = Math.floor(i / 4);
+    const x = 70 + col * 240 + (row === 2 ? 120 : 0), y = 540 + row * 170;
+    const d = h(`<div class="card" style="left:${x}px;top:${y}px;width:220px;height:150px;border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">${icB(k, 64)}<div style="font-weight:800;font-size:28px">${n}</div></div>`);
+    el.appendChild(d); return d;
+  });
+  return { T1, T2, tiles };
+}, (c, t) => {
+  const first = t < 10.95;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, 9.4, 10.0); else playT(c.T2, t, 11.0, 11.2);
+  c.tiles.forEach((d, i) => pop(d, t, 11.0 + i * 0.1, { rot: i % 2 ? 8 : -8 }));
+  // "cada una hace un trabajo distinto": wave highlight
+  c.tiles.forEach((d, i) => { const k = Math.max(0, Math.sin((t - 12.1 - i * .07) * 6)) * (t > 12.1 && t < 13.1 ? 1 : 0); d.style.transform += ` translateY(${-k * 12}px)`; });
+});
+
+/* 6 · Writes posts 13.25–17.15 */
+scene(13.25, 17.15, el => {
+  const T = title(el, 'Escribe tus', 'publicaciones');
+  const card = h(`<div class="card" style="left:90px;right:90px;top:520px;height:380px">
+     <div class="hd">${icB('pen', 56)}Nueva publicación</div>
+     <div class="txt" style="margin:30px 36px 0;font-weight:700;font-size:42px;line-height:1.25;min-height:110px"></div>
+     <div style="position:absolute;left:36px;bottom:30px" class="chip"><span class="pill red" style="font-size:32px">⚡ 21 fórmulas de ganchos</span></div>
+     <div style="position:absolute;right:36px;bottom:30px" class="ok"><span class="pill ok" style="font-size:32px">✓ Probadas</span></div></div>`);
+  el.appendChild(card);
+  return { T, card, txt: card.querySelector('.txt'), chip: card.querySelector('.chip'), ok: card.querySelector('.ok') };
+}, (c, t) => {
+  playT(c.T, t, 13.3, 13.9);
+  rv(c.card, t, 13.3, { y: 80, blur: 8, d: .5 });
+  const s = 'Nadie te cuenta esto sobre crecer en Instagram…';
+  const n = Math.round(cl((t - 13.9) / 1.6) * s.length);
+  c.txt.innerHTML = s.slice(0, n) + (t > 13.9 && n < s.length && Math.floor(t * 4) % 2 ? '|' : '');
+  pop(c.chip, t, 15.2, { rot: -6 }); pop(c.ok, t, 16.9, { rot: 6 });
+});
+
+/* 7 · Comments for you 17.15–20.05 */
+scene(17.15, 20.05, el => {
+  const T = title(el, 'Comenta', 'por ti');
+  const card = h(`<div class="card" style="left:90px;right:90px;top:500px;padding-bottom:20px">
+     <div class="hd">${icB('chat', 56)}Comentarios</div><div style="height:18px"></div>
+     ${[['#FBD3D8', '@lucia.fit', '¡Qué buen consejo! Lo pruebo hoy mismo.'], ['#E8D7F5', '@marcos.dev', 'Brutal la explicación, guardado para luego.'], ['#D6ECF7', '@ana.cocina', 'Me encantó este formato 🙌']].map(([bg, u, m]) => `
+       <div class="row" style="align-items:flex-start;font-size:34px"><div style="width:62px;height:62px;border-radius:50%;background:${bg};flex:none"></div>
+       <div class="grow"><div style="font-size:28px;color:#8a8580">${u}</div><div style="font-weight:700">${m}</div></div></div>`).join('')}
+   </div>`);
+  el.appendChild(card);
+  const badge = h(`<div class="abs" style="left:560px;top:440px"><span class="pill" style="background:#1B1B1F;color:#fff;font-size:34px;padding:12px 24px">✦ Hecho por Claude</span></div>`); el.appendChild(badge);
+  return { T, card, rows: [...card.querySelectorAll('.row')], badge };
+}, (c, t) => {
+  playT(c.T, t, 17.2, 17.6);
+  rv(c.card, t, 17.2, { y: 80, blur: 8, d: .5 });
+  c.rows.forEach((r, i) => rv(r, t, 18.0 + i * .45, { y: 30, blur: 8 }));
+  pop(c.badge, t, 19.3, { rot: -8 });
+});
+
+/* 8 · Replies 20.05–21.55 */
+scene(20.05, 21.55, el => {
+  const T = title(el, 'Se encarga de las', 'respuestas');
+  const card = h(`<div class="card" style="left:90px;right:90px;top:520px;height:400px;padding:30px 36px">
+     <div class="in" style="display:inline-block;background:#F1ECE8;border-radius:30px 30px 30px 8px;padding:20px 30px;font-weight:700;font-size:40px">¿Cuánto cuesta tu curso?</div>
+     <div style="text-align:right;margin-top:30px"><div class="out" style="display:inline-block;background:linear-gradient(135deg,#FF3B45,#DA0B22);color:#fff;border-radius:30px 30px 8px 30px;padding:20px 30px;font-weight:700;font-size:40px;text-align:left;min-width:120px;max-width:720px;white-space:normal"></div></div>
+     <div class="abs" style="left:36px;bottom:28px;font-weight:700;font-size:28px;color:#8a8580">Respuesta automática ✦ Claude</div></div>`);
+  el.appendChild(card);
+  return { T, card, inn: card.querySelector('.in'), out: card.querySelector('.out') };
+}, (c, t) => {
+  playT(c.T, t, 20.1, 20.7);
+  rv(c.card, t, 20.1, { y: 80, blur: 8, d: .45 });
+  rv(c.inn, t, 20.25, { y: 20 });
+  const s = '¡Hola! Te envío toda la info por aquí 👇';
+  const n = Math.round(cl((t - 20.75) / .7) * s.length);
+  c.out.textContent = n ? s.slice(0, n) : '…'; c.out.style.opacity = t > 20.6 ? 1 : 0;
+});
+
+/* 9 · Profile 21.55–23.35 */
+scene(21.55, 23.35, el => {
+  const T = title(el, 'Optimiza', 'tu perfil');
+  const card = h(`<div class="card" style="left:90px;right:90px;top:500px;height:420px;padding:36px">
+     <div style="display:flex;align-items:center;gap:30px"><div style="width:150px;height:150px;border-radius:50%;padding:7px;background:radial-gradient(circle at 30% 110%,#FFD06A,#F5733A 25%,#E1306C 50%,#A33BC2 80%,#5B51D8)"><div style="width:100%;height:100%;border-radius:50%;background:#FBD3D8;border:6px solid #fff"></div></div>
+     <div style="display:flex;gap:40px;text-align:center;font-weight:900;font-size:44px">${[['128', 'posts'], ['24,5 mil', 'seguidores'], ['310', 'seguidos']].map(([a, b]) => `<div>${a}<div style="font-weight:700;font-size:24px;color:#8a8580">${b}</div></div>`).join('')}</div></div>
+     <div class="bio" style="margin-top:26px;font-weight:700;font-size:36px;line-height:1.3">tu_marca<br><span style="color:#5a5550">Te ayudo a crecer en Instagram 🚀</span></div>
+     <div style="margin-top:22px;height:22px;border-radius:11px;background:#F1ECE8;overflow:hidden"><div class="bar" style="height:100%;width:0;background:linear-gradient(90deg,#FF3B45,#DA0B22,#B5287E)"></div></div>
+     <div class="ok" style="position:absolute;right:36px;top:36px"><span class="pill ok">✓ Optimizado</span></div></div>`);
+  el.appendChild(card);
+  return { T, card, bar: card.querySelector('.bar'), ok: card.querySelector('.ok') };
+}, (c, t) => {
+  playT(c.T, t, 21.6, 22.0);
+  rv(c.card, t, 21.6, { y: 80, blur: 8, d: .45 });
+  c.bar.style.width = (eio((t - 22.2) / .9) * 100) + '%';
+  pop(c.ok, t, 22.9);
+});
+
+/* 10 · Weekly plan 23.35–26.05 */
+scene(23.35, 26.05, el => {
+  const T = title(el, 'Planifica tu', 'semana entera');
+  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], kinds = [['Reel', '#DA0B22'], ['Post', '#B5287E'], ['Story', '#6E1A4F'], ['Reel', '#DA0B22'], ['Carrusel', '#FF3B45'], ['Story', '#6E1A4F'], ['Reel', '#DA0B22']];
+  const card = h(`<div class="card" style="left:60px;right:60px;top:520px;height:360px;padding:30px 24px">
+     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;text-align:center">
+     ${days.map((d, i) => `<div><div style="font-weight:800;font-size:30px;color:#8a8580">${d}</div><div class="slot" style="margin-top:14px;height:170px;border-radius:20px;background:#F6F1EE;position:relative;overflow:hidden"><div class="fill" style="position:absolute;inset:0;background:${kinds[i][1]};color:#fff;font-weight:800;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">${kinds[i][0]}<span style="font-size:20px;opacity:.85">${['18:00', '12:30', '20:00', '19:00', '13:00', '11:00', '18:30'][i]}</span></div></div></div>`).join('')}
+     </div></div>`);
+  el.appendChild(card);
+  return { T, card, fills: [...card.querySelectorAll('.fill')] };
+}, (c, t) => {
+  playT(c.T, t, 23.4, 24.4);
+  rv(c.card, t, 23.4, { y: 80, blur: 8, d: .45 });
+  c.fills.forEach((f, i) => { const k = eb((t - 24.4 - i * .17) / .35); f.style.transform = `scale(${k})`; f.style.opacity = t > 24.4 + i * .17 ? 1 : 0; });
+});
+
+/* 11 · What / when / with whom 26.05–30.1 */
+scene(26.05, 30.1, el => {
+  const T = title(el, 'Te ayuda a saber', '');
+  const items = [['pen', 'Qué', 'publicar'], ['cal', 'Cuándo', 'publicar'], ['user', 'Con quién', 'interactuar']];
+  const cards = items.map(([k, a, b], i) => { const d = h(`<div class="card" style="left:${60 + i * 330}px;top:470px;width:300px;height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center">${icB(k, 120)}<div style="font-weight:900;font-size:54px;line-height:1">${a}</div><div style="font-weight:700;font-size:32px;color:#8a8580">${b}</div></div>`); el.appendChild(d); return d; });
+  return { T, cards };
+}, (c, t) => {
+  playT(c.T, t, 26.6, 99);
+  const at = [27.4, 28.0, 28.9];
+  c.cards.forEach((d, i) => {
+    rv(d, t, 26.15 + i * .1, { y: 60, blur: 8 });
+    const on = t >= at[i];
+    const k = on ? eb((t - at[i]) / .35) : 0;
+    d.style.transform += ` scale(${1 + .08 * k * (t < at[i] + .9 ? 1 : .5)})`;
+    d.style.boxShadow = on ? '0 0 0 8px #DA0B22, 0 24px 60px rgba(218,11,34,.25)' : '';
+    d.style.opacity = t < 27.3 ? d.style.opacity : (on ? 1 : .45);
+  });
+});
+
+/* 12 · Viral skill 30.1–33.75 */
+scene(30.1, 33.75, el => {
+  const T = title(el, 'Lo más loco:', 'Skill de viralidad', 260);
+  const fire = h(`<div class="abs" style="left:415px;top:560px">${icB('fire', 250)}</div>`); el.appendChild(fire);
+  const tag = h(`<div class="abs" style="left:0;right:0;top:880px;text-align:center;font-weight:700;font-style:italic;font-size:40px;color:#8a8580">(así llamémosla 😉)</div>`); el.appendChild(tag);
+  return { T, fire, tag };
+}, (c, t) => {
+  playT(c.T, t, 30.2, 31.7);
+  pop(c.fire, t, 31.7, { rot: -15 });
+  c.fire.style.transform += ` scale(${1 + Math.sin(t * 8) * .025})`;
+  rv(c.tag, t, 32.5, { y: 20 });
+});
+
+/* 13 · Best reels of your niche 33.75–37.05 */
+scene(33.75, 37.05, el => {
+  const T = title(el, 'Encuentra los mejores', 'reels de tu nicho');
+  const views = ['1,2 M', '845 mil', '2,4 M', '310 mil', '1,8 M', '96 mil'], top = [0, 2, 4];
+  const grads = ['#6E1A4F,#B5287E', '#B5287E,#DA0B22', '#DA0B22,#FF3B45', '#1B1B1F,#6E1A4F', '#FF3B45,#B5287E', '#6E1A4F,#1B1B1F'];
+  const reels = views.map((v, i) => { const d = h(`<div class="abs" style="left:${105 + (i % 3) * 300}px;top:${500 + Math.floor(i / 3) * 280}px;width:270px;height:250px;border-radius:28px;overflow:hidden;background:linear-gradient(160deg,${grads[i]});box-shadow:0 14px 34px rgba(0,0,0,.15)">
+      <div style="position:absolute;left:50%;top:44%;width:80px;height:80px;margin:-40px 0 0 -40px">${IC.play}</div>
+      <div style="position:absolute;left:18px;bottom:14px;color:#fff;font-weight:800;font-size:30px">▶ ${v}</div>
+      <div class="top" style="position:absolute;right:14px;top:14px;opacity:0"><span class="pill" style="background:#fff;color:#DA0B22;font-size:26px;padding:6px 16px">TOP</span></div></div>`); el.appendChild(d); return d; });
+  return { T, reels, top };
+}, (c, t) => {
+  playT(c.T, t, 33.8, 34.6);
+  c.reels.forEach((r, i) => {
+    pop(r, t, 34.0 + i * .08);
+    const isTop = c.top.includes(i), on = t > 35.9;
+    if (on) { r.style.opacity = isTop ? 1 : .35; r.style.boxShadow = isTop ? '0 0 0 7px #DA0B22, 0 20px 40px rgba(218,11,34,.3)' : ''; }
+    const tb = r.querySelector('.top'); if (isTop) pop(tb, t, 35.95 + i * .08);
+  });
+});
+
+/* 14 · Analysis -> original scripts 37.05–41.05 */
+scene(37.05, 41.05, el => {
+  const T1 = title(el, 'Analiza por qué', 'funcionan');
+  const T2 = title(el, 'y crea guiones', 'originales');
+  const reel = h(`<div class="abs" style="left:110px;top:520px;width:300px;height:380px;border-radius:30px;background:linear-gradient(160deg,#DA0B22,#B5287E);box-shadow:0 14px 34px rgba(0,0,0,.15)"><div style="position:absolute;left:50%;top:45%;width:90px;height:90px;margin:-45px 0 0 -45px">${IC.play}</div></div>`);
+  const mag = h(`<div class="abs" style="left:300px;top:640px;width:170px;height:170px;border-radius:50%;background:#1B1B1F;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(0,0,0,.25)">${IC.search}</div>`);
+  mag.querySelector('svg').style.width = '100px';
+  const arrow = h(`<svg class="abs" style="left:430px;top:660px;width:130px;height:80px" viewBox="0 0 130 80"><path id="a" d="M6 40H110M84 14l28 26-28 26" fill="none" stroke="#DA0B22" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  const sc = h(`<div class="card" style="left:570px;top:470px;width:420px;height:480px;padding:28px">
+     <div style="display:flex;align-items:center;gap:14px;font-weight:900;font-size:34px">${icB('script', 52)}Guion original</div>
+     ${[['GANCHO', '“Esto cambió mi forma de usar Instagram…”'], ['DESARROLLO', '3 pasos claros, uno por plano'], ['CIERRE', '“Comenta GUÍA y te lo envío”']].map(([a, b]) => `<div class="ln" style="margin-top:22px"><span class="pill red" style="font-size:20px;padding:6px 14px">${a}</span><div style="margin-top:8px;font-weight:700;font-size:27px;line-height:1.25">${b}</div></div>`).join('')}
+     <div class="orig" style="position:absolute;right:24px;bottom:22px"><span class="pill ok" style="font-size:26px">✓ 100% original</span></div></div>`);
+  [reel, mag, arrow, sc].forEach(x => el.appendChild(x));
+  return { T1, T2, reel, mag, arrow, sc, lns: [...sc.querySelectorAll('.ln')], orig: sc.querySelector('.orig') };
+}, (c, t) => {
+  const first = t < 38.45;
+  c.T1.t.style.display = first ? '' : 'none'; c.T2.t.style.display = first ? 'none' : '';
+  if (first) playT(c.T1, t, 37.1, 37.9); else playT(c.T2, t, 38.5, 39.2);
+  rv(c.reel, t, 37.1, { y: 60, blur: 8 });
+  pop(c.mag, t, 37.3);
+  c.mag.style.transform += ` translate(${Math.sin(t * 3) * 30}px, ${Math.cos(t * 2.4) * 40}px)`;
+  c.arrow.style.clipPath = `inset(0 ${100 - eio((t - 38.5) / .4) * 100}% 0 0)`;
+  pop(c.sc, t, 38.75, { rot: 5 });
+  c.lns.forEach((l, i) => rv(l, t, 39.2 + i * .3, { y: 20, blur: 6 }));
+  pop(c.orig, t, 40.2, { rot: -8 });
+});
+
+/* 15 · Never stuck: checklist 41.05–48.95 */
+scene(41.05, 48.95, el => {
+  const T = title(el, 'Nunca más te quedas', 'atascado', 220);
+  const items = [['pen', '¿Qué publicar?', 44.4], ['cal', '¿Cuándo publicar?', 45.0], ['fire', '¿Qué videos son virales?', 45.8], ['mic', '¿Qué voz poner?', 46.9], ['user', '¿Quién es tu audiencia?', 48.1]];
+  const card = h(`<div class="card" style="left:80px;right:80px;top:470px;padding:14px 0">
+     ${items.map(([k, n], i) => `<div class="row" style="${i ? '' : 'border-top:none;'}font-size:38px;padding:16px 34px"><div class="bx" style="width:56px;height:56px;border-radius:16px;border:5px solid #DDD5D0;display:flex;align-items:center;justify-content:center;flex:none"></div><span class="grow">${n}</span><span class="pill ok rs" style="font-size:26px;opacity:0">Resuelto</span></div>`).join('')}</div>`);
+  el.appendChild(card);
+  return { T, card, items, bx: [...card.querySelectorAll('.bx')], rs: [...card.querySelectorAll('.rs')] };
+}, (c, t) => {
+  playT(c.T, t, 41.7, 42.4);
+  rv(c.card, t, 43.5, { y: 60, blur: 8, d: .45 });
+  c.items.forEach(([, , at], i) => {
+    const on = t >= at;
+    c.bx[i].style.background = on ? '#1E9E5A' : 'transparent'; c.bx[i].style.borderColor = on ? '#1E9E5A' : '#DDD5D0';
+    c.bx[i].innerHTML = on ? IC.check.replace('<svg', '<svg style="width:40px;height:40px"') : '';
+    c.bx[i].style.transform = `scale(${on ? eb((t - at) / .3) : 1})`;
+    pop(c.rs[i], t, at + .05);
+  });
+});
+
+/* 16 · Setup: go to Claude and paste the link 48.95–52.55 */
+scene(48.95, 52.55, el => {
+  const T = title(el, 'Para configurarlo:', 've a Claude', 220);
+  const card = h(`<div class="card" style="left:80px;right:80px;top:500px;height:400px;padding:34px">
+     <div style="display:flex;align-items:center;justify-content:center;gap:18px;font-weight:800;font-size:46px">${clI(64)}Buenas tardes</div>
+     <div style="margin-top:34px;border:3px solid #E9E2DD;border-radius:30px;padding:26px 28px;height:200px;position:relative">
+       <div class="ph" style="font-weight:600;font-size:36px;color:#A8A29D">¿En qué puedo ayudarte hoy?</div>
+       <div class="lk" style="position:absolute;left:28px;top:24px;display:flex;align-items:center;gap:14px;background:#FBE0E3;border-radius:18px;padding:12px 20px;font-weight:800;font-size:32px;color:#DA0B22;opacity:0">${icB('link', 46)}Enlace de la skill</div>
+       <div class="snd" style="position:absolute;right:20px;bottom:18px;width:70px;height:70px;border-radius:20px;background:#1B1B1F;display:flex;align-items:center;justify-content:center">${IC.send}</div>
+     </div></div>`);
+  el.appendChild(card);
+  const kb = h(`<div class="abs" style="left:0;right:0;top:930px;text-align:center"><span class="pill" style="background:#1B1B1F;color:#fff;font-size:40px;padding:14px 30px">Pega el enlace · Ctrl + V</span></div>`);
+  el.appendChild(kb);
+  card.querySelector('.snd svg').style.width = '40px';
+  return { T, card, ph: card.querySelector('.ph'), lk: card.querySelector('.lk'), kb, snd: card.querySelector('.snd') };
+}, (c, t) => {
+  playT(c.T, t, 49.0, 50.4);
+  rv(c.card, t, 49.3, { y: 80, blur: 8, d: .45 });
+  pop(c.kb, t, 50.8);
+  pop(c.lk, t, 51.2); c.ph.style.opacity = t > 51.2 ? 0 : 1;
+  c.snd.style.background = t > 51.9 ? '#DA0B22' : '#1B1B1F';
+  c.snd.style.transform = `scale(${t > 51.9 ? 1 + .15 * Math.max(0, 1 - (t - 51.9) / .3) : 1})`;
+});
+
+/* 17 · CTA: comment 99 52.55–58.2 */
+scene(52.55, 58.2, el => {
+  const T = title(el, '¿Quieres el', 'paso a paso?', 220);
+  const bub = h(`<div class="card" style="left:110px;right:110px;top:500px;height:300px;padding:30px 36px">
+     <div style="display:flex;align-items:center;gap:16px;font-weight:800;font-size:34px;color:#8a8580">${icB('chat', 52)}Añade un comentario…</div>
+     <div style="margin-top:24px;display:flex;align-items:center;gap:24px"><div style="width:90px;height:90px;border-radius:50%;background:#FBD3D8;flex:none"></div>
+       <div class="num" style="font-weight:900;font-size:120px;color:#DA0B22;letter-spacing:-.02em;line-height:1"></div><div class="cur" style="width:8px;height:110px;background:#DA0B22;border-radius:4px"></div></div>
+     <div class="snd" style="position:absolute;right:30px;bottom:30px;width:90px;height:90px;border-radius:26px;background:#DA0B22;display:flex;align-items:center;justify-content:center">${IC.send}</div></div>`);
+  el.appendChild(bub);
+  bub.querySelector('.snd svg').style.width = '52px';
+  const lab = h(`<div class="abs" style="left:0;right:0;top:850px;text-align:center"><span class="pill red" style="font-size:46px;padding:16px 36px">Comenta “99” 👇</span></div>`); el.appendChild(lab);
+  const logo = h(`<img class="abs" src="assets/claseflix_logo.png" style="left:350px;top:965px;width:380px;opacity:0">`); el.appendChild(logo);
+  return { T, bub, num: bub.querySelector('.num'), cur: bub.querySelector('.cur'), lab, logo };
+}, (c, t) => {
+  playT(c.T, t, 53.0, 54.3);
+  rv(c.bub, t, 55.6, { y: 60, blur: 8, d: .45 });
+  c.num.textContent = t > 57.0 ? '99' : t > 56.75 ? '9' : '';
+  c.cur.style.opacity = Math.floor(t * 3) % 2 ? 1 : 0;
+  pop(c.lab, t, 56.8, { rot: -6 });
+  rv(c.logo, t, 57.4, { y: 20, blur: 10 });
+});
+
+/* ---------- host + captions update ---------- */
+function updHost(t) {
+  let cur = POSE_T[0], idx = 0;
+  POSE_T.forEach((p, i) => { if (t >= p[0]) { cur = p; idx = i; } });
+  POSES.forEach(p => poseImg[p].style.opacity = p === cur[1] ? 1 : 0);
+  const since = t - cur[0];
+  const sq = idx === 0 ? eb(t / .6) : 1 + 0.06 * Math.sin(cl(since / .3) * Math.PI); // pose switch squash
+  const enter = idx === 0 ? (1 - eo(t / .6)) * 500 : 0;
+  // talking bob: small bounce while speaking
+  const bob = Math.sin(t * 7.5) * 4 + Math.sin(t * 2.1) * 6;
+  host.style.transform = `translateY(${enter + bob}px) scale(${idx === 0 ? Math.max(.01, sq) : sq}, ${idx === 0 ? Math.max(.01, sq) : 2 - sq})`;
+}
+function updCap(t) {
+  let c = null;
+  for (let i = 0; i < CAPS.length; i++) { const nx = CAPS[i + 1] ? CAPS[i + 1][0] : 58.2; if (t >= CAPS[i][0] && t < Math.min(nx, CAPS[i][0] + 1.6)) { c = CAPS[i]; break; } }
+  if (!c) { cap.style.opacity = 0; return; }
+  if (capBox.dataset.k !== String(c[0])) { capBox.innerHTML = c[2]; capBox.dataset.k = c[0]; }
+  const p = eb((t - c[0]) / .18);
+  cap.style.opacity = 1; capBox.style.transform = `scale(${lerp(.85, 1, Math.min(1.1, p))})`;
+}
+
+document.fonts.ready.then(() => {
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
+  stage.querySelectorAll('.big').forEach(b => fit(b, 960));
+  stage.querySelectorAll('.scene').forEach(s => s.style.display = 'none');
+  window.READY = true;
+  if (!location.search.includes('render')) { const t0 = performance.now(); const f = () => { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(f); }; f(); }
+});
+window.render = t => {
+  for (const sc of scenes) { const on = t >= sc.s && t < sc.e; sc.el.style.display = on ? 'block' : 'none'; if (on) { sc.update(sc.ctx, t); push(sc.el, t, sc.s, sc.e, .025); } }
+  updHost(t); updCap(t);
+};
+</script>
+</body>
+</html>
