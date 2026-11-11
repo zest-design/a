@@ -9,15 +9,15 @@
   @font-face { font-family: 'D'; src: local('Inter Display Bold'), local('InterDisplay-Bold'); font-weight: 700; }
   @font-face { font-family: 'D'; src: local('Inter Display SemiBold'), local('InterDisplay-SemiBold'); font-weight: 600; }
   :root {
-    --red: #E3120B; --red2: #C80E1E; --mag: #B5287E; --pur: #6E1A4F; --org: #F36A1C;
-    --cream: #F8F4F0; --ink: #1B1B1F; --blush: #FBE1DE;
+    --red: #E3120B; --red2: #C80E1E; --mag: #B5287E; --pur: #6E1A4F; --org: #FF3B45;
+    --cream: #F8F4F0; --ink: #1B1B1F; --blush: #FBE0E3;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
   #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--cream); font-family: 'D', 'Inter', sans-serif; color: var(--ink); }
   .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
   .bg-cream { background: var(--cream); }
-  .bg-red { background: radial-gradient(120% 80% at 30% 20%, #F0281C 0%, var(--red) 45%, #B80C1C 100%); color: #fff; }
+  .bg-red { background: radial-gradient(120% 80% at 30% 20%, #F2232E 0%, var(--red) 45%, #B80C1C 100%); color: #fff; }
   .abs { position: absolute; }
   .title { position: absolute; left: 70px; right: 70px; text-align: center; z-index: 10; }
   .sm { font-weight: 800; font-size: 64px; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
@@ -187,18 +187,18 @@ function push(el, t, s, e, amt = 0.035) { el.style.transform = `scale(${1 + amt 
    ====================================================================== */
 scene(0, 4.10, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const blob1 = h(`<div class="blob" style="width:900px;height:900px;left:420px;top:760px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 55%,rgba(251,225,222,0) 72%)"></div>`);
+  const blob1 = h(`<div class="blob" style="width:900px;height:900px;left:420px;top:760px;background:radial-gradient(circle,#F9CDD2 0%,#FBE0E3 55%,rgba(251,225,222,0) 72%)"></div>`);
   const blob2 = h(`<div class="blob" style="width:620px;height:620px;left:-260px;top:1100px;background:radial-gradient(circle,#F7C9D9 0%,rgba(247,201,217,0) 70%)"></div>`);
   // storefront awning (business decor)
   const shop = h(`<svg class="abs" style="left:-30px;top:1080px;width:300px;opacity:0" viewBox="0 0 360 420">
-      <rect x="40" y="120" width="280" height="290" rx="10" fill="#F6C9C3"/>
-      <rect x="80" y="210" width="90" height="200" rx="8" fill="#F1A79E"/>
+      <rect x="40" y="120" width="280" height="290" rx="10" fill="#F7C5CB"/>
+      <rect x="80" y="210" width="90" height="200" rx="8" fill="#F0939C"/>
       <rect x="200" y="210" width="90" height="90" rx="8" fill="#fff" opacity=".7"/>
       <path d="M20 40h320l10 80H10z" fill="#E3120B"/>
       <path d="M20 40h53l-8 80H10zM126 40h54v80h-62zM233 40h53l11 80h-62z" fill="#fff" opacity=".9"/>
       <path d="M10 120c0 22 22 22 27 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0" fill="#E3120B"/></svg>`);
   const bars = h(`<div class="abs" style="left:720px;top:900px;width:300px;height:300px"></div>`);
-  const barEls = [0, 1, 2, 3].map(i => { const b = h(`<div class="abs" style="left:${i * 70}px;bottom:0;width:52px;border-radius:14px 14px 4px 4px;background:linear-gradient(${['#F7B7AE', '#F3897C', '#EC5A47', '#E3120B'][i]},${['#F7B7AE', '#F3897C', '#EC5A47', '#E3120B'][i]})"></div>`); bars.appendChild(b); return b; });
+  const barEls = [0, 1, 2, 3].map(i => { const b = h(`<div class="abs" style="left:${i * 70}px;bottom:0;width:52px;border-radius:14px 14px 4px 4px;background:linear-gradient(${['#F8B4BA', '#F27580', '#EA3440', '#E3120B'][i]},${['#F8B4BA', '#F27580', '#EA3440', '#E3120B'][i]})"></div>`); bars.appendChild(b); return b; });
   const arrow = h(`<svg class="abs" style="left:-10px;top:-40px;width:320px;height:260px;overflow:visible" viewBox="0 0 320 260"><path id="ar" d="M10 230 L110 150 L170 180 L300 40" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path id="ah" d="M250 36 L304 36 L304 90" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
   bars.appendChild(arrow);
   [blob1, blob2, shop, bars].forEach(x => wrap.appendChild(x));
@@ -257,7 +257,7 @@ scene(6.78, 9.15, 'bg-cream', el => {
   const glow = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:500px;background:radial-gradient(circle,#FBDAD6 0%,rgba(251,225,222,0) 65%)"></div>`); wrap.appendChild(glow);
   const tt = title(wrap, 760, '¿Cómo atraer más', 'Clientes?');
   const av = [
-    [110, 420, '#FDE2C8', '#F2C3A0', '#3B2A20'], [800, 380, '#E8D7F5', '#E9B993', '#1E1E1E'], [880, 1200, '#D6ECF7', '#C98E68', '#2E1C12'],
+    [110, 420, '#FBD3D8', '#F2C3A0', '#3B2A20'], [800, 380, '#E8D7F5', '#E9B993', '#1E1E1E'], [880, 1200, '#D6ECF7', '#C98E68', '#2E1C12'],
     [120, 1240, '#FBD5DC', '#F0C9A8', '#8A4B2A'], [470, 1430, '#FFF0C2', '#D7A07A', '#151515'],
   ].map(([x, y, bg, sk, hr]) => { const a = h(`<div class="avatar" style="left:${x}px;top:${y}px">${avatar(bg, sk, hr)}</div>`); wrap.appendChild(a); return a; });
   return { wrap, tt, av, glow };
@@ -273,7 +273,7 @@ scene(6.78, 9.15, 'bg-cream', el => {
    ====================================================================== */
 scene(9.15, 18.62, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const blob = h(`<div class="blob" style="width:1000px;height:1000px;left:40px;top:780px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
+  const blob = h(`<div class="blob" style="width:1000px;height:1000px;left:40px;top:780px;background:radial-gradient(circle,#F9CDD2 0%,#FBE0E3 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
   const ch = h(`<div class="char" style="width:740px;top:1010px;margin-left:-410px"><img src="assets/carla_think.png"></div>`); wrap.appendChild(ch);
   const tt = title(wrap, 300, 'Sabe que necesita crear', 'Contenido');
   const tt2 = title(wrap, 300, 'Pero no sabe…', '¿Por dónde empezar?', { });
@@ -345,7 +345,7 @@ scene(20.80, 21.95, 'bg-cream', el => {
    ====================================================================== */
 scene(21.95, 30.42, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const wave = h(`<svg class="abs" style="left:0;top:1060px;width:1080px;height:860px" viewBox="0 0 1080 860" preserveAspectRatio="none"><path d="M0 160 C 260 40, 520 260, 1080 90 L1080 860 L0 860 Z" fill="#FBE1DE"/><path d="M0 330 C 300 210, 640 420, 1080 250 L1080 860 L0 860 Z" fill="#F8CFC9"/></svg>`);
+  const wave = h(`<svg class="abs" style="left:0;top:1060px;width:1080px;height:860px" viewBox="0 0 1080 860" preserveAspectRatio="none"><path d="M0 160 C 260 40, 520 260, 1080 90 L1080 860 L0 860 Z" fill="#FBE0E3"/><path d="M0 330 C 300 210, 640 420, 1080 250 L1080 860 L0 860 Z" fill="#F8CBD1"/></svg>`);
   wrap.appendChild(wave);
   const lap = h(`<div class="laptop" style="top:760px">
      <div class="scr"><div class="dash">
@@ -354,7 +354,7 @@ scene(21.95, 30.42, 'bg-cream', el => {
        <div class="prog"><div></div></div>
        <div class="row-t">Continúa aprendiendo</div>
        <div class="row">
-         <div class="card" style="background:linear-gradient(140deg,#F36A1C,#E3120B)">Contenido</div>
+         <div class="card" style="background:linear-gradient(140deg,#FF3B45,#E3120B)">Contenido</div>
          <div class="card" style="background:linear-gradient(140deg,#B5287E,#6E1A4F)">Copywriting</div>
          <div class="card" style="background:linear-gradient(140deg,#E3120B,#B5287E)">Automatización</div>
        </div>
@@ -433,7 +433,7 @@ scene(32.30, 34.95, 'bg-cream', el => {
   const ph = h(`<div class="phone" style="left:300px;top:760px"><div class="notch"></div><div class="in" style="background:linear-gradient(170deg,#fff 0%,#FFF3F1 100%)">
       <div class="abs" style="left:50%;top:250px;width:230px;height:230px;margin-left:-115px;border-radius:56px;background:#fff;box-shadow:0 20px 50px rgba(200,20,40,.25);display:flex;align-items:center;justify-content:center"><img src="assets/claseflix_icon.png" style="height:160px"></div>
       <div class="abs" style="left:0;right:0;top:520px;text-align:center;font-weight:900;font-size:50px;letter-spacing:.04em;color:#1B1B1F">CLASEFLIX</div>
-      <div class="abs" style="left:60px;right:60px;top:610px;height:16px;border-radius:8px;background:#F1E4E1"><div class="ld" style="height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#F36A1C,#E3120B,#B5287E)"></div></div>
+      <div class="abs" style="left:60px;right:60px;top:610px;height:16px;border-radius:8px;background:#F1E4E1"><div class="ld" style="height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#FF3B45,#E3120B,#B5287E)"></div></div>
     </div></div>`);
   wrap.appendChild(ph);
   const tt = title(wrap, 300, 'A tu ritmo, desde el', 'Celular');
@@ -452,11 +452,11 @@ scene(32.30, 34.95, 'bg-cream', el => {
    ====================================================================== */
 scene(34.95, 37.10, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:700px;background:radial-gradient(circle,#FAD3CE 0%,rgba(251,225,222,0) 65%)"></div>`); wrap.appendChild(blob);
+  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:700px;background:radial-gradient(circle,#F9CDD2 0%,rgba(251,225,222,0) 65%)"></div>`); wrap.appendChild(blob);
   const ph = h(`<div class="phone" style="left:300px;top:720px"><div class="notch"></div><div class="in" style="background:#F6F1EE"></div></div>`);
   wrap.appendChild(ph);
   const inn = ph.querySelector('.in');
-  const grads = ['linear-gradient(140deg,#F36A1C,#E3120B)', 'linear-gradient(140deg,#B5287E,#6E1A4F)', 'linear-gradient(140deg,#E3120B,#B5287E)'];
+  const grads = ['linear-gradient(140deg,#FF3B45,#E3120B)', 'linear-gradient(140deg,#B5287E,#6E1A4F)', 'linear-gradient(140deg,#E3120B,#B5287E)'];
   const posts = grads.map((g, i) => { const p = h(`<div class="post" style="top:${90 + i * 320}px"><div class="img" style="background:${g}">
       <svg class="abs" style="left:30px;top:30px;width:120px" viewBox="0 0 100 100">${''}<circle cx="30" cy="30" r="14" fill="rgba(255,255,255,.7)"/><path d="M0 100 L40 55 L60 75 L80 60 L100 80 L100 100Z" fill="rgba(255,255,255,.55)"/></svg>
       <div class="abs" style="right:26px;bottom:24px;font-weight:900;font-size:30px;color:#fff;opacity:.95">${['¡Nuevo!', 'Tips', 'Oferta'][i]}</div></div>
@@ -516,7 +516,7 @@ scene(39.25, 41.80, 'bg-cream', el => {
   rv(c.lab, t, 39.45, { y: 30 });
   c.cells.forEach((cd, i) => {
     const on = i < n; const a = 39.4 + (i / 30) * 1.9;
-    cd.style.background = on ? (i % 3 === 0 ? 'linear-gradient(140deg,#F36A1C,#E3120B)' : i % 3 === 1 ? 'linear-gradient(140deg,#E3120B,#B5287E)' : 'linear-gradient(140deg,#B5287E,#6E1A4F)') : (i < 30 ? '#EEE6E2' : 'transparent');
+    cd.style.background = on ? (i % 3 === 0 ? 'linear-gradient(140deg,#FF3B45,#E3120B)' : i % 3 === 1 ? 'linear-gradient(140deg,#E3120B,#B5287E)' : 'linear-gradient(140deg,#B5287E,#6E1A4F)') : (i < 30 ? '#EEE6E2' : 'transparent');
     cd.style.transform = on ? `scale(${eb((t - a) / 0.3)})` : 'scale(1)';
     cd.style.opacity = t > 39.3 + i * 0.012 ? 1 : 0;
   });
@@ -527,10 +527,10 @@ scene(39.25, 41.80, 'bg-cream', el => {
    ====================================================================== */
 scene(41.80, 43.77, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:760px;background:radial-gradient(circle,#FAD3CE 0%,#FBE1DE 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
+  const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:760px;background:radial-gradient(circle,#F9CDD2 0%,#FBE0E3 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
   const sparks = [];
   for (let i = 0; i < 14; i++) {
-    const s = h(`<div class="abs" style="width:${16 + (i % 4) * 8}px;height:${16 + (i % 4) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#E3120B', '#B5287E', '#F36A1C', '#6E1A4F'][i % 4]}"></div>`);
+    const s = h(`<div class="abs" style="width:${16 + (i % 4) * 8}px;height:${16 + (i % 4) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#E3120B', '#B5287E', '#FF3B45', '#6E1A4F'][i % 4]}"></div>`);
     wrap.appendChild(s); sparks.push(s);
   }
   const ch = h(`<div class="char" style="width:860px;top:880px;margin-left:-430px"><img src="assets/carla_happy.png"></div>`); wrap.appendChild(ch);
