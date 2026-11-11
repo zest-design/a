@@ -9,7 +9,7 @@
   @font-face { font-family: 'D'; src: local('Inter Display Bold'), local('InterDisplay-Bold'); font-weight: 700; }
   @font-face { font-family: 'D'; src: local('Inter Display SemiBold'), local('InterDisplay-SemiBold'); font-weight: 600; }
   :root {
-    --red: #E3120B; --red2: #C80E1E; --mag: #B5287E; --pur: #6E1A4F; --org: #FF3B45;
+    --red: #DA0B22; --red2: #C00A24; --mag: #B5287E; --pur: #6E1A4F; --org: #FF3B45;
     --cream: #F8F4F0; --ink: #1B1B1F; --blush: #FBE0E3;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,7 +17,7 @@
   #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--cream); font-family: 'D', 'Inter', sans-serif; color: var(--ink); }
   .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
   .bg-cream { background: var(--cream); }
-  .bg-red { background: radial-gradient(120% 80% at 30% 20%, #F2232E 0%, var(--red) 45%, #B80C1C 100%); color: #fff; }
+  .bg-red { background: radial-gradient(120% 80% at 30% 20%, #EC1C36 0%, var(--red) 45%, #AE0820 100%); color: #fff; }
   .abs { position: absolute; }
   .title { position: absolute; left: 70px; right: 70px; text-align: center; z-index: 10; }
   .sm { font-weight: 800; font-size: 64px; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
@@ -56,7 +56,7 @@
   .dash .top .logo-c span { font-weight: 800; font-size: 22px; letter-spacing: .04em; }
   .dash .av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(145deg, var(--org), var(--mag)); }
   .dash .hero { margin-top: 14px; height: 168px; border-radius: 14px; position: relative; overflow: hidden;
-    background: linear-gradient(110deg, #3a0d2a 0%, #8f1239 45%, #E3120B 100%); padding: 20px 22px; }
+    background: linear-gradient(110deg, #3a0d2a 0%, #8f1239 45%, #DA0B22 100%); padding: 20px 22px; }
   .dash .hero b { display: block; font-weight: 900; font-size: 34px; line-height: 1.05; width: 420px; }
   .dash .hero small { display: block; margin-top: 8px; font-weight: 600; font-size: 16px; opacity: .85; }
   .dash .hero .play { position: absolute; right: 30px; top: 46px; width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.95); }
@@ -138,7 +138,7 @@ const IC = {
   bolt: `<svg viewBox="0 0 100 100" ${S}><path d="M56 12L24 56h24l-6 32 34-46H52z"/></svg>`,
   chart: `<svg viewBox="0 0 100 100" ${S}><path d="M18 80h66"/><path d="M28 70V54M46 70V40M64 70V28"/><path d="M24 40l20-14 14 8 22-16"/></svg>`,
   play: `<svg viewBox="0 0 100 100" ${S}><rect x="12" y="22" width="76" height="56" rx="12"/><path d="M42 38l20 12-20 12z" fill="#fff"/></svg>`,
-  heart: `<svg viewBox="0 0 100 100"><path d="M50 84S14 62 14 38c0-12 9-22 21-22 7 0 12 4 15 9 3-5 8-9 15-9 12 0 21 10 21 22 0 24-36 46-36 46z" fill="#E3120B"/></svg>`,
+  heart: `<svg viewBox="0 0 100 100"><path d="M50 84S14 62 14 38c0-12 9-22 21-22 7 0 12 4 15 9 3-5 8-9 15-9 12 0 21 10 21 22 0 24-36 46-36 46z" fill="#DA0B22"/></svg>`,
 };
 function avatar(bg, skin, hair) {
   return `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="${bg}"/><circle cx="50" cy="42" r="18" fill="${skin}"/>
@@ -194,11 +194,11 @@ scene(0, 4.10, 'bg-cream', el => {
       <rect x="40" y="120" width="280" height="290" rx="10" fill="#F7C5CB"/>
       <rect x="80" y="210" width="90" height="200" rx="8" fill="#F0939C"/>
       <rect x="200" y="210" width="90" height="90" rx="8" fill="#fff" opacity=".7"/>
-      <path d="M20 40h320l10 80H10z" fill="#E3120B"/>
+      <path d="M20 40h320l10 80H10z" fill="#DA0B22"/>
       <path d="M20 40h53l-8 80H10zM126 40h54v80h-62zM233 40h53l11 80h-62z" fill="#fff" opacity=".9"/>
-      <path d="M10 120c0 22 22 22 27 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0" fill="#E3120B"/></svg>`);
+      <path d="M10 120c0 22 22 22 27 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0 5 22 27 22 31 0" fill="#DA0B22"/></svg>`);
   const bars = h(`<div class="abs" style="left:720px;top:900px;width:300px;height:300px"></div>`);
-  const barEls = [0, 1, 2, 3].map(i => { const b = h(`<div class="abs" style="left:${i * 70}px;bottom:0;width:52px;border-radius:14px 14px 4px 4px;background:linear-gradient(${['#F8B4BA', '#F27580', '#EA3440', '#E3120B'][i]},${['#F8B4BA', '#F27580', '#EA3440', '#E3120B'][i]})"></div>`); bars.appendChild(b); return b; });
+  const barEls = [0, 1, 2, 3].map(i => { const b = h(`<div class="abs" style="left:${i * 70}px;bottom:0;width:52px;border-radius:14px 14px 4px 4px;background:linear-gradient(${['#F8B4BA', '#F27580', '#EA3440', '#DA0B22'][i]},${['#F8B4BA', '#F27580', '#EA3440', '#DA0B22'][i]})"></div>`); bars.appendChild(b); return b; });
   const arrow = h(`<svg class="abs" style="left:-10px;top:-40px;width:320px;height:260px;overflow:visible" viewBox="0 0 320 260"><path id="ar" d="M10 230 L110 150 L170 180 L300 40" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path id="ah" d="M250 36 L304 36 L304 90" fill="none" stroke="#B5287E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
   bars.appendChild(arrow);
   [blob1, blob2, shop, bars].forEach(x => wrap.appendChild(x));
@@ -354,9 +354,9 @@ scene(21.95, 30.42, 'bg-cream', el => {
        <div class="prog"><div></div></div>
        <div class="row-t">Continúa aprendiendo</div>
        <div class="row">
-         <div class="card" style="background:linear-gradient(140deg,#FF3B45,#E3120B)">Contenido</div>
+         <div class="card" style="background:linear-gradient(140deg,#FF3B45,#DA0B22)">Contenido</div>
          <div class="card" style="background:linear-gradient(140deg,#B5287E,#6E1A4F)">Copywriting</div>
-         <div class="card" style="background:linear-gradient(140deg,#E3120B,#B5287E)">Automatización</div>
+         <div class="card" style="background:linear-gradient(140deg,#DA0B22,#B5287E)">Automatización</div>
        </div>
      </div></div>
      <div class="base"></div></div>`);
@@ -428,12 +428,12 @@ scene(30.42, 32.30, 'bg-cream', el => {
    ====================================================================== */
 scene(32.30, 34.95, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
-  const curve = h(`<svg class="abs" style="left:0;top:1150px;width:1080px;height:770px" viewBox="0 0 1080 770" preserveAspectRatio="none"><path d="M0 230 C 300 90, 700 360, 1080 120 L1080 770 L0 770 Z" fill="#E3120B"/><path d="M0 330 C 320 200, 700 470, 1080 260 L1080 770 L0 770 Z" fill="#B80C1C" opacity=".55"/></svg>`);
+  const curve = h(`<svg class="abs" style="left:0;top:1150px;width:1080px;height:770px" viewBox="0 0 1080 770" preserveAspectRatio="none"><path d="M0 230 C 300 90, 700 360, 1080 120 L1080 770 L0 770 Z" fill="#DA0B22"/><path d="M0 330 C 320 200, 700 470, 1080 260 L1080 770 L0 770 Z" fill="#AE0820" opacity=".55"/></svg>`);
   wrap.appendChild(curve);
   const ph = h(`<div class="phone" style="left:300px;top:760px"><div class="notch"></div><div class="in" style="background:linear-gradient(170deg,#fff 0%,#FFF3F1 100%)">
       <div class="abs" style="left:50%;top:250px;width:230px;height:230px;margin-left:-115px;border-radius:56px;background:#fff;box-shadow:0 20px 50px rgba(200,20,40,.25);display:flex;align-items:center;justify-content:center"><img src="assets/claseflix_icon.png" style="height:160px"></div>
       <div class="abs" style="left:0;right:0;top:520px;text-align:center;font-weight:900;font-size:50px;letter-spacing:.04em;color:#1B1B1F">CLASEFLIX</div>
-      <div class="abs" style="left:60px;right:60px;top:610px;height:16px;border-radius:8px;background:#F1E4E1"><div class="ld" style="height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#FF3B45,#E3120B,#B5287E)"></div></div>
+      <div class="abs" style="left:60px;right:60px;top:610px;height:16px;border-radius:8px;background:#F1E4E1"><div class="ld" style="height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#FF3B45,#DA0B22,#B5287E)"></div></div>
     </div></div>`);
   wrap.appendChild(ph);
   const tt = title(wrap, 300, 'A tu ritmo, desde el', 'Celular');
@@ -456,7 +456,7 @@ scene(34.95, 37.10, 'bg-cream', el => {
   const ph = h(`<div class="phone" style="left:300px;top:720px"><div class="notch"></div><div class="in" style="background:#F6F1EE"></div></div>`);
   wrap.appendChild(ph);
   const inn = ph.querySelector('.in');
-  const grads = ['linear-gradient(140deg,#FF3B45,#E3120B)', 'linear-gradient(140deg,#B5287E,#6E1A4F)', 'linear-gradient(140deg,#E3120B,#B5287E)'];
+  const grads = ['linear-gradient(140deg,#FF3B45,#DA0B22)', 'linear-gradient(140deg,#B5287E,#6E1A4F)', 'linear-gradient(140deg,#DA0B22,#B5287E)'];
   const posts = grads.map((g, i) => { const p = h(`<div class="post" style="top:${90 + i * 320}px"><div class="img" style="background:${g}">
       <svg class="abs" style="left:30px;top:30px;width:120px" viewBox="0 0 100 100">${''}<circle cx="30" cy="30" r="14" fill="rgba(255,255,255,.7)"/><path d="M0 100 L40 55 L60 75 L80 60 L100 80 L100 100Z" fill="rgba(255,255,255,.55)"/></svg>
       <div class="abs" style="right:26px;bottom:24px;font-weight:900;font-size:30px;color:#fff;opacity:.95">${['¡Nuevo!', 'Tips', 'Oferta'][i]}</div></div>
@@ -483,7 +483,7 @@ scene(37.10, 39.25, 'bg-red', el => {
   const cards = [card(110, 1180, 360, 300, 'post', -8), card(600, 1140, 380, 320, 'play', 7), card(380, 1450, 320, 260, 'ai', -3)];
   const tt = title(wrap, 640, 'Genera', 'Imágenes');
   const tt2 = title(wrap, 860, '', 'y videos');
-  const ia = h(`<div class="chip" style="left:400px;top:1040px;color:#E3120B;opacity:0"><i>${IC.ai}</i>con IA</div>`); wrap.appendChild(ia);
+  const ia = h(`<div class="chip" style="left:400px;top:1040px;color:#DA0B22;opacity:0"><i>${IC.ai}</i>con IA</div>`); wrap.appendChild(ia);
   return { wrap, cards, tt, tt2, ia };
 }, (c, t) => {
   push(c.wrap, t, 37.1, 39.25, 0.05);
@@ -500,7 +500,7 @@ scene(37.10, 39.25, 'bg-red', el => {
 scene(39.25, 41.80, 'bg-cream', el => {
   const wrap = h(`<div class="abs" style="inset:0"></div>`); el.appendChild(wrap);
   const tt = title(wrap, 300, 'Planifica el contenido de', 'Todo el mes');
-  const num = h(`<div class="abs" style="left:0;right:0;top:640px;text-align:center;font-weight:900;font-size:300px;letter-spacing:-.04em;line-height:1;color:#E3120B">1</div>`); wrap.appendChild(num);
+  const num = h(`<div class="abs" style="left:0;right:0;top:640px;text-align:center;font-weight:900;font-size:300px;letter-spacing:-.04em;line-height:1;color:#DA0B22">1</div>`); wrap.appendChild(num);
   const lab = h(`<div class="abs" style="left:0;right:0;top:950px;text-align:center;font-weight:800;font-size:60px;color:#1B1B1F">días de contenido</div>`); wrap.appendChild(lab);
   const cal = h(`<div class="cal" style="left:${(1080 - (7 * 96 + 6 * 14)) / 2}px;top:1100px"></div>`);
   const cells = []; for (let i = 0; i < 35; i++) { const d = document.createElement('div'); cal.appendChild(d); cells.push(d); }
@@ -516,7 +516,7 @@ scene(39.25, 41.80, 'bg-cream', el => {
   rv(c.lab, t, 39.45, { y: 30 });
   c.cells.forEach((cd, i) => {
     const on = i < n; const a = 39.4 + (i / 30) * 1.9;
-    cd.style.background = on ? (i % 3 === 0 ? 'linear-gradient(140deg,#FF3B45,#E3120B)' : i % 3 === 1 ? 'linear-gradient(140deg,#E3120B,#B5287E)' : 'linear-gradient(140deg,#B5287E,#6E1A4F)') : (i < 30 ? '#EEE6E2' : 'transparent');
+    cd.style.background = on ? (i % 3 === 0 ? 'linear-gradient(140deg,#FF3B45,#DA0B22)' : i % 3 === 1 ? 'linear-gradient(140deg,#DA0B22,#B5287E)' : 'linear-gradient(140deg,#B5287E,#6E1A4F)') : (i < 30 ? '#EEE6E2' : 'transparent');
     cd.style.transform = on ? `scale(${eb((t - a) / 0.3)})` : 'scale(1)';
     cd.style.opacity = t > 39.3 + i * 0.012 ? 1 : 0;
   });
@@ -530,7 +530,7 @@ scene(41.80, 43.77, 'bg-cream', el => {
   const blob = h(`<div class="blob" style="width:1100px;height:1100px;left:-10px;top:760px;background:radial-gradient(circle,#F9CDD2 0%,#FBE0E3 50%,rgba(251,225,222,0) 70%)"></div>`); wrap.appendChild(blob);
   const sparks = [];
   for (let i = 0; i < 14; i++) {
-    const s = h(`<div class="abs" style="width:${16 + (i % 4) * 8}px;height:${16 + (i % 4) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#E3120B', '#B5287E', '#FF3B45', '#6E1A4F'][i % 4]}"></div>`);
+    const s = h(`<div class="abs" style="width:${16 + (i % 4) * 8}px;height:${16 + (i % 4) * 8}px;border-radius:${i % 2 ? '50%' : '5px'};background:${['#DA0B22', '#B5287E', '#FF3B45', '#6E1A4F'][i % 4]}"></div>`);
     wrap.appendChild(s); sparks.push(s);
   }
   const ch = h(`<div class="char" style="width:860px;top:880px;margin-left:-430px"><img src="assets/carla_happy.png"></div>`); wrap.appendChild(ch);
